@@ -85,7 +85,8 @@ jobs:
             -az \
             --protect-args \
             --delete \
-            --exclude-from=".deployignore" \
+            --exclude='.git/' \
+            --exclude='.github/' \
             -e "ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
             ./ \
             "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
