@@ -1,0 +1,1489 @@
+{
+  "metadata": {
+    "generatedAt": "2026-10-30T20:33:52.419103Z",
+    "recordCount": 185,
+    "source": "SFL-Jasenseurat_taydennetty_v4.xlsx"
+  },
+  "data": [
+    {
+      "seura": "Ankkapurha Discgolf Club (Inkeroisten Latu ry)",
+      "paikkakunta": "Kouvola",
+      "latitude": 60.86806,
+      "longitude": 26.70417,
+      "jasenmaara": 21,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Apy ry",
+      "paikkakunta": "Vantaa",
+      "latitude": 60.29335,
+      "longitude": 25.03777,
+      "jasenmaara": 71,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Arctic Circle Disc Golf Ry",
+      "paikkakunta": "Rovaniemi",
+      "latitude": 66.50395,
+      "longitude": 25.72939,
+      "jasenmaara": 36,
+      "aanimaara": 10
+    },
+    {
+      "seura": "AX Discgolf rf",
+      "paikkakunta": "Maarianhamina",
+      "latitude": 60.09726,
+      "longitude": 19.93481,
+      "jasenmaara": 105,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Bay City Flyers ry",
+      "paikkakunta": "Lahti",
+      "latitude": 60.98267,
+      "longitude": 25.66121,
+      "jasenmaara": 8,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Bonehill Disc Golf ry",
+      "paikkakunta": "Luumäki",
+      "latitude": 60.92639,
+      "longitude": 27.58139,
+      "jasenmaara": 7,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Brahestad Skippers ry",
+      "paikkakunta": "Raahe",
+      "latitude": 64.68472,
+      "longitude": 24.48278,
+      "jasenmaara": 33,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Brutal Force Ry",
+      "paikkakunta": "Hämeenkyrö",
+      "latitude": 61.63944,
+      "longitude": 23.19583,
+      "jasenmaara": 22,
+      "aanimaara": 10
+    },
+    {
+      "seura": "BSC Disc Golf Team ry",
+      "paikkakunta": "Oulu",
+      "latitude": 65.01236,
+      "longitude": 25.46816,
+      "jasenmaara": 116,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Chain Hunters Kouvola ry",
+      "paikkakunta": "Kouvola",
+      "latitude": 60.86806,
+      "longitude": 26.70417,
+      "jasenmaara": 8,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Dark Flight Disc Golf ry",
+      "paikkakunta": "Hyvinkää",
+      "latitude": 60.63333,
+      "longitude": 24.86667,
+      "jasenmaara": 13,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Deep In The Forest ry",
+      "paikkakunta": "Kuopio",
+      "latitude": 62.89238,
+      "longitude": 27.67703,
+      "jasenmaara": 185,
+      "aanimaara": 15
+    },
+    {
+      "seura": "DG Rollers Mänttä-Vilppula ry",
+      "paikkakunta": "Mänttä-Vilppula",
+      "latitude": 62.03056,
+      "longitude": 24.62778,
+      "jasenmaara": 34,
+      "aanimaara": 10
+    },
+    {
+      "seura": "DGC Fat Discs ry",
+      "paikkakunta": "Tampere",
+      "latitude": 61.49775,
+      "longitude": 23.76103,
+      "jasenmaara": 29,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Disc Eagles Suonenjoki ry",
+      "paikkakunta": "Suonenjoki",
+      "latitude": 62.61667,
+      "longitude": 27.11667,
+      "jasenmaara": 15,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Disc Golf Club Tampere ry",
+      "paikkakunta": "Tampere",
+      "latitude": 61.49775,
+      "longitude": 23.76103,
+      "jasenmaara": 5,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Disc Golf Club Uurainen",
+      "paikkakunta": "Seinäjoki",
+      "latitude": 62.79333,
+      "longitude": 22.84028,
+      "jasenmaara": 4,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Disc Golf Hyvinkää",
+      "paikkakunta": "Hyvinkää",
+      "latitude": 60.63333,
+      "longitude": 24.86667,
+      "jasenmaara": 134,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Disc Golf Varkaus ry",
+      "paikkakunta": "Varkaus",
+      "latitude": 62.31533,
+      "longitude": 27.873,
+      "jasenmaara": 29,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Disc Golf Vikings ry",
+      "paikkakunta": "Helsinki",
+      "latitude": 60.16986,
+      "longitude": 24.93838,
+      "jasenmaara": 157,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Disc Klupi Kuhmoinen ry",
+      "paikkakunta": "Kuhmoinen",
+      "latitude": 61.56667,
+      "longitude": 25.18333,
+      "jasenmaara": 22,
+      "aanimaara": 10
+    },
+    {
+      "seura": "DiscBusters ry",
+      "paikkakunta": "Kirkkonummi",
+      "latitude": 60.12333,
+      "longitude": 24.43889,
+      "jasenmaara": 9,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Discgolf Club Birdie Hunters Iitti Ry",
+      "paikkakunta": "Iitti",
+      "latitude": 60.89444,
+      "longitude": 26.33889,
+      "jasenmaara": 29,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Ekenäs IF Disc Golf",
+      "paikkakunta": "Raasepori",
+      "latitude": 59.97389,
+      "longitude": 23.43389,
+      "jasenmaara": 49,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Espoo Flyers ry",
+      "paikkakunta": "Espoo",
+      "latitude": 60.20549,
+      "longitude": 24.6559,
+      "jasenmaara": 39,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Facepalm Frisbee ry",
+      "paikkakunta": "Vantaa",
+      "latitude": 60.29335,
+      "longitude": 25.03777,
+      "jasenmaara": 5,
+      "aanimaara": 10
+    },
+    {
+      "seura": "FBGolf Jurva ry",
+      "paikkakunta": "Jurva",
+      "latitude": 62.68333,
+      "longitude": 21.98333,
+      "jasenmaara": 18,
+      "aanimaara": 10
+    },
+    {
+      "seura": "FGP – FrisbeeGolf Petäjävesi ry",
+      "paikkakunta": "Petäjävesi",
+      "latitude": 62.25,
+      "longitude": 25.18333,
+      "jasenmaara": 23,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Flying Discs Vörå",
+      "paikkakunta": "Vöyri",
+      "latitude": 63.13194,
+      "longitude": 22.25278,
+      "jasenmaara": 52,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Foot Fault Frisbee ry",
+      "paikkakunta": "Vaasa",
+      "latitude": 63.09509,
+      "longitude": 21.61646,
+      "jasenmaara": 11,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Fribahullut ry",
+      "paikkakunta": "Helsinki",
+      "latitude": 60.16986,
+      "longitude": 24.93838,
+      "jasenmaara": 40,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Friba-Tikat ry",
+      "paikkakunta": "Kokemäki",
+      "latitude": 61.25694,
+      "longitude": 22.35694,
+      "jasenmaara": 40,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbee Kings ry",
+      "paikkakunta": "Espoo",
+      "latitude": 60.20549,
+      "longitude": 24.6559,
+      "jasenmaara": 16,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbeegolf Club Keinukallio ry",
+      "paikkakunta": "Kerava",
+      "latitude": 60.40389,
+      "longitude": 25.105,
+      "jasenmaara": 114,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Frisbeegolf Club Laihia Ry",
+      "paikkakunta": "Laihia",
+      "latitude": 62.97639,
+      "longitude": 22.01056,
+      "jasenmaara": 25,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbeegolf Forssa ry",
+      "paikkakunta": "Forssa",
+      "latitude": 60.81462,
+      "longitude": 23.62146,
+      "jasenmaara": 37,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbeegolf Kauhajoki ry",
+      "paikkakunta": "Kauhajoki",
+      "latitude": 62.43333,
+      "longitude": 22.18333,
+      "jasenmaara": 42,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbeegolf Nurmijärvi ry",
+      "paikkakunta": "Nurmijärvi",
+      "latitude": 60.46667,
+      "longitude": 24.8,
+      "jasenmaara": 34,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbeegolf Ruka ry",
+      "paikkakunta": "Kuusamo",
+      "latitude": 65.96667,
+      "longitude": 29.18333,
+      "jasenmaara": 33,
+      "aanimaara": 10
+    },
+    {
+      "seura": "FrisbeeGolfClub Hyrylä ry",
+      "paikkakunta": "Tuusula",
+      "latitude": 60.40389,
+      "longitude": 25.02639,
+      "jasenmaara": 129,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Frisbeegolfseura 7k ry Turku",
+      "paikkakunta": "Turku",
+      "latitude": 60.45181,
+      "longitude": 22.26663,
+      "jasenmaara": 219,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Frisbeegolfseura FORE Turku ry",
+      "paikkakunta": "Turku",
+      "latitude": 60.45181,
+      "longitude": 22.26663,
+      "jasenmaara": 268,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Frisbeegolfseura Kouvolan Lentävät Lautaset ry",
+      "paikkakunta": "Kouvola",
+      "latitude": 60.86806,
+      "longitude": 26.70417,
+      "jasenmaara": 102,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Frisbeegolfseura Mandon Kiertäjät ry",
+      "paikkakunta": "Keuruu",
+      "latitude": 62.26667,
+      "longitude": 24.7,
+      "jasenmaara": 48,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbeegolfseura Muki",
+      "paikkakunta": "Loimaa",
+      "latitude": 60.84722,
+      "longitude": 23.05694,
+      "jasenmaara": 30,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbeegolfseura Mulligan Hooligans ry",
+      "paikkakunta": "Helsinki",
+      "latitude": 60.16986,
+      "longitude": 24.93838,
+      "jasenmaara": 61,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbeegolfseura Sankariheittäjät Ry",
+      "paikkakunta": "Espoo",
+      "latitude": 60.20549,
+      "longitude": 24.6559,
+      "jasenmaara": 31,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Frisbeekotkat",
+      "paikkakunta": "Kotka",
+      "latitude": 60.46639,
+      "longitude": 26.94583,
+      "jasenmaara": 124,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Golden beach disc golfers ry",
+      "paikkakunta": "Kalajoki",
+      "latitude": 64.25972,
+      "longitude": 23.94861,
+      "jasenmaara": 26,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Gymnastik-och Idrottsförening Jäntevä ry/ Kimitoöns DiscGolf",
+      "paikkakunta": "Kemiönsaari",
+      "latitude": 60.16389,
+      "longitude": 22.72917,
+      "jasenmaara": 1,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Haapaveden Urheilijat ry",
+      "paikkakunta": "Haapavesi",
+      "latitude": 64.1375,
+      "longitude": 25.36444,
+      "jasenmaara": 14,
+      "aanimaara": 10
+    },
+    {
+      "seura": "HaHaa Heitto ry",
+      "paikkakunta": "Helsinki",
+      "latitude": 60.16986,
+      "longitude": 24.93838,
+      "jasenmaara": 11,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Hangon Hyrskyt frisbeegolf",
+      "paikkakunta": "Hanko",
+      "latitude": 59.82306,
+      "longitude": 22.96861,
+      "jasenmaara": 30,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Hardcore Discgolf ry",
+      "paikkakunta": "Oulu",
+      "latitude": 65.01236,
+      "longitude": 25.46816,
+      "jasenmaara": 69,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Harjavallan DiscGolf ry",
+      "paikkakunta": "Harjavalta",
+      "latitude": 61.31667,
+      "longitude": 22.14167,
+      "jasenmaara": 51,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Hyzer Hollola disc club ry",
+      "paikkakunta": "Hollola",
+      "latitude": 60.98611,
+      "longitude": 25.51389,
+      "jasenmaara": 62,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Hämeenlinnan Discaajat Ry",
+      "paikkakunta": "Hämeenlinna",
+      "latitude": 60.99596,
+      "longitude": 24.46434,
+      "jasenmaara": 121,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Ii DiscGolf ry",
+      "paikkakunta": "Ii",
+      "latitude": 65.31722,
+      "longitude": 25.37306,
+      "jasenmaara": 66,
+      "aanimaara": 10
+    },
+    {
+      "seura": "IIF Discgolf",
+      "paikkakunta": "Inkoo",
+      "latitude": 60.04583,
+      "longitude": 24.00694,
+      "jasenmaara": 35,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Jaalan Voima Ry",
+      "paikkakunta": "Kouvola",
+      "latitude": 60.86806,
+      "longitude": 26.70417,
+      "jasenmaara": 13,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Joen Liitokiekko ry",
+      "paikkakunta": "Joensuu",
+      "latitude": 62.60118,
+      "longitude": 29.76316,
+      "jasenmaara": 236,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Joroisten Urheilijat / frisbeegolf",
+      "paikkakunta": "Joroinen",
+      "latitude": 62.17889,
+      "longitude": 27.83139,
+      "jasenmaara": 4,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Jyväskylän Liitokiekkoilijat ry:n frisbeegolfjaosto",
+      "paikkakunta": "Jyväskylä",
+      "latitude": 62.24147,
+      "longitude": 25.72088,
+      "jasenmaara": 247,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Jämsän Frisbeegolf ry",
+      "paikkakunta": "Mäntsälä",
+      "latitude": 60.63333,
+      "longitude": 25.31667,
+      "jasenmaara": 58,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Jäppärä ry.",
+      "paikkakunta": "Kärkölä",
+      "latitude": 60.87222,
+      "longitude": 25.26944,
+      "jasenmaara": 13,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Järvenpään Frisbeegolf ry",
+      "paikkakunta": "Järvenpää",
+      "latitude": 60.47367,
+      "longitude": 25.08992,
+      "jasenmaara": 89,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Jätkän Kiekko ry",
+      "paikkakunta": "Kemi",
+      "latitude": 65.73611,
+      "longitude": 24.56389,
+      "jasenmaara": 58,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Kangasalan Voitto Disc golf",
+      "paikkakunta": "Kangasala",
+      "latitude": 61.46383,
+      "longitude": 24.07602,
+      "jasenmaara": 39,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Kangasniemen Palloilijat ry / KaPaDG",
+      "paikkakunta": "Kangasniemi",
+      "latitude": 61.99389,
+      "longitude": 26.6475,
+      "jasenmaara": 19,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Karkkilan Frisbeegolfkerho ry",
+      "paikkakunta": "Karkkila",
+      "latitude": 60.53472,
+      "longitude": 24.20972,
+      "jasenmaara": 73,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Karttulan tennisseuran frisbeegolfjaosto",
+      "paikkakunta": "Kuopio",
+      "latitude": 62.89238,
+      "longitude": 27.67703,
+      "jasenmaara": 5,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Kempeleen Frisbeeseura ry",
+      "paikkakunta": "Kempele",
+      "latitude": 64.91389,
+      "longitude": 25.50389,
+      "jasenmaara": 69,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Kirkkonummen Disc Golf Club ry",
+      "paikkakunta": "Kirkkonummi",
+      "latitude": 60.12333,
+      "longitude": 24.43889,
+      "jasenmaara": 49,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Knights DiscGolf / Fbc Raseborg Knights",
+      "paikkakunta": "Raasepori",
+      "latitude": 59.97389,
+      "longitude": 23.43389,
+      "jasenmaara": 27,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Koovee ry",
+      "paikkakunta": "Tampere",
+      "latitude": 61.49775,
+      "longitude": 23.76103,
+      "jasenmaara": 16,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Korven Kopse ry",
+      "paikkakunta": "Kajaani",
+      "latitude": 64.22728,
+      "longitude": 27.72846,
+      "jasenmaara": 91,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Kosken Kaiku ry/Frisbeegolf",
+      "paikkakunta": "Koski",
+      "latitude": 63.83847,
+      "longitude": 23.13066,
+      "jasenmaara": 17,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Kyyjärven Kyky r.y.",
+      "paikkakunta": "Kyyjärvi",
+      "latitude": 63.04222,
+      "longitude": 24.56361,
+      "jasenmaara": 7,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Laager-liiga disc golf club ry",
+      "paikkakunta": "Rovaniemi",
+      "latitude": 66.50395,
+      "longitude": 25.72939,
+      "jasenmaara": 56,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Lahden Frisbee Club ry",
+      "paikkakunta": "Lahti",
+      "latitude": 60.98267,
+      "longitude": 25.66121,
+      "jasenmaara": 106,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Lakeus Disc Golf",
+      "paikkakunta": "Ilmajoki",
+      "latitude": 62.73333,
+      "longitude": 22.56667,
+      "jasenmaara": 78,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Lapin Salama",
+      "paikkakunta": "Rauma",
+      "latitude": 61.12724,
+      "longitude": 21.51127,
+      "jasenmaara": 14,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Lapuan Frisbeegolf Club ry",
+      "paikkakunta": "Lapua",
+      "latitude": 62.97083,
+      "longitude": 23.00833,
+      "jasenmaara": 8,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Lempäälän Kiekko Disc Golf ry",
+      "paikkakunta": "Lempäälä",
+      "latitude": 61.31667,
+      "longitude": 23.75,
+      "jasenmaara": 61,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Lempäälän Toivot",
+      "paikkakunta": "Lempäälä",
+      "latitude": 61.31667,
+      "longitude": 23.75,
+      "jasenmaara": 3,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Liitokiekkoseura Mustavaris ry",
+      "paikkakunta": "Pori",
+      "latitude": 61.48514,
+      "longitude": 21.79742,
+      "jasenmaara": 110,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Liljendal idrottsklubb r.f.",
+      "paikkakunta": "Loviisa",
+      "latitude": 60.45694,
+      "longitude": 26.225,
+      "jasenmaara": 12,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Linnan Mando DG ry",
+      "paikkakunta": "Savonlinna",
+      "latitude": 61.86806,
+      "longitude": 28.88611,
+      "jasenmaara": 53,
+      "aanimaara": 10
+    },
+    {
+      "seura": "LoFro – Loviisan Frisbeegolf ry",
+      "paikkakunta": "Loviisa",
+      "latitude": 60.45694,
+      "longitude": 26.225,
+      "jasenmaara": 52,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Lohjan Liitokiekkoilijat Ry",
+      "paikkakunta": "Lohja",
+      "latitude": 60.25167,
+      "longitude": 24.065,
+      "jasenmaara": 69,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Lords of DiscGolf ry",
+      "paikkakunta": "Heinola",
+      "latitude": 61.20564,
+      "longitude": 26.03811,
+      "jasenmaara": 272,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Luvian Veto (Veto Frisbee)",
+      "paikkakunta": "Eurajoki",
+      "latitude": 61.19917,
+      "longitude": 21.73389,
+      "jasenmaara": 65,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Marttilan Murto ry",
+      "paikkakunta": "Marttila",
+      "latitude": 60.58333,
+      "longitude": 22.9,
+      "jasenmaara": 9,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Marttilan Murto ry",
+      "paikkakunta": "Marttila",
+      "latitude": 60.58333,
+      "longitude": 22.9,
+      "jasenmaara": 1,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Merenlahden Lepatus ry",
+      "paikkakunta": "Taipalsaari",
+      "latitude": 61.15,
+      "longitude": 28.05,
+      "jasenmaara": 1,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Merikarvian Lukko, frisbeegolf",
+      "paikkakunta": "Merikarvia",
+      "latitude": 61.85833,
+      "longitude": 21.5,
+      "jasenmaara": 9,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Mikkelin frisbeegolf ry",
+      "paikkakunta": "Mikkeli",
+      "latitude": 61.68857,
+      "longitude": 27.27227,
+      "jasenmaara": 81,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Multi Ace DG (Multian Jyske, frisbeegolf)",
+      "paikkakunta": "Multia",
+      "latitude": 62.41667,
+      "longitude": 24.78333,
+      "jasenmaara": 12,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Mustion Väyläkiiturit ry",
+      "paikkakunta": "Raasepori",
+      "latitude": 59.97389,
+      "longitude": 23.43389,
+      "jasenmaara": 4,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Mäntsälän Frisbeegolf ry",
+      "paikkakunta": "Mäntsälä",
+      "latitude": 60.63333,
+      "longitude": 25.31667,
+      "jasenmaara": 46,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Mäntyharjun Virkistys ry / Frisbeegolfjaosto",
+      "paikkakunta": "Mäntyharju",
+      "latitude": 61.41667,
+      "longitude": 26.88333,
+      "jasenmaara": 27,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Naantali Radicals ry",
+      "paikkakunta": "Naantali",
+      "latitude": 60.46744,
+      "longitude": 22.02428,
+      "jasenmaara": 26,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Nastola Woodpeckers disc club ry",
+      "paikkakunta": "Lahti",
+      "latitude": 60.98267,
+      "longitude": 25.66121,
+      "jasenmaara": 72,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Nivalan Frisbeegolf Ry",
+      "paikkakunta": "Nivala",
+      "latitude": 63.925,
+      "longitude": 24.975,
+      "jasenmaara": 49,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Nokian Frisbeeseura ry",
+      "paikkakunta": "Nokia",
+      "latitude": 61.47667,
+      "longitude": 23.50528,
+      "jasenmaara": 72,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Noormarkun koitto",
+      "paikkakunta": "Noormarkku (Pori)",
+      "latitude": 61.59278,
+      "longitude": 21.86806,
+      "jasenmaara": 6,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Nousten Frisbeegolf ry",
+      "paikkakunta": "Salo",
+      "latitude": 60.38333,
+      "longitude": 23.13333,
+      "jasenmaara": 77,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Nukarin Viskojat ry",
+      "paikkakunta": "Nurmijärvi",
+      "latitude": 60.46667,
+      "longitude": 24.8,
+      "jasenmaara": 4,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Nummelan frisbeeseura ry",
+      "paikkakunta": "Vihti",
+      "latitude": 60.41667,
+      "longitude": 24.33333,
+      "jasenmaara": 75,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Orimattila Disc Club Ry",
+      "paikkakunta": "Orimattila",
+      "latitude": 60.80417,
+      "longitude": 25.72917,
+      "jasenmaara": 23,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Oripään Urheilijat r.y.",
+      "paikkakunta": "Oripää",
+      "latitude": 60.85556,
+      "longitude": 22.68472,
+      "jasenmaara": 23,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Oriveden frisbeegolf ry",
+      "paikkakunta": "Orivesi",
+      "latitude": 61.67778,
+      "longitude": 24.35556,
+      "jasenmaara": 22,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Oulun frisbeeseura ry",
+      "paikkakunta": "Oulu",
+      "latitude": 65.01236,
+      "longitude": 25.46816,
+      "jasenmaara": 328,
+      "aanimaara": " 20"
+    },
+    {
+      "seura": "Padasjoen Frisbeegolf",
+      "paikkakunta": "Padasjoki",
+      "latitude": 61.35,
+      "longitude": 25.28333,
+      "jasenmaara": 31,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Paimion Frisbeegolfseura Ry",
+      "paikkakunta": "Porvoo",
+      "latitude": 60.39233,
+      "longitude": 25.66507,
+      "jasenmaara": 56,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Paloheinän Huippu Frisbeegolf ry",
+      "paikkakunta": "Helsinki",
+      "latitude": 60.16986,
+      "longitude": 24.93838,
+      "jasenmaara": 42,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Parkanon Urheilijat ry",
+      "paikkakunta": "Vampula",
+      "latitude": 61.01778,
+      "longitude": 22.70417,
+      "jasenmaara": 24,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Perhonjokilaakson Frisbeegolf ry",
+      "paikkakunta": "Veteli",
+      "latitude": 63.47806,
+      "longitude": 23.78139,
+      "jasenmaara": 79,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pernå Kamraterna r.f",
+      "paikkakunta": "Loviisa",
+      "latitude": 60.45694,
+      "longitude": 26.225,
+      "jasenmaara": 19,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Perttelin Peikot",
+      "paikkakunta": "Salo",
+      "latitude": 60.38333,
+      "longitude": 23.13333,
+      "jasenmaara": 1,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pieksämäen Ohiheittäjät",
+      "paikkakunta": "Pieksämäki",
+      "latitude": 62.30083,
+      "longitude": 27.12528,
+      "jasenmaara": 74,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pirkanmaan Frisbeegolf ry",
+      "paikkakunta": "Tampere",
+      "latitude": 61.49775,
+      "longitude": 23.76103,
+      "jasenmaara": 10,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pirkkalan Frisbeeseura Aviaattorit ry",
+      "paikkakunta": "Pirkkala",
+      "latitude": 61.46167,
+      "longitude": 23.64778,
+      "jasenmaara": 77,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pirtin Kiertäjät ry",
+      "paikkakunta": "Hämeenlinna",
+      "latitude": 60.99596,
+      "longitude": 24.46434,
+      "jasenmaara": 24,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Porvoon frisbeegolfseura ry",
+      "paikkakunta": "Porvoo",
+      "latitude": 60.39233,
+      "longitude": 25.66507,
+      "jasenmaara": 115,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Porvoon Puttipossut ry",
+      "paikkakunta": "Porvoo",
+      "latitude": 60.39233,
+      "longitude": 25.66507,
+      "jasenmaara": 14,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pulkkilan Ponsi r.y.",
+      "paikkakunta": "Siikalatva",
+      "latitude": 63.95,
+      "longitude": 26.01667,
+      "jasenmaara": 44,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pulkkilan Ponsi r.y.",
+      "paikkakunta": "Siikalatva",
+      "latitude": 63.95,
+      "longitude": 26.01667,
+      "jasenmaara": 34,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Puska Puttaajat Ry",
+      "paikkakunta": "Laukaa",
+      "latitude": 62.41444,
+      "longitude": 25.95167,
+      "jasenmaara": 146,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Puskasoturit ry",
+      "paikkakunta": "Espoo",
+      "latitude": 60.20549,
+      "longitude": 24.6559,
+      "jasenmaara": 373,
+      "aanimaara": " 20"
+    },
+    {
+      "seura": "Pyhtään Yritys ry / Huutjärven Forettajat",
+      "paikkakunta": "Pyhtää",
+      "latitude": 60.49306,
+      "longitude": 26.54167,
+      "jasenmaara": 61,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pyhäjoen Frisbeeseura ry",
+      "paikkakunta": "Pyhäntä",
+      "latitude": 64.09861,
+      "longitude": 26.32889,
+      "jasenmaara": 18,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pyhäjärviseutu Disc Golf ry",
+      "paikkakunta": "Eura",
+      "latitude": 61.12917,
+      "longitude": 22.1325,
+      "jasenmaara": 26,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pyhännän frisbeeseura ry",
+      "paikkakunta": "Pyhäntä",
+      "latitude": 64.09861,
+      "longitude": 26.32889,
+      "jasenmaara": 6,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pyssykylän Upsi ry",
+      "paikkakunta": "Sodankylä",
+      "latitude": 67.41667,
+      "longitude": 26.6,
+      "jasenmaara": 45,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pystykiekko ry",
+      "paikkakunta": "Laitila",
+      "latitude": 60.87556,
+      "longitude": 21.69722,
+      "jasenmaara": 43,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Pöytyän Urheilijat ry / Frisbeegolfjaosto",
+      "paikkakunta": "Pöytyä",
+      "latitude": 60.75833,
+      "longitude": 22.66667,
+      "jasenmaara": 14,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Raaseporin Korilla Ry",
+      "paikkakunta": "Raasepori",
+      "latitude": 59.97389,
+      "longitude": 23.43389,
+      "jasenmaara": 42,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Raisu Lumous",
+      "paikkakunta": "Vantaa",
+      "latitude": 60.29335,
+      "longitude": 25.03777,
+      "jasenmaara": 30,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Ranuan peura",
+      "paikkakunta": "Ranua",
+      "latitude": 65.91667,
+      "longitude": 26.53333,
+      "jasenmaara": 2,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Rauman Frisbee",
+      "paikkakunta": "Rauma",
+      "latitude": 61.12724,
+      "longitude": 21.51127,
+      "jasenmaara": 114,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Rautalammin Urheilijat ry",
+      "paikkakunta": "Vampula",
+      "latitude": 61.01778,
+      "longitude": 22.70417,
+      "jasenmaara": 5,
+      "aanimaara": 10
+    },
+    {
+      "seura": "ReTee ry",
+      "paikkakunta": "Janakkala",
+      "latitude": 60.90139,
+      "longitude": 24.6,
+      "jasenmaara": 90,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Riihimäen Frisbeegolf ry",
+      "paikkakunta": "Riihimäki",
+      "latitude": 60.73769,
+      "longitude": 24.77284,
+      "jasenmaara": 78,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Rovaniemen Rolffarit ry",
+      "paikkakunta": "Rovaniemi",
+      "latitude": 66.50395,
+      "longitude": 25.72939,
+      "jasenmaara": 60,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Saarijärven frisbaajat ry",
+      "paikkakunta": "Saarijärvi",
+      "latitude": 62.70486,
+      "longitude": 25.25396,
+      "jasenmaara": 62,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Salon Frisbeegolf ry",
+      "paikkakunta": "Salo",
+      "latitude": 60.38333,
+      "longitude": 23.13333,
+      "jasenmaara": 71,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Sasta Frisbeegolf Ry",
+      "paikkakunta": "Salo",
+      "latitude": 60.38333,
+      "longitude": 23.13333,
+      "jasenmaara": 60,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Sawo Disc Golf ry",
+      "paikkakunta": "Joroinen",
+      "latitude": 62.17889,
+      "longitude": 27.83139,
+      "jasenmaara": 38,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Siikaisten Sisu ry",
+      "paikkakunta": "Siikainen",
+      "latitude": 61.87778,
+      "longitude": 21.81944,
+      "jasenmaara": 8,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Simpele DiscGolf",
+      "paikkakunta": "Simpele",
+      "latitude": 61.43472,
+      "longitude": 29.36389,
+      "jasenmaara": 31,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Sipoon Discstroyers ry",
+      "paikkakunta": "Sipoo",
+      "latitude": 60.3775,
+      "longitude": 25.26944,
+      "jasenmaara": 67,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Skogby IK Discgolf",
+      "paikkakunta": "Inkoo",
+      "latitude": 60.04583,
+      "longitude": 24.00694,
+      "jasenmaara": 35,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Somerniemen Mandomissit ry",
+      "paikkakunta": "Somero",
+      "latitude": 60.61667,
+      "longitude": 23.53333,
+      "jasenmaara": 10,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Someron Esa",
+      "paikkakunta": "Somero",
+      "latitude": 60.61667,
+      "longitude": 23.53333,
+      "jasenmaara": 12,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Sweetspot Ry",
+      "paikkakunta": "Lohja",
+      "latitude": 60.25167,
+      "longitude": 24.065,
+      "jasenmaara": 60,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Talin Tallaajat ry",
+      "paikkakunta": "Helsinki",
+      "latitude": 60.16986,
+      "longitude": 24.93838,
+      "jasenmaara": 229,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Tampereen Frisbeeseura ry",
+      "paikkakunta": "Tampere",
+      "latitude": 61.49775,
+      "longitude": 23.76103,
+      "jasenmaara": 384,
+      "aanimaara": 20
+    },
+    {
+      "seura": "Team Griplock ry",
+      "paikkakunta": "Salo",
+      "latitude": 60.38333,
+      "longitude": 23.13333,
+      "jasenmaara": 11,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Team Hippo ry",
+      "paikkakunta": "Espoo",
+      "latitude": 60.20549,
+      "longitude": 24.6559,
+      "jasenmaara": 25,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Team Spirit ry",
+      "paikkakunta": "Jyväskylä",
+      "latitude": 62.24147,
+      "longitude": 25.72088,
+      "jasenmaara": 36,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Tomoottajat Disc Golf Ry",
+      "paikkakunta": "Kankaanpää",
+      "latitude": 61.80556,
+      "longitude": 22.39444,
+      "jasenmaara": 36,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Tupenpurijat",
+      "paikkakunta": "Pälkäne",
+      "latitude": 61.3375,
+      "longitude": 24.27083,
+      "jasenmaara": 10,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Urheiluseura Kivijärven Kivekkäät",
+      "paikkakunta": "Kivijärvi",
+      "latitude": 63.11944,
+      "longitude": 25.07889,
+      "jasenmaara": 25,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Urheiluseura Ruukin Into",
+      "paikkakunta": "Siikajoki",
+      "latitude": 64.81444,
+      "longitude": 24.75917,
+      "jasenmaara": 5,
+      "aanimaara": 10
+    },
+    {
+      "seura": "V- ja U-seura Korven Korvenpojat ry / Bats",
+      "paikkakunta": "Nurmijärvi",
+      "latitude": 60.46667,
+      "longitude": 24.8,
+      "jasenmaara": 73,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Vaalan frisbeegolfklubi",
+      "paikkakunta": "Vaala",
+      "latitude": 64.55944,
+      "longitude": 26.83361,
+      "jasenmaara": 15,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Valkeakoski Disc Golf ry",
+      "paikkakunta": "Valkeakoski",
+      "latitude": 61.26421,
+      "longitude": 24.03122,
+      "jasenmaara": 68,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Vampulan Urheilijat frisbeejaosto",
+      "paikkakunta": "Pöytyä",
+      "latitude": 60.75833,
+      "longitude": 22.66667,
+      "jasenmaara": 34,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Veikkola Disc Golf Club ry",
+      "paikkakunta": "Veikkola",
+      "latitude": 60.27361,
+      "longitude": 24.54222,
+      "jasenmaara": 17,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Vihtijärven Uhka ry",
+      "paikkakunta": "Vihti",
+      "latitude": 60.41667,
+      "longitude": 24.33333,
+      "jasenmaara": 4,
+      "aanimaara": 10
+    },
+    {
+      "seura": "VIP Frisbeegolf ry",
+      "paikkakunta": "Liminka",
+      "latitude": 64.80972,
+      "longitude": 25.41556,
+      "jasenmaara": 11,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Vuoksen Disc Golf ry",
+      "paikkakunta": "Imatra",
+      "latitude": 61.17185,
+      "longitude": 28.75242,
+      "jasenmaara": 45,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Vuorelan Veikot ry Frisbeegolf",
+      "paikkakunta": "Siilinjärvi",
+      "latitude": 63.07833,
+      "longitude": 27.66056,
+      "jasenmaara": 304,
+      "aanimaara": " 20"
+    },
+    {
+      "seura": "Wasa Disc Golf Club ry",
+      "paikkakunta": "Vaasa",
+      "latitude": 63.09509,
+      "longitude": 21.61646,
+      "jasenmaara": 52,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Wasa Thunder",
+      "paikkakunta": "Vaasa",
+      "latitude": 63.09509,
+      "longitude": 21.61646,
+      "jasenmaara": 6,
+      "aanimaara": 10
+    },
+    {
+      "seura": "West Coast Disc Golfers Ry",
+      "paikkakunta": "Kokkola",
+      "latitude": 63.83847,
+      "longitude": 23.13066,
+      "jasenmaara": 130,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Willimiehen Disc Golf ry",
+      "paikkakunta": "Lappeenranta",
+      "latitude": 61.05871,
+      "longitude": 28.18871,
+      "jasenmaara": 207,
+      "aanimaara": 15
+    },
+    {
+      "seura": "Wirmo DiscGolf Mynämäki ry",
+      "paikkakunta": "Mynämäki",
+      "latitude": 60.67917,
+      "longitude": 21.99222,
+      "jasenmaara": 41,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Woodpeckers Discgolf/Kylmäkosken Veikot ry",
+      "paikkakunta": "Akaa",
+      "latitude": 61.169,
+      "longitude": 23.868,
+      "jasenmaara": 8,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Ylivieskan Frisbeekarhut ry",
+      "paikkakunta": "Ylivieska",
+      "latitude": 64.07222,
+      "longitude": 24.53583,
+      "jasenmaara": 35,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Yläpanta GG ry",
+      "paikkakunta": "Vantaa",
+      "latitude": 60.29335,
+      "longitude": 25.03777,
+      "jasenmaara": 5,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Ylöjärven Ryhti ry",
+      "paikkakunta": "Ylöjärvi",
+      "latitude": 61.55,
+      "longitude": 23.58333,
+      "jasenmaara": 81,
+      "aanimaara": 10
+    },
+    {
+      "seura": "Ähtärin Urheilijat ry",
+      "paikkakunta": "Ähtäri",
+      "latitude": 62.55,
+      "longitude": 24.06667,
+      "jasenmaara": 35,
+      "aanimaara": 10
+    },
+    {
+      "seura": "ÄKI DG ry",
+      "paikkakunta": "Äänekoski",
+      "latitude": 62.6,
+      "longitude": 25.73333,
+      "jasenmaara": 52,
+      "aanimaara": 10
+    }
+  ]
+}
