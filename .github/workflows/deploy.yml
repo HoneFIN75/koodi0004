@@ -1,0 +1,55 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy Website
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Configure SSH Client
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Ensure deployment path exists
+        shell: bash
+        run: |
+          ssh \
+            -i ~/.ssh/id_rsa \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "mkdir -p '${{ secrets.DEPLOY_PATH }}'"
+
+      - name: Deploy application
+        shell: bash
+        run: |
+          rsync \
+            -az \
+            --delete \
+            --exclude-from=".deployignore" \
+            -e "ssh -i ~/.ssh/id_rsa" \
+            ./ \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+
+      - name: Deployment completed
+        run: echo "Production deployment completed successfully."
