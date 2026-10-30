@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: production-deploy
@@ -17,39 +21,72 @@ jobs:
     environment:
       name: production
 
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Configure SSH Client
         shell: bash
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
-          mkdir -p ~/.ssh
+          set -euo pipefail
 
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          for variable in SSH_HOST SSH_USER SSH_KEY SSH_KNOWN_HOSTS DEPLOY_PATH; do
+            if [[ -z "${!variable}" ]]; then
+              echo "::error::Required secret $variable is missing or empty."
+              exit 1
+            fi
+          done
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          echo "${{ secrets.SSH_HOSTS }}" > ~/.ssh/known_hosts
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
+
+          if ! ssh-keygen -F "$SSH_HOST" -f ~/.ssh/known_hosts > /dev/null; then
+            echo "::error::SSH_KNOWN_HOSTS has no entry for SSH_HOST."
+            exit 1
+          fi
 
       - name: Ensure deployment path exists
         shell: bash
         run: |
+          set -euo pipefail
+
+          printf -v remote_path '%q' "$DEPLOY_PATH"
+
           ssh \
             -i ~/.ssh/id_rsa \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "mkdir -p '${{ secrets.DEPLOY_PATH }}'"
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" \
+            "mkdir -p -- $remote_path"
 
       - name: Deploy application
         shell: bash
         run: |
+          set -euo pipefail
+
           rsync \
             -az \
+            --protect-args \
             --delete \
             --exclude-from=".deployignore" \
-            -e "ssh -i ~/.ssh/id_rsa" \
+            -e "ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
             ./ \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+            "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
       - name: Deployment completed
         run: echo "Production deployment completed successfully."
