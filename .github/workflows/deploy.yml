@@ -30,6 +30,17 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build application
+        run: |
+          npm ci
+          npm run build
+
       - name: Configure SSH Client
         shell: bash
         env:
@@ -85,10 +96,11 @@ jobs:
             -az \
             --protect-args \
             --delete \
+            --exclude='jsondb/' \
             --exclude='.git/' \
             --exclude='.github/' \
             -e "ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
-            ./ \
+            dist/ \
             "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
       - name: Deployment completed
