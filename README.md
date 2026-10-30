@@ -4,9 +4,9 @@ Responsive analytics dashboard for Finnish disc golf clubs. The JSON database is
 
 ## Data source
 
-Serve the separately maintained database at `/jsondb/seurat.json`. It must have a `metadata` object (`generatedAt`, `recordCount`, `source`) and a `data` array of clubs with `seura`, `paikkakunta`, `latitude`, `longitude`, `jasenmaara`, and `aanimaara`. Counts may be JSON numbers or numeric strings (including non-breaking spaces). The client validates and normalizes the payload, and reports missing, invalid, or inconsistent data instead of showing invented values.
+The separately maintained database is `jsondb/seurat.json` in the repository and is served by the application at `/jsondb/seurat.json`. It must have a `metadata` object (`generatedAt`, `recordCount`, `source`) and a `data` array of clubs with `seura`, `paikkakunta`, `latitude`, `longitude`, `jasenmaara`, and `aanimaara`. Counts may be JSON numbers or numeric strings (including non-breaking spaces). The client validates and normalizes the payload, and reports missing, invalid, or inconsistent data instead of showing invented values.
 
-For local development, place the maintained file at `public/jsondb/seurat.json`; this path is intentionally not populated with a substitute dataset. In production the static host must serve the same URL. The deployment workflow preserves the separately maintained remote `jsondb/` directory when syncing the built site.
+The Vite development server exposes the repository JSON directly, and the production build copies that same file to `dist/jsondb/seurat.json`. No duplicate fixture or manually synchronized database is required.
 
 ## Development
 

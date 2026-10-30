@@ -38,6 +38,7 @@ jobs:
 
       - name: Build application
         run: |
+          set -euo pipefail
           npm ci
           npm run build
 
@@ -45,10 +46,11 @@ jobs:
         shell: bash
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
 
-          for variable in SSH_HOST SSH_USER SSH_KEY DEPLOY_PATH; do
+          for variable in SSH_HOST SSH_USER SSH_KEY SSH_KNOWN_HOSTS DEPLOY_PATH; do
             if [[ -z "${!variable}" ]]; then
               echo "::error::Required secret $variable is missing or empty."
               exit 1
@@ -57,28 +59,16 @@ jobs:
 
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
-          if ! ssh-keyscan -T 10 -p 22 -H "$SSH_HOST" > ~/.ssh/known_hosts; then
-            echo "::error::Failed to fetch SSH host keys for SSH_HOST."
-            exit 1
-          fi
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-
-          if ! ssh-keygen -F "$SSH_HOST" -f ~/.ssh/known_hosts > /dev/null; then
-            echo "::error::Fetched SSH host keys have no entry for SSH_HOST."
-            exit 1
-          fi
 
       - name: Ensure deployment path exists
         shell: bash
         run: |
           set -euo pipefail
-
           printf -v remote_path '%q' "$DEPLOY_PATH"
-
           ssh \
             -i ~/.ssh/id_rsa \
             -o BatchMode=yes \
@@ -91,14 +81,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           rsync \
             -az \
             --protect-args \
             --delete \
-            --exclude='jsondb/' \
-            --exclude='.git/' \
-            --exclude='.github/' \
             -e "ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
             dist/ \
             "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
