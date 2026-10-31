@@ -3,7 +3,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { MunicipalityDataset, Position, Region } from '../../models/region';
 import { outlineSegments } from '../../services/geoService';
-import { markerColor, markerRadius } from '../../services/mapService';
+import { formatCount, markerColor, markerRadius } from '../../services/mapService';
+import { getMunicipalityRank, getPopulationCategory, populationCategories, summarizePopulation } from '../../services/populationService';
 import type { ClubPlacement, MunicipalityAggregate } from '../../services/regionAnalytics';
 import { readableTextColor } from '../../services/regionColors';
 
@@ -23,6 +24,7 @@ interface RegionMapProps {
   placements: ClubPlacement[];
   showClubs: boolean;
   showBaseMap: boolean;
+  populationLayer: boolean;
   dark: boolean;
   onMunicipalityClick: (code: string) => void;
   onRegionSelect: (id: string) => void;
@@ -113,6 +115,8 @@ export function RegionMap(props: RegionMapProps) {
           const regions = current.membership.get(code) ?? [];
           return tooltipElement(municipality?.name ?? code, [
             municipality?.province ?? '',
+            `Väestö 2025: ${formatCount(municipality?.population ?? null)} · sijoitus ${municipality ? getMunicipalityRank(municipality.name) ?? 'ei tietoa' : 'ei tietoa'}`,
+            getPopulationCategory(municipality?.population ?? null)?.label ?? 'Väestötieto puuttuu',
             `Seuroja ${aggregate?.clubs.length ?? 0} · jäseniä ${aggregate?.members ?? 0} · ääniä ${aggregate?.votes ?? 0}`,
             regions.length ? `Alueet: ${regions.map((region) => `${region.number} ${region.shortName}`).join(', ')}` : 'Ei kuulu alueeseen',
             current.editingRegion ? (current.editingRegion.municipalityCodes.includes(code) ? 'Poista alueesta napsauttamalla' : 'Lisää alueeseen napsauttamalla') : '',
@@ -149,7 +153,7 @@ export function RegionMap(props: RegionMapProps) {
     for (const region of ordered) {
       if (region.municipalityCodes.length === 0) continue;
       const selected = region.id === selectedRegionId;
-      L.geoJSON({ type: 'FeatureCollection', features: multiPolygon(dataset, region.municipalityCodes) } as GeoJSON.FeatureCollection, {
+      if (!props.populationLayer) L.geoJSON({ type: 'FeatureCollection', features: multiPolygon(dataset, region.municipalityCodes) } as GeoJSON.FeatureCollection, {
         pane: 'regionFill', renderer: current.renderers.fill, interactive: false,
         style: { stroke: false, fillColor: region.color, fillOpacity: Math.min(1, region.opacity + (selected ? 0.12 : 0)) },
       } as VectorGeoJSONOptions).addTo(current.fills);
@@ -171,12 +175,16 @@ export function RegionMap(props: RegionMapProps) {
       const badge = document.createElement('b'); badge.textContent = String(region.number);
       const name = document.createElement('span'); name.textContent = region.shortName || region.name;
       container.append(badge, name);
+      const codes = [...new Set(region.municipalityCodes)];
+      const population = codes.some((code) => !dataset.byCode.has(code)) ? null
+        : summarizePopulation(codes.map((code) => dataset.byCode.get(code)!)).total;
       L.marker([point[1], point[0]], {
         icon: L.divIcon({ className: 'region-label-icon', html: container, iconSize: [0, 0] }),
         keyboard: true, title: `Alue ${region.number}: ${region.name}`, alt: `Alue ${region.number}: ${region.name}`, riseOnHover: true, zIndexOffset: selected ? 1000 : 0,
-      }).on('click', () => onRegionSelect(region.id)).addTo(current.labels);
+      }).bindTooltip(tooltipElement(region.name, [`Väestö 2025: ${formatCount(population)}`]))
+        .on('click', () => onRegionSelect(region.id)).addTo(current.labels);
     }
-  }, [regions, dataset, selectedRegionId, onRegionSelect]);
+  }, [regions, dataset, selectedRegionId, onRegionSelect, props.populationLayer]);
 
   const { editingRegion, selectedMunicipalityCode, highlightCodes, matchCodes, dark } = props;
   useEffect(() => {
@@ -186,6 +194,7 @@ export function RegionMap(props: RegionMapProps) {
     current.municipalities.eachLayer((layer) => {
       const code = String((layer as L.GeoJSON & { feature?: GeoJSON.Feature }).feature?.properties?.code);
       const style: L.PathOptions = { color: dark ? '#CBD5E1' : '#475569', weight: 0.6, opacity: 0.55, fill: true, fillColor: '#000000', fillOpacity: 0 };
+      if (props.populationLayer) Object.assign(style, { fillColor: getPopulationCategory(dataset.byCode.get(code)?.population ?? null)?.color ?? '#64748b', fillOpacity: 0.65 });
       if (highlightCodes?.has(code)) Object.assign(style, { fillColor: UNASSIGNED_COLOR, fillOpacity: 0.28, color: UNASSIGNED_COLOR, weight: 1.2, opacity: 0.9 });
       if (matchCodes?.has(code)) Object.assign(style, { color: '#0284C7', weight: 2.2, opacity: 1 });
       if (editingRegion && editingCodes?.has(code)) Object.assign(style, { color: editingRegion.color, weight: 2.4, opacity: 1, fillColor: editingRegion.color, fillOpacity: 0.22 });
@@ -193,7 +202,7 @@ export function RegionMap(props: RegionMapProps) {
       (layer as L.Path).setStyle(style);
       if (layer.isTooltipOpen()) layer.getTooltip()?.update();
     });
-  }, [editingRegion, selectedMunicipalityCode, highlightCodes, matchCodes, dark, dataset, props.membership]);
+  }, [editingRegion, selectedMunicipalityCode, highlightCodes, matchCodes, dark, dataset, props.membership, props.populationLayer]);
 
   const { placements, showClubs } = props;
   useEffect(() => {
@@ -201,15 +210,15 @@ export function RegionMap(props: RegionMapProps) {
     if (!current) return;
     current.clubs.clearLayers();
     if (!showClubs) return;
-    for (const { club } of placements) {
+    for (const { club, municipalityCode } of placements) {
       if (club.latitude === null || club.longitude === null) continue;
       L.circleMarker([club.latitude, club.longitude], {
         pane: 'clubs', renderer: current.renderers.clubs, radius: Math.max(3.5, markerRadius(club.jasenmaara) * 0.55),
         color: '#FFFFFF', weight: 1.2, fillColor: markerColor(club.aanimaara), fillOpacity: 0.95,
-      }).bindTooltip(tooltipElement(club.seura, [club.paikkakunta, `Jäseniä ${club.jasenmaara ?? 'ei tietoa'} · ääniä ${club.aanimaara ?? 'ei tietoa'}`]), { direction: 'top' })
+      }).bindTooltip(tooltipElement(club.seura, [club.paikkakunta, `Jäseniä ${club.jasenmaara ?? 'ei tietoa'} · ääniä ${club.aanimaara ?? 'ei tietoa'}`, `Kunnan väestö 2025: ${formatCount(municipalityCode ? dataset.byCode.get(municipalityCode)?.population ?? null : null)}`]), { direction: 'top' })
         .addTo(current.clubs);
     }
-  }, [placements, showClubs]);
+  }, [placements, showClubs, dataset]);
 
   useEffect(() => {
     const current = layers.current;
@@ -226,6 +235,7 @@ export function RegionMap(props: RegionMapProps) {
     <div className={`planner-map-frame${dark ? ' dark' : ''}`}>
       <div ref={element} className="planner-map" role="region" aria-label="Aluekartta. Kuntia voi valita myös kuntaluettelosta." />
       <button type="button" className="map-reset" onClick={() => layers.current?.map.flyToBounds(FINLAND_BOUNDS, { animate: !reducedMotion })}>Koko Suomi</button>
+      {props.populationLayer && <div className="population-map-legend" aria-label="Väestökartan selite"><strong>Kunnan väestö 2025</strong>{populationCategories.map((item) => <span key={item.id}><i style={{ background: item.color }} />{item.label} ≥ {formatCount(item.min)}</span>)}<span><i style={{ background: '#64748b' }} />Ei tietoa</span></div>}
     </div>
   );
 }

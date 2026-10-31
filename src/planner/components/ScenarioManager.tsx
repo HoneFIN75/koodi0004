@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Check, Copy, FolderOpen, Pencil, Plus, Trash2 } from 'lucide-react';
-import type { PlannerDocument } from '../../models/region';
+import type { MunicipalityDataset, PlannerDocument } from '../../models/region';
+import { getCoveragePopulation } from '../../services/populationService';
+import { formatCount } from '../../services/mapService';
 
 interface ScenarioManagerProps {
   document: PlannerDocument;
+  dataset: MunicipalityDataset;
   onCreate: (name: string) => void;
   onRename: (id: string, name: string) => void;
   onDuplicate: (id: string) => void;
@@ -12,7 +15,7 @@ interface ScenarioManagerProps {
   readOnly?: boolean;
 }
 
-export function ScenarioManager({ document, onCreate, onRename, onDuplicate, onDelete, onSwitch, readOnly = false }: ScenarioManagerProps) {
+export function ScenarioManager({ document, dataset, onCreate, onRename, onDuplicate, onDelete, onSwitch, readOnly = false }: ScenarioManagerProps) {
   const [name, setName] = useState('');
   const [editing, setEditing] = useState<{ id: string; name: string } | null>(null);
   return (
@@ -37,6 +40,7 @@ export function ScenarioManager({ document, onCreate, onRename, onDuplicate, onD
                 <h3>{scenario.name} {active && <span className="pill">aktiivinen</span>}</h3>
               )}
               <p className="hint">{scenario.regions.length} aluetta · {municipalities} kuntaa · muokattu {new Date(scenario.updatedAt).toLocaleString('fi-FI')}</p>
+              <p className="hint">Käytössä olevien alueiden kattama väestö 2025: {formatCount(getCoveragePopulation(scenario.regions, dataset))} asukasta · päällekkäiset kunnat kerran.</p>
               <ul className="swatch-row" aria-hidden="true">{scenario.regions.slice(0, 24).map((region) => <li key={region.id} style={{ background: region.color }} />)}</ul>
               <div className="button-row">
                 {!active && <button type="button" className="primary-button" onClick={() => onSwitch(scenario.id)}><FolderOpen size={15} /> Avaa</button>}

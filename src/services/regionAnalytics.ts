@@ -1,6 +1,7 @@
 import type { Club } from '../models/club';
 import type { Municipality, MunicipalityDataset, Region } from '../models/region';
 import { pointInGeometry } from './geoService.ts';
+import { getCoveragePopulation, getDatasetPopulation, matchesPopulation, normalizeMunicipalityName, per10000Residents, summarizePopulation, type PopulationFilters } from './populationService.ts';
 
 export interface ClubPlacement {
   club: Club;
@@ -30,11 +31,19 @@ export interface RegionStats {
   areaKm2: number;
   areaShare: number;
   population: number | null;
+  populationShare: number | null;
+  averagePopulation: number | null;
+  medianPopulation: number | null;
+  largestMunicipality: Municipality | null;
+  smallestMunicipality: Municipality | null;
+  clubsPer10000: number | null;
+  membersPer10000: number | null;
+  populationDensity: number | null;
   clubsPerKm2: number;
   membersPerKm2: number;
 }
 
-export interface PlannerFilters {
+export interface PlannerFilters extends PopulationFilters {
   clubQuery: string;
   municipalityQuery: string;
   minMembers: number;
@@ -45,7 +54,7 @@ export interface PlannerFilters {
 
 export const emptyFilters: PlannerFilters = { clubQuery: '', municipalityQuery: '', minMembers: 0, maxMembers: null, votes: null, regionIds: [] };
 
-export const normalizeName = (value: string) => value.toLocaleLowerCase('fi').normalize('NFC').replace(/\s+/g, ' ').trim();
+export const normalizeName = normalizeMunicipalityName;
 
 export function assignClubs(clubs: Club[], dataset: MunicipalityDataset): ClubPlacement[] {
   const byName = new Map<string, string>();
@@ -86,6 +95,7 @@ export function filterPlacements(placements: ClubPlacement[], filters: PlannerFi
   const regionCodes = filters.regionIds.length === 0 ? null
     : new Set(regions.filter((region) => filters.regionIds.includes(region.id)).flatMap((region) => region.municipalityCodes));
   return placements.filter(({ club, municipalityCode }) => {
+    if (!matchesPopulation(municipalityCode ? dataset.byCode.get(municipalityCode)?.population ?? null : null, filters)) return false;
     if (clubQuery && !normalizeName(club.seura).includes(clubQuery)) return false;
     if (municipalityQuery) {
       const municipality = municipalityCode ? dataset.byCode.get(municipalityCode) : undefined;
@@ -105,19 +115,21 @@ export function computeRegionStats(region: Region, dataset: MunicipalityDataset,
   const municipalities: Municipality[] = [];
   const missingCodes: string[] = [];
   const clubs: Club[] = [];
-  let members = 0; let votes = 0; let areaKm2 = 0; let population: number | null = 0;
+  let members = 0; let votes = 0; let areaKm2 = 0;
   for (const code of new Set(region.municipalityCodes)) {
     const municipality = dataset.byCode.get(code);
     if (!municipality) { missingCodes.push(code); continue; }
     municipalities.push(municipality);
     areaKm2 += municipality.areaKm2;
-    population = population === null || municipality.population === null ? null : population + municipality.population;
     const aggregate = index.get(code);
     if (aggregate) { clubs.push(...aggregate.clubs); members += aggregate.members; votes += aggregate.votes; }
   }
   municipalities.sort((a, b) => a.name.localeCompare(b.name, 'fi'));
   const known = clubs.filter((club) => club.jasenmaara !== null);
   const sorted = [...known].sort((a, b) => (b.jasenmaara ?? 0) - (a.jasenmaara ?? 0) || a.seura.localeCompare(b.seura, 'fi'));
+  const populationStats = summarizePopulation(municipalities);
+  const population = missingCodes.length ? null : populationStats.total;
+  const national = getDatasetPopulation(dataset).total;
   return {
     regionId: region.id,
     municipalityCount: municipalities.length,
@@ -130,7 +142,15 @@ export function computeRegionStats(region: Region, dataset: MunicipalityDataset,
     smallestClub: sorted[sorted.length - 1] ?? null,
     areaKm2,
     areaShare: dataset.totalAreaKm2 > 0 ? areaKm2 / dataset.totalAreaKm2 : 0,
-    population: municipalities.length > 0 ? population : null,
+    population,
+    populationShare: population !== null && national !== null && national > 0 ? population / national : null,
+    averagePopulation: populationStats.average,
+    medianPopulation: populationStats.median,
+    largestMunicipality: populationStats.largest,
+    smallestMunicipality: populationStats.smallest,
+    clubsPer10000: per10000Residents(clubs.length, population),
+    membersPer10000: per10000Residents(members, population),
+    populationDensity: population !== null && areaKm2 > 0 ? population / areaKm2 : null,
     clubsPerKm2: areaKm2 > 0 ? clubs.length / areaKm2 : 0,
     membersPerKm2: areaKm2 > 0 ? members / areaKm2 : 0,
   };
@@ -141,7 +161,7 @@ export interface ScenarioAnalysis {
   activeRegions: Region[];
   assignedCodes: Set<string>;
   unassigned: MunicipalityAggregate[];
-  totals: { clubs: number; members: number; votes: number; unplacedClubs: Club[] };
+  totals: { clubs: number; members: number; votes: number; unplacedClubs: Club[]; nationalPopulation: number | null; assignedPopulation: number | null; unassignedPopulation: number | null; clubMunicipalityPopulation: number | null };
 }
 
 /** Disabled regions are excluded from coverage: only enabled regions count as an assignment. */
@@ -159,6 +179,10 @@ export function analyzeScenario(regions: Region[], dataset: MunicipalityDataset,
       members: placements.reduce((sum, { club }) => sum + (club.jasenmaara ?? 0), 0),
       votes: placements.reduce((sum, { club }) => sum + (club.aanimaara ?? 0), 0),
       unplacedClubs: placements.filter((placement) => placement.municipalityCode === null).map(({ club }) => club),
+      nationalPopulation: getDatasetPopulation(dataset).total,
+      assignedPopulation: getCoveragePopulation(regions, dataset),
+      unassignedPopulation: summarizePopulation(unassigned.map((item) => item.municipality)).total,
+      clubMunicipalityPopulation: summarizePopulation(dataset.municipalities.filter((item) => (index.get(item.code)?.clubs.length ?? 0) > 0)).total,
     },
   };
 }
@@ -176,6 +200,7 @@ export function explainCoverage(region: Region, stats: RegionStats, analysis: Sc
   const memberShare = analysis.totals.members > 0 ? stats.members / analysis.totals.members : 0;
   parts.push(`${region.name} kattaa noin ${formatPercent(stats.areaShare)} Suomen pinta-alasta (${formatArea(stats.areaKm2)}) ja ${stats.municipalityCount} ${stats.municipalityCount === 1 ? 'kunnan' : 'kuntaa'}.`);
   parts.push(`Alueella on ${stats.clubCount} ${stats.clubCount === 1 ? 'seura' : 'seuraa'} (${formatPercent(clubShare)} kaikista) ja ${integer.format(stats.members)} jäsentä (${formatPercent(memberShare)}).`);
+  if (stats.population !== null) parts.push(`Väestö 2025: ${integer.format(stats.population)} asukasta${stats.populationShare !== null ? ` (${formatPercent(stats.populationShare)} Suomen väestöstä)` : ''}.`);
   if (stats.clubCount === 0) {
     parts.push('Alueella ei ole lainkaan seuroja, joten se edustaa pelkkää maantieteellistä kattavuutta.');
   } else if (stats.areaShare > memberShare * 2 && stats.areaShare - memberShare > 0.02) {

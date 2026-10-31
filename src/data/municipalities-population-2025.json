@@ -1,0 +1,1241 @@
+{
+  "metadata": {
+    "country": "Finland",
+    "populationYear": 2025,
+    "municipalityCount": 308
+  },
+  "municipalities": [
+    {
+      "name": "Akaa",
+      "population": 16429
+    },
+    {
+      "name": "Alajärvi",
+      "population": 8982
+    },
+    {
+      "name": "Alavieska",
+      "population": 2384
+    },
+    {
+      "name": "Alavus",
+      "population": 10634
+    },
+    {
+      "name": "Asikkala",
+      "population": 7841
+    },
+    {
+      "name": "Askola",
+      "population": 4677
+    },
+    {
+      "name": "Aura",
+      "population": 3937
+    },
+    {
+      "name": "Brändö",
+      "population": 430
+    },
+    {
+      "name": "Eckerö",
+      "population": 961
+    },
+    {
+      "name": "Enonkoski",
+      "population": 1273
+    },
+    {
+      "name": "Enontekiö",
+      "population": 1769
+    },
+    {
+      "name": "Espoo",
+      "population": 325716
+    },
+    {
+      "name": "Eura",
+      "population": 11005
+    },
+    {
+      "name": "Eurajoki",
+      "population": 8920
+    },
+    {
+      "name": "Evijärvi",
+      "population": 2267
+    },
+    {
+      "name": "Finström",
+      "population": 2625
+    },
+    {
+      "name": "Forssa",
+      "population": 16307
+    },
+    {
+      "name": "Föglö",
+      "population": 512
+    },
+    {
+      "name": "Geta",
+      "population": 512
+    },
+    {
+      "name": "Haapajärvi",
+      "population": 6441
+    },
+    {
+      "name": "Haapavesi",
+      "population": 6298
+    },
+    {
+      "name": "Hailuoto",
+      "population": 912
+    },
+    {
+      "name": "Halsua",
+      "population": 975
+    },
+    {
+      "name": "Hamina",
+      "population": 19113
+    },
+    {
+      "name": "Hammarland",
+      "population": 1644
+    },
+    {
+      "name": "Hankasalmi",
+      "population": 4436
+    },
+    {
+      "name": "Hanko",
+      "population": 7620
+    },
+    {
+      "name": "Harjavalta",
+      "population": 6565
+    },
+    {
+      "name": "Hartola",
+      "population": 2401
+    },
+    {
+      "name": "Hattula",
+      "population": 9346
+    },
+    {
+      "name": "Hausjärvi",
+      "population": 7862
+    },
+    {
+      "name": "Heinola",
+      "population": 17694
+    },
+    {
+      "name": "Heinävesi",
+      "population": 2888
+    },
+    {
+      "name": "Helsinki",
+      "population": 694392
+    },
+    {
+      "name": "Hirvensalmi",
+      "population": 2023
+    },
+    {
+      "name": "Hollola",
+      "population": 22775
+    },
+    {
+      "name": "Huittinen",
+      "population": 9546
+    },
+    {
+      "name": "Humppila",
+      "population": 2074
+    },
+    {
+      "name": "Hyrynsalmi",
+      "population": 1984
+    },
+    {
+      "name": "Hyvinkää",
+      "population": 47015
+    },
+    {
+      "name": "Hämeenkyrö",
+      "population": 10249
+    },
+    {
+      "name": "Hämeenlinna",
+      "population": 68614
+    },
+    {
+      "name": "Ii",
+      "population": 9755
+    },
+    {
+      "name": "Iisalmi",
+      "population": 20205
+    },
+    {
+      "name": "Iitti",
+      "population": 6329
+    },
+    {
+      "name": "Ikaalinen",
+      "population": 6704
+    },
+    {
+      "name": "Ilmajoki",
+      "population": 12405
+    },
+    {
+      "name": "Ilomantsi",
+      "population": 4293
+    },
+    {
+      "name": "Imatra",
+      "population": 24345
+    },
+    {
+      "name": "Inari",
+      "population": 7244
+    },
+    {
+      "name": "Inkoo",
+      "population": 5391
+    },
+    {
+      "name": "Isojoki",
+      "population": 1771
+    },
+    {
+      "name": "Isokyrö",
+      "population": 4261
+    },
+    {
+      "name": "Janakkala",
+      "population": 15867
+    },
+    {
+      "name": "Joensuu",
+      "population": 79129
+    },
+    {
+      "name": "Jokioinen",
+      "population": 4795
+    },
+    {
+      "name": "Jomala",
+      "population": 5817
+    },
+    {
+      "name": "Joroinen",
+      "population": 4494
+    },
+    {
+      "name": "Joutsa",
+      "population": 4079
+    },
+    {
+      "name": "Juuka",
+      "population": 4059
+    },
+    {
+      "name": "Juupajoki",
+      "population": 1663
+    },
+    {
+      "name": "Juva",
+      "population": 5569
+    },
+    {
+      "name": "Jyväskylä",
+      "population": 149895
+    },
+    {
+      "name": "Jämijärvi",
+      "population": 1663
+    },
+    {
+      "name": "Jämsä",
+      "population": 19020
+    },
+    {
+      "name": "Järvenpää",
+      "population": 46944
+    },
+    {
+      "name": "Kaarina",
+      "population": 36675
+    },
+    {
+      "name": "Kaavi",
+      "population": 2547
+    },
+    {
+      "name": "Kajaani",
+      "population": 36370
+    },
+    {
+      "name": "Kalajoki",
+      "population": 12155
+    },
+    {
+      "name": "Kangasala",
+      "population": 34379
+    },
+    {
+      "name": "Kangasniemi",
+      "population": 4952
+    },
+    {
+      "name": "Kankaanpää",
+      "population": 12508
+    },
+    {
+      "name": "Kannonkoski",
+      "population": 1137
+    },
+    {
+      "name": "Kannus",
+      "population": 5246
+    },
+    {
+      "name": "Karijoki",
+      "population": 1134
+    },
+    {
+      "name": "Karkkila",
+      "population": 8274
+    },
+    {
+      "name": "Karstula",
+      "population": 3514
+    },
+    {
+      "name": "Karvia",
+      "population": 2133
+    },
+    {
+      "name": "Kaskinen",
+      "population": 1248
+    },
+    {
+      "name": "Kauhajoki",
+      "population": 12429
+    },
+    {
+      "name": "Kauhava",
+      "population": 14909
+    },
+    {
+      "name": "Kauniainen",
+      "population": 10318
+    },
+    {
+      "name": "Kaustinen",
+      "population": 4074
+    },
+    {
+      "name": "Keitele",
+      "population": 1922
+    },
+    {
+      "name": "Kemi",
+      "population": 19339
+    },
+    {
+      "name": "Kemijärvi",
+      "population": 6919
+    },
+    {
+      "name": "Keminmaa",
+      "population": 7576
+    },
+    {
+      "name": "Kemiönsaari",
+      "population": 6340
+    },
+    {
+      "name": "Kempele",
+      "population": 19702
+    },
+    {
+      "name": "Kerava",
+      "population": 38767
+    },
+    {
+      "name": "Keuruu",
+      "population": 9014
+    },
+    {
+      "name": "Kihniö",
+      "population": 1670
+    },
+    {
+      "name": "Kinnula",
+      "population": 1472
+    },
+    {
+      "name": "Kirkkonummi",
+      "population": 41725
+    },
+    {
+      "name": "Kitee",
+      "population": 9397
+    },
+    {
+      "name": "Kittilä",
+      "population": 6973
+    },
+    {
+      "name": "Kiuruvesi",
+      "population": 7255
+    },
+    {
+      "name": "Kivijärvi",
+      "population": 1001
+    },
+    {
+      "name": "Kokemäki",
+      "population": 6583
+    },
+    {
+      "name": "Kokkola",
+      "population": 48338
+    },
+    {
+      "name": "Kolari",
+      "population": 4001
+    },
+    {
+      "name": "Konnevesi",
+      "population": 2404
+    },
+    {
+      "name": "Kontiolahti",
+      "population": 15060
+    },
+    {
+      "name": "Korsnäs",
+      "population": 1984
+    },
+    {
+      "name": "Koski Tl",
+      "population": 2144
+    },
+    {
+      "name": "Kotka",
+      "population": 50029
+    },
+    {
+      "name": "Kouvola",
+      "population": 77625
+    },
+    {
+      "name": "Kristiinankaupunki",
+      "population": 6113
+    },
+    {
+      "name": "Kruunupyy",
+      "population": 6268
+    },
+    {
+      "name": "Kuhmo",
+      "population": 7300
+    },
+    {
+      "name": "Kuhmoinen",
+      "population": 1979
+    },
+    {
+      "name": "Kumlinge",
+      "population": 271
+    },
+    {
+      "name": "Kuopio",
+      "population": 126572
+    },
+    {
+      "name": "Kuortane",
+      "population": 3306
+    },
+    {
+      "name": "Kurikka",
+      "population": 19441
+    },
+    {
+      "name": "Kustavi",
+      "population": 972
+    },
+    {
+      "name": "Kuusamo",
+      "population": 14800
+    },
+    {
+      "name": "Kyyjärvi",
+      "population": 1129
+    },
+    {
+      "name": "Kärkölä",
+      "population": 4052
+    },
+    {
+      "name": "Kärsämäki",
+      "population": 2324
+    },
+    {
+      "name": "Kökar",
+      "population": 211
+    },
+    {
+      "name": "Lahti",
+      "population": 121832
+    },
+    {
+      "name": "Laihia",
+      "population": 7534
+    },
+    {
+      "name": "Laitila",
+      "population": 8400
+    },
+    {
+      "name": "Lapinjärvi",
+      "population": 2430
+    },
+    {
+      "name": "Lapinlahti",
+      "population": 8803
+    },
+    {
+      "name": "Lappajärvi",
+      "population": 2704
+    },
+    {
+      "name": "Lappeenranta",
+      "population": 73241
+    },
+    {
+      "name": "Lapua",
+      "population": 13927
+    },
+    {
+      "name": "Laukaa",
+      "population": 18808
+    },
+    {
+      "name": "Lemi",
+      "population": 2878
+    },
+    {
+      "name": "Lemland",
+      "population": 2139
+    },
+    {
+      "name": "Lempäälä",
+      "population": 25041
+    },
+    {
+      "name": "Leppävirta",
+      "population": 8924
+    },
+    {
+      "name": "Lestijärvi",
+      "population": 656
+    },
+    {
+      "name": "Lieksa",
+      "population": 9846
+    },
+    {
+      "name": "Lieto",
+      "population": 20732
+    },
+    {
+      "name": "Liminka",
+      "population": 10116
+    },
+    {
+      "name": "Liperi",
+      "population": 11980
+    },
+    {
+      "name": "Lohja",
+      "population": 45435
+    },
+    {
+      "name": "Loimaa",
+      "population": 15124
+    },
+    {
+      "name": "Loppi",
+      "population": 7574
+    },
+    {
+      "name": "Loviisa",
+      "population": 14196
+    },
+    {
+      "name": "Luhanka",
+      "population": 695
+    },
+    {
+      "name": "Lumijoki",
+      "population": 2018
+    },
+    {
+      "name": "Lumparland",
+      "population": 371
+    },
+    {
+      "name": "Luoto",
+      "population": 5955
+    },
+    {
+      "name": "Luumäki",
+      "population": 4304
+    },
+    {
+      "name": "Maalahti",
+      "population": 5392
+    },
+    {
+      "name": "Maarianhamina - Mariehamn",
+      "population": 11957
+    },
+    {
+      "name": "Marttila",
+      "population": 1890
+    },
+    {
+      "name": "Masku",
+      "population": 9612
+    },
+    {
+      "name": "Merijärvi",
+      "population": 1031
+    },
+    {
+      "name": "Merikarvia",
+      "population": 2834
+    },
+    {
+      "name": "Miehikkälä",
+      "population": 1664
+    },
+    {
+      "name": "Mikkeli",
+      "population": 51551
+    },
+    {
+      "name": "Muhos",
+      "population": 8767
+    },
+    {
+      "name": "Multia",
+      "population": 1386
+    },
+    {
+      "name": "Muonio",
+      "population": 2323
+    },
+    {
+      "name": "Mustasaari",
+      "population": 19792
+    },
+    {
+      "name": "Muurame",
+      "population": 10646
+    },
+    {
+      "name": "Mynämäki",
+      "population": 7424
+    },
+    {
+      "name": "Myrskylä",
+      "population": 1692
+    },
+    {
+      "name": "Mäntsälä",
+      "population": 20861
+    },
+    {
+      "name": "Mänttä-Vilppula",
+      "population": 9109
+    },
+    {
+      "name": "Mäntyharju",
+      "population": 7034
+    },
+    {
+      "name": "Naantali",
+      "population": 20390
+    },
+    {
+      "name": "Nakkila",
+      "population": 4890
+    },
+    {
+      "name": "Nivala",
+      "population": 10300
+    },
+    {
+      "name": "Nokia",
+      "population": 36571
+    },
+    {
+      "name": "Nousiainen",
+      "population": 4667
+    },
+    {
+      "name": "Nurmes",
+      "population": 8760
+    },
+    {
+      "name": "Nurmijärvi",
+      "population": 45333
+    },
+    {
+      "name": "Närpiö",
+      "population": 9538
+    },
+    {
+      "name": "Orimattila",
+      "population": 15575
+    },
+    {
+      "name": "Oripää",
+      "population": 1264
+    },
+    {
+      "name": "Orivesi",
+      "population": 8858
+    },
+    {
+      "name": "Oulainen",
+      "population": 6832
+    },
+    {
+      "name": "Oulu",
+      "population": 217469
+    },
+    {
+      "name": "Outokumpu",
+      "population": 6365
+    },
+    {
+      "name": "Padasjoki",
+      "population": 2656
+    },
+    {
+      "name": "Paimio",
+      "population": 11284
+    },
+    {
+      "name": "Paltamo",
+      "population": 2941
+    },
+    {
+      "name": "Parainen",
+      "population": 14712
+    },
+    {
+      "name": "Parikkala",
+      "population": 4235
+    },
+    {
+      "name": "Parkano",
+      "population": 6011
+    },
+    {
+      "name": "Pedersören kunta",
+      "population": 11289
+    },
+    {
+      "name": "Pelkosenniemi",
+      "population": 932
+    },
+    {
+      "name": "Pello",
+      "population": 3146
+    },
+    {
+      "name": "Perho",
+      "population": 2547
+    },
+    {
+      "name": "Petäjävesi",
+      "population": 3511
+    },
+    {
+      "name": "Pieksämäki",
+      "population": 17124
+    },
+    {
+      "name": "Pielavesi",
+      "population": 3873
+    },
+    {
+      "name": "Pietarsaari",
+      "population": 19657
+    },
+    {
+      "name": "Pihtipudas",
+      "population": 3676
+    },
+    {
+      "name": "Pirkkala",
+      "population": 21373
+    },
+    {
+      "name": "Polvijärvi",
+      "population": 3942
+    },
+    {
+      "name": "Pomarkku",
+      "population": 1893
+    },
+    {
+      "name": "Pori",
+      "population": 83010
+    },
+    {
+      "name": "Pornainen",
+      "population": 4919
+    },
+    {
+      "name": "Porvoo",
+      "population": 51863
+    },
+    {
+      "name": "Posio",
+      "population": 2826
+    },
+    {
+      "name": "Pudasjärvi",
+      "population": 7168
+    },
+    {
+      "name": "Pukkila",
+      "population": 1720
+    },
+    {
+      "name": "Punkalaidun",
+      "population": 2546
+    },
+    {
+      "name": "Puolanka",
+      "population": 2322
+    },
+    {
+      "name": "Puumala",
+      "population": 2081
+    },
+    {
+      "name": "Pyhtää",
+      "population": 5016
+    },
+    {
+      "name": "Pyhäjoki",
+      "population": 2938
+    },
+    {
+      "name": "Pyhäjärvi",
+      "population": 4551
+    },
+    {
+      "name": "Pyhäntä",
+      "population": 1678
+    },
+    {
+      "name": "Pyhäranta",
+      "population": 1892
+    },
+    {
+      "name": "Pälkäne",
+      "population": 6146
+    },
+    {
+      "name": "Pöytyä",
+      "population": 7903
+    },
+    {
+      "name": "Raahe",
+      "population": 23413
+    },
+    {
+      "name": "Raasepori",
+      "population": 26856
+    },
+    {
+      "name": "Raisio",
+      "population": 26036
+    },
+    {
+      "name": "Rantasalmi",
+      "population": 3219
+    },
+    {
+      "name": "Ranua",
+      "population": 3530
+    },
+    {
+      "name": "Rauma",
+      "population": 38773
+    },
+    {
+      "name": "Rautalampi",
+      "population": 2928
+    },
+    {
+      "name": "Rautavaara",
+      "population": 1398
+    },
+    {
+      "name": "Rautjärvi",
+      "population": 2888
+    },
+    {
+      "name": "Reisjärvi",
+      "population": 2476
+    },
+    {
+      "name": "Riihimäki",
+      "population": 28555
+    },
+    {
+      "name": "Ristijärvi",
+      "population": 1158
+    },
+    {
+      "name": "Rovaniemi",
+      "population": 66191
+    },
+    {
+      "name": "Ruokolahti",
+      "population": 4679
+    },
+    {
+      "name": "Ruovesi",
+      "population": 3995
+    },
+    {
+      "name": "Rusko",
+      "population": 6381
+    },
+    {
+      "name": "Rääkkylä",
+      "population": 1830
+    },
+    {
+      "name": "Saarijärvi",
+      "population": 8763
+    },
+    {
+      "name": "Salla",
+      "population": 3231
+    },
+    {
+      "name": "Salo",
+      "population": 50339
+    },
+    {
+      "name": "Saltvik",
+      "population": 1802
+    },
+    {
+      "name": "Sastamala",
+      "population": 23332
+    },
+    {
+      "name": "Sauvo",
+      "population": 2957
+    },
+    {
+      "name": "Savitaipale",
+      "population": 3094
+    },
+    {
+      "name": "Savonlinna",
+      "population": 31008
+    },
+    {
+      "name": "Savukoski",
+      "population": 974
+    },
+    {
+      "name": "Seinäjoki",
+      "population": 67283
+    },
+    {
+      "name": "Sievi",
+      "population": 4585
+    },
+    {
+      "name": "Siikainen",
+      "population": 1229
+    },
+    {
+      "name": "Siikajoki",
+      "population": 4723
+    },
+    {
+      "name": "Siikalatva",
+      "population": 4861
+    },
+    {
+      "name": "Siilinjärvi",
+      "population": 21348
+    },
+    {
+      "name": "Simo",
+      "population": 2701
+    },
+    {
+      "name": "Sipoo",
+      "population": 23006
+    },
+    {
+      "name": "Siuntio",
+      "population": 6192
+    },
+    {
+      "name": "Sodankylä",
+      "population": 8095
+    },
+    {
+      "name": "Soini",
+      "population": 1772
+    },
+    {
+      "name": "Somero",
+      "population": 8339
+    },
+    {
+      "name": "Sonkajärvi",
+      "population": 3521
+    },
+    {
+      "name": "Sotkamo",
+      "population": 10161
+    },
+    {
+      "name": "Sottunga",
+      "population": 101
+    },
+    {
+      "name": "Sulkava",
+      "population": 2310
+    },
+    {
+      "name": "Sund",
+      "population": 1018
+    },
+    {
+      "name": "Suomussalmi",
+      "population": 6957
+    },
+    {
+      "name": "Suonenjoki",
+      "population": 6549
+    },
+    {
+      "name": "Sysmä",
+      "population": 3367
+    },
+    {
+      "name": "Säkylä",
+      "population": 6221
+    },
+    {
+      "name": "Taipalsaari",
+      "population": 4574
+    },
+    {
+      "name": "Taivalkoski",
+      "population": 3555
+    },
+    {
+      "name": "Taivassalo",
+      "population": 1707
+    },
+    {
+      "name": "Tammela",
+      "population": 5777
+    },
+    {
+      "name": "Tampere",
+      "population": 263337
+    },
+    {
+      "name": "Tervo",
+      "population": 1388
+    },
+    {
+      "name": "Tervola",
+      "population": 2837
+    },
+    {
+      "name": "Teuva",
+      "population": 4574
+    },
+    {
+      "name": "Tohmajärvi",
+      "population": 3869
+    },
+    {
+      "name": "Toholampi",
+      "population": 2750
+    },
+    {
+      "name": "Toivakka",
+      "population": 2307
+    },
+    {
+      "name": "Tornio",
+      "population": 20823
+    },
+    {
+      "name": "Turku",
+      "population": 209633
+    },
+    {
+      "name": "Tuusniemi",
+      "population": 2270
+    },
+    {
+      "name": "Tuusula",
+      "population": 42479
+    },
+    {
+      "name": "Tyrnävä",
+      "population": 6470
+    },
+    {
+      "name": "Ulvila",
+      "population": 12339
+    },
+    {
+      "name": "Urjala",
+      "population": 4440
+    },
+    {
+      "name": "Utajärvi",
+      "population": 2399
+    },
+    {
+      "name": "Utsjoki",
+      "population": 1112
+    },
+    {
+      "name": "Uurainen",
+      "population": 3651
+    },
+    {
+      "name": "Uusikaarlepyy",
+      "population": 7391
+    },
+    {
+      "name": "Uusikaupunki",
+      "population": 14783
+    },
+    {
+      "name": "Vaala",
+      "population": 2544
+    },
+    {
+      "name": "Vaasa",
+      "population": 71209
+    },
+    {
+      "name": "Valkeakoski",
+      "population": 20762
+    },
+    {
+      "name": "Vantaa",
+      "population": 252956
+    },
+    {
+      "name": "Varkaus",
+      "population": 19433
+    },
+    {
+      "name": "Vehmaa",
+      "population": 2263
+    },
+    {
+      "name": "Vesanto",
+      "population": 1787
+    },
+    {
+      "name": "Vesilahti",
+      "population": 4532
+    },
+    {
+      "name": "Veteli",
+      "population": 2912
+    },
+    {
+      "name": "Vieremä",
+      "population": 3295
+    },
+    {
+      "name": "Vihti",
+      "population": 28852
+    },
+    {
+      "name": "Viitasaari",
+      "population": 5695
+    },
+    {
+      "name": "Vimpeli",
+      "population": 2554
+    },
+    {
+      "name": "Virolahti",
+      "population": 2751
+    },
+    {
+      "name": "Virrat",
+      "population": 6126
+    },
+    {
+      "name": "Vårdö",
+      "population": 465
+    },
+    {
+      "name": "Vöyri",
+      "population": 6185
+    },
+    {
+      "name": "Ylitornio",
+      "population": 3673
+    },
+    {
+      "name": "Ylivieska",
+      "population": 15274
+    },
+    {
+      "name": "Ylöjärvi",
+      "population": 33658
+    },
+    {
+      "name": "Ypäjä",
+      "population": 2186
+    },
+    {
+      "name": "Ähtäri",
+      "population": 5121
+    },
+    {
+      "name": "Äänekoski",
+      "population": 17492
+    }
+  ]
+}

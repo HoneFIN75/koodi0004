@@ -2,6 +2,7 @@ import { Copy, Eye, EyeOff, Pencil, Plus, Power, Trash2 } from 'lucide-react';
 import type { Region } from '../../models/region';
 import type { RegionStats } from '../../services/regionAnalytics';
 import { integerFormat } from './ui';
+import { formatCount } from '../../services/mapService';
 
 interface RegionListProps {
   regions: Region[];
@@ -35,6 +36,7 @@ export function RegionList({ regions, stats, selectedRegionId, onSelect, onCreat
                 <span className="region-row-text">
                   <strong>{region.name}</strong>
                   <small>{region.shortName} · {regionStats?.municipalityCount ?? 0} kuntaa · {regionStats?.clubCount ?? 0} seuraa · {integerFormat.format(regionStats?.members ?? 0)} jäsentä</small>
+                  <small>Väestö 2025: {formatCount(regionStats?.population ?? null)} asukasta</small>
                 </span>
               </button>
               {!readOnly && <span className="row-actions">

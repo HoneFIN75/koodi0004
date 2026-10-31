@@ -4,6 +4,7 @@ import type { Region } from '../../models/region';
 import { formatArea, formatDensity, formatPercent, type RegionStats } from '../../services/regionAnalytics';
 import type { ValidationWarning } from '../../services/validationService';
 import { StatCard, WarningList, decimalFormat, integerFormat } from './ui';
+import { formatCount } from '../../services/mapService';
 
 interface RegionDetailProps {
   region: Region;
@@ -39,13 +40,21 @@ export function RegionDetail({ region, stats, explanation, warnings, onEdit, onD
         <StatCard label="Pinta-ala" value={formatArea(stats.areaKm2)} />
         <StatCard label="Osuus Suomesta" value={formatPercent(stats.areaShare)} />
         <StatCard label="Keskikoko" value={stats.averageMembers === null ? '–' : `${decimalFormat.format(stats.averageMembers)} jäs.`} />
-        <StatCard label="Väestö" value={stats.population === null ? 'Ei saatavilla' : integerFormat.format(stats.population)} />
+        <StatCard label="Väestö 2025" value={formatCount(stats.population)} />
+        <StatCard label="Osuus Suomen väestöstä" value={stats.populationShare === null ? 'Ei tietoa' : formatPercent(stats.populationShare)} />
+        <StatCard label="Kuntaväestön keskiarvo" value={formatCount(stats.averagePopulation)} />
+        <StatCard label="Kuntaväestön mediaani" value={formatCount(stats.medianPopulation)} />
+        <StatCard label="Seuroja / 10 000 asukasta" value={formatCount(stats.clubsPer10000)} />
+        <StatCard label="Jäseniä / 10 000 asukasta" value={formatCount(stats.membersPer10000)} />
+        <StatCard label="Asukkaita / km²" value={formatCount(stats.populationDensity)} />
         <StatCard label="Seuratiheys" value={formatDensity(stats.clubsPerKm2)} />
         <StatCard label="Jäsentiheys" value={formatDensity(stats.membersPerKm2)} />
       </div>
       <dl className="extremes">
         <div><dt>Suurin seura</dt><dd>{stats.largestClub ? `${stats.largestClub.seura} (${stats.largestClub.jasenmaara})` : '–'}</dd></div>
         <div><dt>Pienin seura</dt><dd>{stats.smallestClub ? `${stats.smallestClub.seura} (${stats.smallestClub.jasenmaara})` : '–'}</dd></div>
+        <div><dt>Väestöltään suurin kunta</dt><dd>{stats.largestMunicipality ? `${stats.largestMunicipality.name} (${formatCount(stats.largestMunicipality.population)})` : 'Ei tietoa'}</dd></div>
+        <div><dt>Väestöltään pienin kunta</dt><dd>{stats.smallestMunicipality ? `${stats.smallestMunicipality.name} (${formatCount(stats.smallestMunicipality.population)})` : 'Ei tietoa'}</dd></div>
       </dl>
       <h3>Maantieteellinen kattavuus</h3>
       <p className="coverage-text">{explanation}</p>
@@ -53,7 +62,7 @@ export function RegionDetail({ region, stats, explanation, warnings, onEdit, onD
       <WarningList warnings={warnings} emptyText="Alueessa ei ole huomautettavaa." />
       <details className="detail-list" open={stats.municipalityCount <= 15}>
         <summary>Kunnat ({stats.municipalityCount})</summary>
-        <ul className="chip-list">{stats.municipalities.map((municipality) => <li key={municipality.code}>{municipality.name}</li>)}</ul>
+        <ul className="chip-list">{stats.municipalities.map((municipality) => <li key={municipality.code}>{municipality.name} · {formatCount(municipality.population)} as.</li>)}</ul>
         {stats.missingCodes.length > 0 && <p className="field-error">Tuntemattomat kuntakoodit: {stats.missingCodes.join(', ')}</p>}
       </details>
       <details className="detail-list" open={stats.clubCount > 0 && stats.clubCount <= 12}>

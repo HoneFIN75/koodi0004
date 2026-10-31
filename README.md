@@ -64,7 +64,7 @@ A lazily loaded territorial planning tool for designing representation regions f
 
 - **Regions:** create, edit, duplicate, delete, enable/disable and show/hide. Each region has a number, name, short name, description, colour (32 presets, HEX input and colour picker) and fill opacity (0–100 %, default 40 %). Municipalities and clubs may belong to any number of regions; overlap is intentional and outlines of overlapping areas are dashed.
 - **Municipality selection:** click municipalities on the map while editing, or search, filter by province and bulk add/remove from the list. All 308 municipalities, including the 16 Åland municipalities, are supported.
-- **Live analysis:** clubs, members, voting power, average/largest/smallest club, area (km²), share of Finland, club and member density, and an automatic Finnish coverage explanation. Population is shown as “Ei saatavilla” until a `population` property is added to the boundary data.
+- **Live analysis:** clubs, members, voting power, average/largest/smallest club, area (km²), share of Finland, club and member density, and an automatic Finnish coverage explanation. The permanent 2025 municipality population dataset adds regional population, municipal mean/median/extrema, national population share, population density, and clubs/members per 10,000 residents.
 - **Views:** map, executive dashboard, region comparison (table and charts), unassigned municipalities (highlighted on the map, with bulk assignment), scenarios, backups and import/export.
 - **Filters:** club name, municipality, member range, voting power and multiple regions. Filters affect club-based figures; areas always use full geography.
 - **Validation:** unassigned municipalities, empty regions, regions without clubs, single-municipality regions, regions over 40 % of Finland, and member or vote totals ≥ 1.5× or ≤ 0.5× the regional average.
@@ -101,6 +101,22 @@ Clubs are matched to municipalities by Finnish or Swedish name; clubs whose `pai
 Regional comparison is derived from coordinates because the source data has no official region field: latitude at or north of 64° is grouped as North Finland; other locations east of 27° longitude as East Finland; remaining locations as South and West Finland. This is a visualization aid, not an official regional classification.
 
 The map uses public OpenStreetMap tiles with attribution and displays a warning on tile failures. Production deployments with high traffic should use an appropriately provisioned tile service in accordance with the provider's usage policy. No club dataset is sent to a geocoding service. Analytics summarize the currently filtered data without changing the source. Dark/light preference is saved locally in the browser.
+
+### Municipality population (2025)
+
+`src/data/municipalities-population-2025.json` is the permanent population source: 308 municipalities and 5,652,881 residents in the supplied dataset. `populationService.ts` imports and processes it once as a shared module, with cached name lookups, national totals and rankings. It is bundled into the application, not fetched separately by each view. Municipality boundaries are still fetched once and reused across routes.
+
+The dataset enriches both the public club dashboard and Region Planner: municipality details and map tooltips, an optional population choropleth, regional population statistics and per-capita comparisons, national municipality rankings/distributions, minimum/maximum/category filters, scenario/backup coverage comparisons, and JSON/CSV/XLSX reports. Population remains public, read-only reference data; it is never added to or allowed to overwrite the shared planner document.
+
+Names are matched using case-insensitive Unicode NFC normalization, Finnish/Swedish boundary names, and the combined source name `Maarianhamina - Mariehamn`. The compact bilingual name index is generated from the existing boundaries:
+
+```sh
+node scripts/build-municipality-names.mjs
+```
+
+Regenerate it after updating municipality boundaries. Unknown population values remain unknown, not zero; complete totals and population-based rates are withheld when a participating municipality is missing. Scenario coverage and selected-region summary populations count a municipality only once, even when regions overlap. Individual region bars/rows still describe that region separately.
+
+The supplied file does not identify its original publisher or reference date within 2025; these are explicitly marked as unspecified in the UI and export metadata. Population categories are size bands, not official city status. Member-per-capita figures describe clubs relative to their municipalities' populations, not verified residential membership or participation rates. See [the full integration report](POPULATION-INTEGRATION.md) for the file inventory, calculations, data audit and enhancement recommendations.
 
 ### Shared region-planner access and storage
 

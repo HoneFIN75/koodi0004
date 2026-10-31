@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertCircle, MapPin, Moon, Search, Sun, Users, Vote, type LucideIcon } from 'lucide-react';
 import { clubRepository } from './data/clubRepository';
+import { municipalityRepository } from './data/municipalityRepository';
+import type { MunicipalityDataset } from './models/region';
+import { assignClubs } from './services/regionAnalytics';
+import { per10000Residents, summarizePopulation } from './services/populationService';
+import { PopulationExplorer } from './components/PopulationExplorer';
 import type { Club, Database, MunicipalityStat } from './models/club';
 import { ChartCard } from './components/ChartCard';
 import { MapView } from './components/MapView';
@@ -68,11 +73,21 @@ function OverviewBars({ rows }: { rows: MunicipalityStat[] }) {
 
 export default function App() {
   const [database, setDatabase] = useState<Database | null>(null);
+  const [municipalities, setMunicipalities] = useState<MunicipalityDataset | null>(null);
+  const [populationError, setPopulationError] = useState('');
   const [error, setError] = useState('');
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [attempt, setAttempt] = useState(0);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('seurakartta-theme') !== 'light');
+
+  useEffect(() => {
+    let active = true;
+    setPopulationError('');
+    municipalityRepository.getMunicipalities().then((result) => { if (active) setMunicipalities(result); })
+      .catch((cause: unknown) => { if (active) setPopulationError(cause instanceof Error ? cause.message : 'Väestötiedon kuntakohdistus epäonnistui.'); });
+    return () => { active = false; };
+  }, [attempt]);
 
   useEffect(() => {
     let active = true;
@@ -91,7 +106,15 @@ export default function App() {
   }, [darkMode]);
 
   const clubs = database?.data ?? emptyClubs;
-  const filteredClubs = useMemo(() => filterClubs(clubs, filters), [clubs, filters]);
+  const clubMunicipalities = useMemo(() => new Map(municipalities ? assignClubs(clubs, municipalities).map(({ club, municipalityCode }) => [club, municipalityCode ? municipalities.byCode.get(municipalityCode) ?? null : null]) : []), [clubs, municipalities]);
+  const filteredClubs = useMemo(() => filterClubs(clubs, filters, (club) => clubMunicipalities.get(club)?.population ?? null), [clubs, filters, clubMunicipalities]);
+  const coveredPopulation = useMemo(() => summarizePopulation(filteredClubs.flatMap((club) => {
+    const municipality = clubMunicipalities.get(club);
+    return municipality ? [municipality] : [];
+  })), [filteredClubs, clubMunicipalities]);
+  const coveredMembers = useMemo(() => filteredClubs.reduce((sum, club) => sum + (clubMunicipalities.get(club) ? club.jasenmaara ?? 0 : 0), 0), [filteredClubs, clubMunicipalities]);
+  const coveredClubs = useMemo(() => filteredClubs.filter((club) => Boolean(clubMunicipalities.get(club))).length, [filteredClubs, clubMunicipalities]);
+  const populationFor = useCallback((club: Club) => clubMunicipalities.get(club)?.population ?? null, [clubMunicipalities]);
   const sortedClubs = useMemo(() => [...filteredClubs].sort((a, b) => (b.jasenmaara ?? -1) - (a.jasenmaara ?? -1)), [filteredClubs]);
   const mappedCount = useMemo(() => filteredClubs.filter(hasLocation).length, [filteredClubs]);
   const maxMembers = useMemo(() => clubs.reduce((maximum, club) => Math.max(maximum, club.jasenmaara ?? 0), 0), [clubs]);
@@ -127,6 +150,7 @@ export default function App() {
       </section>
 
       {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}
+      {populationError && <p className="data-warning" role="alert">Kuntien väestöanalyysi ei ole saatavilla: {populationError} <button onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
       {!database && !error && <div className="loading-state" role="status"><span className="loading-spinner" />Ladataan seuroja ja rakennetaan tilannekuvaa…</div>}
       {database && <>
       {database.warnings.length > 0 && <div className="data-warning" role="status"><AlertCircle size={20} /><div><strong>Aineiston huomautukset</strong>{database.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div></div>}
@@ -139,6 +163,9 @@ export default function App() {
         <MetricCard icon={Vote} label="MEDIAANI" value={totals.median} suffix="jäsentä / seura" />
         <ExtremeCard label="SUURIN SEURA" club={totals.largest} onSelect={setSelectedClub} />
         <ExtremeCard label="PIENIN SEURA" club={totals.smallest} onSelect={setSelectedClub} />
+        <MetricCard icon={Users} label="SEURAKUNTIEN VÄESTÖ 2025" value={municipalities ? coveredPopulation.total : null} suffix="asukasta · kunnat kerran" />
+        <MetricCard icon={Users} label="JÄSENIÄ / 10 000 ASUKASTA" value={municipalities ? per10000Residents(coveredMembers, coveredPopulation.total) : null} suffix="seurojen kotikunnissa" />
+        <MetricCard icon={Users} label="SEUROJA / 10 000 ASUKASTA" value={municipalities ? per10000Residents(coveredClubs, coveredPopulation.total) : null} suffix="seurojen kotikunnissa" />
       </section>
 
       <section className="map-section panel" id="kartta">
@@ -149,11 +176,11 @@ export default function App() {
         </div>
         <ClubFilters filters={filters} maxMembers={maxMembers} votingOptions={votingOptions} onChange={onFilterChange} />
         <div className="map-layout">
-          <MapView clubs={filteredClubs} allClubs={clubs} selectedClub={selectedClub} onSelect={setSelectedClub} />
+          <MapView clubs={filteredClubs} allClubs={clubs} selectedClub={selectedClub} onSelect={setSelectedClub} populationFor={populationFor} />
           <div hidden={selectedClub !== null}>
             <ClubResults key={JSON.stringify(filters)} clubs={sortedClubs} selectedClub={selectedClub} onSelect={setSelectedClub} />
           </div>
-          {selectedClub && <ClubDetail club={selectedClub} onClose={closeDetail} />}
+          {selectedClub && <ClubDetail club={selectedClub} onClose={closeDetail} municipality={clubMunicipalities.get(selectedClub) ?? null} />}
         </div>
         {mappedCount < filteredClubs.length && <p className="empty-note">{filteredClubs.length - mappedCount} seuralta puuttuu karttasijainti. Niiden muut tiedot ovat mukana tilastoissa ja luettelossa.</p>}
       </section>
@@ -168,6 +195,7 @@ export default function App() {
           <OverviewBars rows={municipalityStats} />
           <RankingCard title="Aluevertailu" description="Aineiston alue tai suuntaa-antava koordinaattiryhmä" rows={regions} valueLabel="jäsentä" limit={5} />
         </div>
+        {municipalities && <PopulationExplorer municipalities={municipalities.municipalities} />}
       </section>
       </>}
 

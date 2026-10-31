@@ -32,6 +32,34 @@ test.beforeEach(async ({ page }) => {
   }));
 });
 
+test('population is shared across routes, supports municipality comparisons and filters club maps', async ({ page }) => {
+  let boundaryRequests = 0;
+  page.on('request', (request) => { if (request.url().includes('/geo/kunnat.geojson')) boundaryRequests += 1; });
+  await load(page, fixture([
+    club(0, { paikkakunta: 'Helsingfors', latitude: 60.17, longitude: 24.94 }),
+    club(1, { paikkakunta: 'Brändö', latitude: 60.41, longitude: 21.05 }),
+  ]));
+  const explorer = page.getByRole('region', { name: 'Kuntien väestöanalyysi' });
+  await expect(explorer).toContainText('5 652 881');
+  await explorer.getByLabel('Vertailukunta 1').selectOption({ label: 'Helsinki' });
+  await explorer.getByLabel('Vertailukunta 2').selectOption({ label: 'Espoo' });
+  await expect(explorer).toContainText('Väestöero: 368 676');
+  await explorer.getByLabel('Hae väestökunnan nimeä').fill('Mariehamn');
+  await expect(explorer.locator('tbody')).toContainText('Maarianhamina');
+  await page.locator('.filter-bar').getByLabel('Väestöluokka').selectOption('mega');
+  await expect(page.locator('.map-title p')).toContainText('1 / 2');
+  await page.locator('.club-result').first().click();
+  await expect(page.locator('.detail-fields')).toContainText('694 392');
+  await page.getByRole('button', { name: 'Sulje seuran tiedot' }).click();
+  await page.getByRole('button', { name: 'Tyhjennä suodattimet' }).click();
+  await expect(page.locator('.map-title p')).toContainText('2 / 2');
+  await page.getByRole('link', { name: /Aluesuunnittelu/ }).click();
+  await expect(page.locator('.planner-shell')).toBeVisible();
+  await page.getByRole('link', { name: 'Seurakartta', exact: true }).click();
+  await expect(explorer).toContainText('5 652 881');
+  expect(boundaryRequests).toBe(1);
+});
+
 test('all filters update markers, totals, distributions and empty state', async ({ page }) => {
   await load(page);
   await expect(page.locator('.metric-value').nth(1)).toContainText('1 125');
