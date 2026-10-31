@@ -13,15 +13,16 @@ interface RegionListProps {
   onDuplicate: (id: string) => void;
   onDelete: (region: Region) => void;
   onToggle: (region: Region, field: 'enabled' | 'visible') => void;
+  readOnly?: boolean;
 }
 
-export function RegionList({ regions, stats, selectedRegionId, onSelect, onCreate, onEdit, onDuplicate, onDelete, onToggle }: RegionListProps) {
+export function RegionList({ regions, stats, selectedRegionId, onSelect, onCreate, onEdit, onDuplicate, onDelete, onToggle, readOnly = false }: RegionListProps) {
   const sorted = [...regions].sort((a, b) => a.number - b.number || a.name.localeCompare(b.name, 'fi'));
   return (
     <section className="planner-card region-list" aria-labelledby="region-list-title">
       <header className="card-header">
         <div><h2 id="region-list-title">Alueet</h2><p>{regions.length} aluetta · {regions.filter((region) => region.enabled).length} käytössä</p></div>
-        <button type="button" className="primary-button" onClick={onCreate}><Plus size={16} /> Uusi alue</button>
+        {!readOnly && <button type="button" className="primary-button" onClick={onCreate}><Plus size={16} /> Uusi alue</button>}
       </header>
       {regions.length === 0 && <p className="empty-text">Tässä skenaariossa ei ole vielä alueita. Luo ensimmäinen alue ja valitse sille kunnat kartalta tai luettelosta.</p>}
       <ul>
@@ -36,13 +37,13 @@ export function RegionList({ regions, stats, selectedRegionId, onSelect, onCreat
                   <small>{region.shortName} · {regionStats?.municipalityCount ?? 0} kuntaa · {regionStats?.clubCount ?? 0} seuraa · {integerFormat.format(regionStats?.members ?? 0)} jäsentä</small>
                 </span>
               </button>
-              <span className="row-actions">
+              {!readOnly && <span className="row-actions">
                 <button type="button" className="icon-button" onClick={() => onToggle(region, 'visible')} aria-pressed={region.visible} aria-label={`${region.visible ? 'Piilota' : 'Näytä'} alue ${region.name}`} title={region.visible ? 'Piilota kartalta' : 'Näytä kartalla'}>{region.visible ? <Eye size={15} /> : <EyeOff size={15} />}</button>
                 <button type="button" className="icon-button" onClick={() => onToggle(region, 'enabled')} aria-pressed={region.enabled} aria-label={`${region.enabled ? 'Poista käytöstä' : 'Ota käyttöön'} alue ${region.name}`} title={region.enabled ? 'Poista käytöstä' : 'Ota käyttöön'}><Power size={15} /></button>
                 <button type="button" className="icon-button" onClick={() => onEdit(region.id)} aria-label={`Muokkaa aluetta ${region.name}`} title="Muokkaa"><Pencil size={15} /></button>
                 <button type="button" className="icon-button" onClick={() => onDuplicate(region.id)} aria-label={`Monista alue ${region.name}`} title="Monista"><Copy size={15} /></button>
                 <button type="button" className="icon-button danger" onClick={() => onDelete(region)} aria-label={`Poista alue ${region.name}`} title="Poista"><Trash2 size={15} /></button>
-              </span>
+              </span>}
             </li>
           );
         })}

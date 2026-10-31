@@ -6,11 +6,12 @@ interface DataManagerProps {
   onExport: (format: 'json' | 'csv' | 'xlsx', scope: 'all' | 'active') => void;
   onImport: (result: ImportResult, mode: 'scenarios' | 'append' | 'replace') => Promise<void>;
   knownCodes: Set<string>;
+  readOnly?: boolean;
 }
 
 const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
 
-export function DataManager({ onExport, onImport, knownCodes }: DataManagerProps) {
+export function DataManager({ onExport, onImport, knownCodes, readOnly = false }: DataManagerProps) {
   const [scope, setScope] = useState<'all' | 'active'>('all');
   const [pending, setPending] = useState<{ file: string; result: ImportResult } | null>(null);
   const [error, setError] = useState('');
@@ -57,7 +58,7 @@ export function DataManager({ onExport, onImport, knownCodes }: DataManagerProps
         </div>
         <p className="hint">JSON-vienti voidaan tuoda takaisin sellaisenaan. CSV käyttää puolipistettä erottimena (suomenkielinen Excel).</p>
       </section>
-      <section className="planner-card">
+      {!readOnly && <section className="planner-card">
         <h2 className="card-title"><Upload size={17} /> Tuo</h2>
         <label className="field">JSON-tiedosto (skenaariot tai pelkät alueet)
           <input type="file" accept="application/json,.json" onChange={(event) => { void readFile(event.target.files?.[0]); event.target.value = ''; }} />
@@ -75,7 +76,7 @@ export function DataManager({ onExport, onImport, knownCodes }: DataManagerProps
             </div>
           </div>
         )}
-      </section>
+      </section>}
     </div>
   );
 }

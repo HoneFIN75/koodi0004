@@ -19,6 +19,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: php -l server/planner.php
+      - run: php -l server/setup-auth.php
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e

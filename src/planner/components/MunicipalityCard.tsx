@@ -12,9 +12,10 @@ interface MunicipalityCardProps {
   onRemove: (regionId: string) => void;
   onSelectRegion: (regionId: string) => void;
   onClose: () => void;
+  readOnly?: boolean;
 }
 
-export function MunicipalityCard({ municipality, aggregate, regions, memberOf, onAdd, onRemove, onSelectRegion, onClose }: MunicipalityCardProps) {
+export function MunicipalityCard({ municipality, aggregate, regions, memberOf, onAdd, onRemove, onSelectRegion, onClose, readOnly = false }: MunicipalityCardProps) {
   const candidates = regions.filter((region) => !memberOf.some((member) => member.id === region.id));
   const [target, setTarget] = useState('');
   return (
@@ -30,11 +31,11 @@ export function MunicipalityCard({ municipality, aggregate, regions, memberOf, o
         {memberOf.map((region) => (
           <li key={region.id}>
             <button type="button" className="link-button" onClick={() => onSelectRegion(region.id)}><span className="region-number small" style={{ background: region.color }}>{region.number}</span> {region.name}</button>
-            <button type="button" className="text-button" onClick={() => onRemove(region.id)} aria-label={`Poista ${municipality.name} alueesta ${region.name}`}>Poista</button>
+            {!readOnly && <button type="button" className="text-button" onClick={() => onRemove(region.id)} aria-label={`Poista ${municipality.name} alueesta ${region.name}`}>Poista</button>}
           </li>
         ))}
       </ul>
-      {candidates.length > 0 && (
+      {!readOnly && candidates.length > 0 && (
         <div className="inline-form">
           <select value={target} onChange={(event) => setTarget(event.target.value)} aria-label="Valitse alue, johon kunta lisätään">
             <option value="">Lisää alueeseen…</option>

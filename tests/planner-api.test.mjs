@@ -1,29 +1,52 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { copyFile, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
-async function startHost(t, environment = {}) {
-  const home = await mkdtemp(join(tmpdir(), 'planner-api-'));
+const writerPassword = 'writer-password-0123';
+const adminPassword = 'admin-password-4567';
+const oldKey = 'legacy-write-key-not-authorized-anymore';
+const originalDocument = { version: 1, activeScenarioId: 'original', scenarios: [{ id: 'original' }] };
+const editedDocument = { version: 1, activeScenarioId: 'updated', scenarios: [{ id: 'updated' }] };
+
+function runSetup(dataDirectory, passwords = [writerPassword, writerPassword, adminPassword, adminPassword], extraEnv = {}) {
+  return spawnSync('php', [new URL('../server/setup-auth.php', import.meta.url).pathname], {
+    cwd: process.cwd(),
+    env: { ...process.env, HOME: dataDirectory.replace(/\/planner-data$/, ''), ...extraEnv },
+    input: `${passwords.join('\n')}\n`,
+    encoding: 'utf8',
+  });
+}
+
+async function startHost(t, { initialize = true, withPlan = true } = {}) {
+  const home = await mkdtemp(join(tmpdir(), 'planner-auth-'));
   const root = join(home, 'public_html', 'site');
   const data = join(home, 'planner-data');
   await mkdir(join(root, 'api'), { recursive: true });
   await mkdir(data, { mode: 0o700 });
   await copyFile(new URL('../server/planner.php', import.meta.url), join(root, 'api', 'planner.php'));
+  await copyFile(new URL('../server/setup-auth.php', import.meta.url), join(root, 'api', 'setup-auth.php'));
+  const router = join(home, 'https-router.php');
+  await writeFile(router, "<?php\n$_SERVER['HTTPS'] = 'on';\n$_SERVER['SERVER_PORT'] = '443';\nreturn false;\n");
+  await writeFile(join(data, 'config.json'), JSON.stringify({ writeKey: oldKey }), { mode: 0o600 });
+  if (withPlan) {
+    await writeFile(join(data, 'planner.json'), JSON.stringify({ document: originalDocument, backups: [] }), { mode: 0o600 });
+  }
+  if (initialize) {
+    const setup = runSetup(data);
+    assert.equal(setup.status, 0, `setup failed: ${setup.stderr}`);
+  }
   const socket = createServer();
   socket.listen(0, '127.0.0.1');
   await once(socket, 'listening');
   const port = socket.address().port;
   await new Promise((resolve) => socket.close(resolve));
-  const env = { ...process.env };
-  delete env.PLANNER_DATA_FILE;
-  delete env.PLANNER_WRITE_KEY;
-  Object.assign(env, typeof environment === 'function' ? environment(home) : environment);
-  const php = spawn('php', ['-S', `127.0.0.1:${port}`, '-t', root], { env, stdio: ['ignore', 'ignore', 'pipe'] });
+  const env = { ...process.env, HOME: home };
+  const php = spawn('php', ['-S', `127.0.0.1:${port}`, '-t', root, router], { env, stdio: ['ignore', 'ignore', 'pipe'] });
   let logs = '';
   t.after(async () => {
     if (php.exitCode === null && php.signalCode === null) {
@@ -45,106 +68,197 @@ async function startHost(t, environment = {}) {
       }
     });
   });
-  return { home, root, data, url: `http://127.0.0.1:${port}/api/planner.php`, logs: () => logs };
+  const url = `http://127.0.0.1:${port}/api/planner.php`;
+  return { home, root, data, url, logs: () => logs };
 }
 
-const key = 'test-only-write-key-not-a-production-secret';
+function cookieFrom(response, fallback = '') {
+  const header = response.headers.get('set-cookie');
+  return header ? header.split(';', 1)[0] : fallback;
+}
 
-test('PHP local configuration and persistence', async (t) => {
-  const host = await startHost(t);
-  const config = join(host.data, 'config.json');
-  const configure = (value) => writeFile(config, JSON.stringify(value), { mode: 0o600 });
-  const get = () => fetch(host.url);
+async function getSession(host, cookie = '') {
+  const response = await fetch(`${host.url}?action=session`, { headers: cookie ? { Cookie: cookie } : {} });
+  const data = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(data));
+  return { data, cookie: cookieFrom(response, cookie) };
+}
 
-  await t.test('missing configuration is an explicit service error', async () => {
-    assert.equal((await get()).status, 503);
+async function postAuth(host, action, session, body, csrf = session.data.csrfToken) {
+  const response = await fetch(`${host.url}?action=${action}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrf,
+      ...(session.cookie ? { Cookie: session.cookie } : {}),
+    },
+    body: JSON.stringify(body),
   });
-  await t.test('malformed JSON and invalid keys are rejected without exposing contents', async () => {
-    for (const value of ['{"writeKey":', '{"writeKey":123}', '{"writeKey":"short"}']) {
-      await writeFile(config, value);
-      const response = await get();
-      assert.equal(response.status, 503);
-      assert.ok((await response.json()).error);
-    }
-  });
-  await configure({ writeKey: key });
-  await t.test('finds configuration above a nested document root and returns empty state', async () => {
-    const response = await get();
-    assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), { document: null, backups: [], revision: null });
-    assert.equal((await fetch(host.url.replace('api/planner.php', 'planner-data/config.json'))).status, 404);
-  });
-  const document = { version: 1, activeScenarioId: 'test', scenarios: [{ id: 'test' }] };
-  const save = (headers = {}) => fetch(host.url, {
+  const data = await response.json();
+  return { response, data, cookie: cookieFrom(response, session.cookie) };
+}
+
+async function putPlan(host, { cookie = '', csrf = '', revision, document = editedDocument, extraHeaders = {} } = {}) {
+  return fetch(host.url, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'If-None-Match': '*', ...headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(cookie ? { Cookie: cookie } : {}),
+      ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
+      ...(revision === null ? { 'If-None-Match': '*' } : revision ? { 'X-Expected-Revision': revision } : {}),
+      ...extraHeaders,
+    },
     body: JSON.stringify({ document, backups: [] }),
   });
-  await t.test('writes still require the key', async () => {
-    assert.equal((await save()).status, 401);
-    assert.equal((await save({ 'X-Planner-Write-Key': 'incorrect' })).status, 401);
-  });
-  let revision;
-  await t.test('authorized create persists beside configuration without changing the key', async () => {
-    const response = await save({ 'X-Planner-Write-Key': key });
-    assert.equal(response.status, 200);
-    revision = (await response.json()).revision;
-    assert.match(revision, /^[a-f0-9]{64}$/);
-    assert.deepEqual(JSON.parse(await readFile(join(host.data, 'planner.json'), 'utf8')), { document, backups: [] });
-    assert.deepEqual(JSON.parse(await readFile(config, 'utf8')), { writeKey: key });
-    const loaded = await (await get()).json();
-    assert.deepEqual(loaded, { document, backups: [], revision });
-    assert.ok(!JSON.stringify(loaded).includes(key));
-  });
-  await t.test('stale writes are rejected and revision-based updates succeed', async () => {
-    assert.equal((await save({ 'X-Planner-Write-Key': key })).status, 409);
-    assert.equal((await save({ 'X-Planner-Write-Key': key, 'X-Expected-Revision': revision })).status, 200);
-  });
-  await t.test('configuration placed only inside the web root is not loaded', async () => {
-    await rm(config);
-    await mkdir(join(host.root, 'planner-data'));
-    await writeFile(join(host.root, 'planner-data', 'config.json'), JSON.stringify({ writeKey: key }));
-    assert.equal((await get()).status, 503);
-  });
-  await t.test('symbolic configuration files are rejected', async () => {
-    const target = join(host.home, 'private.json');
-    await writeFile(target, JSON.stringify({ writeKey: key }));
-    await symlink(target, config);
-    assert.equal((await get()).status, 503);
-    await rm(config);
-  });
-  await t.test('configuration directory resolving inside the web root is rejected', async () => {
-    await rm(host.data, { recursive: true });
-    await symlink(join(host.root, 'planner-data'), host.data);
-    assert.equal((await get()).status, 503);
-    assert.ok(!host.logs().includes(key));
-  });
+}
+
+test('public planner reads remain available before auth setup; all writes fail closed', async (t) => {
+  const host = await startHost(t, { initialize: false });
+  const read = await fetch(host.url);
+  assert.equal(read.status, 200);
+  const state = await read.json();
+  assert.deepEqual(state.document, originalDocument);
+  assert.deepEqual(state.backups, []);
+  assert.match(state.revision, /^[a-f0-9]{64}$/);
+  const session = await getSession(host);
+  assert.equal(session.data.authReady, false);
+  assert.equal(session.data.role, null);
+  const oldKeyWrite = await putPlan(host, { revision: state.revision, extraHeaders: { 'X-Planner-Write-Key': oldKey } });
+  assert.equal(oldKeyWrite.status, 401);
+  const deniedWrite = await putPlan(host, { revision: state.revision });
+  assert.equal(deniedWrite.status, 401);
+  const cliOnly = await fetch(`${host.url.replace('/planner.php', '/setup-auth.php')}`);
+  assert.equal(cliOnly.status, 404);
+  assert.ok(!(await readFile(join(host.data, 'planner.json'), 'utf8')).includes('updated'));
 });
 
-test('PHP environment configuration retains precedence over a local file', async (t) => {
-  const host = await startHost(t, (home) => ({
-    PLANNER_DATA_FILE: join(home, 'environment-data', 'state.json'),
-    PLANNER_WRITE_KEY: key,
-  }));
-  await mkdir(join(host.home, 'environment-data'));
-  await writeFile(join(host.data, 'config.json'), 'invalid local JSON');
-  assert.equal((await fetch(host.url)).status, 200);
+test('one-time CLI setup preserves planner data and removes the legacy key', async (t) => {
+  const host = await startHost(t);
+  assert.deepEqual(JSON.parse(await readFile(join(host.data, 'planner.json'), 'utf8')), { document: originalDocument, backups: [] });
+  assert.deepEqual(JSON.parse(await readFile(join(host.data, 'config.json'), 'utf8')), {});
+  const auth = JSON.parse(await readFile(join(host.data, 'auth.json'), 'utf8'));
+  assert.equal(auth.version, 1);
+  assert.equal(auth.sessionVersion, 1);
+  assert.ok(!JSON.stringify(auth).includes(writerPassword));
+  assert.ok(!JSON.stringify(auth).includes(adminPassword));
+  assert.equal((await readFile(join(host.data, 'auth.json'))).length > 0, true);
+  const secondSetup = runSetup(host.data, []);
+  assert.notEqual(secondSetup.status, 0);
+  assert.match(secondSetup.stderr, /ei ylikirjoita/i);
 });
 
-test('partial or empty environment configuration does not fall back', async (t) => {
-  for (const environment of [{ PLANNER_WRITE_KEY: key }, { PLANNER_DATA_FILE: '' }]) {
-    await t.test(JSON.stringify(environment), async (t) => {
-      const host = await startHost(t, environment);
-      await writeFile(join(host.data, 'config.json'), JSON.stringify({ writeKey: key }));
-      assert.equal((await fetch(host.url)).status, 503);
-    });
+test('CLI setup uses the configured planner data directory', async (t) => {
+  const home = await mkdtemp(join(tmpdir(), 'planner-auth-custom-'));
+  t.after(() => rm(home, { recursive: true, force: true }));
+  const directory = join(home, 'private', 'store');
+  await mkdir(directory, { recursive: true, mode: 0o700 });
+  const setup = runSetup(directory, undefined, { HOME: home, PLANNER_DATA_FILE: join(directory, 'shared-plan.json') });
+  assert.equal(setup.status, 0, `setup failed: ${setup.stderr}`);
+  assert.ok(JSON.parse(await readFile(join(directory, 'auth.json'), 'utf8')).passwords);
+  assert.equal(await readFile(join(home, 'planner-data', 'auth.json')).catch(() => null), null);
+});
+
+test('Writer can edit shared planner but cannot access Admin APIs', async (t) => {
+  const host = await startHost(t);
+  const initial = await (await fetch(host.url)).json();
+  let session = await getSession(host);
+  assert.equal(session.data.authReady, true);
+  const csrfFailure = await postAuth(host, 'login', session, { role: 'writer', password: writerPassword }, 'invalid');
+  assert.equal(csrfFailure.response.status, 403);
+  const login = await postAuth(host, 'login', session, { role: 'writer', password: writerPassword });
+  assert.equal(login.response.status, 200);
+  assert.equal(login.data.role, 'writer');
+  assert.match(login.response.headers.get('set-cookie') ?? '', /Secure/i);
+  assert.match(login.response.headers.get('set-cookie') ?? '', /HttpOnly/i);
+  assert.match(login.response.headers.get('set-cookie') ?? '', /SameSite=Strict/i);
+  session = { data: login.data, cookie: login.cookie };
+
+  const noCsrf = await putPlan(host, { cookie: session.cookie, revision: initial.revision });
+  assert.equal(noCsrf.status, 403);
+  const writerWrite = await putPlan(host, { cookie: session.cookie, csrf: session.data.csrfToken, revision: initial.revision });
+  assert.equal(writerWrite.status, 200);
+  assert.deepEqual((await (await fetch(host.url)).json()).document, editedDocument);
+
+  const adminOnly = await postAuth(host, 'admin/password', session, {
+    account: 'writer',
+    currentAdminPassword: adminPassword,
+    newPassword: 'new-writer-password-9876',
+  });
+  assert.equal(adminOnly.response.status, 403);
+});
+
+test('Admin changes account passwords and password updates invalidate every session', async (t) => {
+  const host = await startHost(t);
+  const initial = await (await fetch(host.url)).json();
+  const writerAnonymous = await getSession(host);
+  const writerLogin = await postAuth(host, 'login', writerAnonymous, { role: 'writer', password: writerPassword });
+  const writerSession = { data: writerLogin.data, cookie: writerLogin.cookie };
+  const adminAnonymous = await getSession(host);
+  const adminLogin = await postAuth(host, 'login', adminAnonymous, { role: 'admin', password: adminPassword });
+  let adminSession = { data: adminLogin.data, cookie: adminLogin.cookie };
+  assert.equal(adminLogin.response.status, 200);
+  const adminWrite = await putPlan(host, {
+    cookie: adminSession.cookie,
+    csrf: adminSession.data.csrfToken,
+    revision: initial.revision,
+  });
+  assert.equal(adminWrite.status, 200);
+
+  const changedWriter = await postAuth(host, 'admin/password', adminSession, {
+    account: 'writer',
+    currentAdminPassword: adminPassword,
+    newPassword: 'new-writer-password-9876',
+  });
+  assert.equal(changedWriter.response.status, 200);
+  assert.equal(changedWriter.data.role, null);
+  const staleWriterWrite = await putPlan(host, {
+    cookie: writerSession.cookie,
+    csrf: writerSession.data.csrfToken,
+    revision: initial.revision,
+  });
+  assert.equal(staleWriterWrite.status, 401);
+  const staleAdminSession = await getSession(host, adminSession.cookie);
+  assert.equal(staleAdminSession.data.role, null);
+
+  const writerOldPassword = await postAuth(host, 'login', await staleWriterSession(host, writerSession.cookie), {
+    role: 'writer', password: writerPassword,
+  });
+  assert.equal(writerOldPassword.response.status, 401);
+  const writerNewPassword = await postAuth(host, 'login', await staleWriterSession(host, writerSession.cookie), {
+    role: 'writer', password: 'new-writer-password-9876',
+  });
+  assert.equal(writerNewPassword.response.status, 200);
+
+  const freshAdmin = await getSession(host, changedWriter.cookie);
+  const reauthenticatedAdmin = await postAuth(host, 'login', freshAdmin, { role: 'admin', password: adminPassword });
+  adminSession = { data: reauthenticatedAdmin.data, cookie: reauthenticatedAdmin.cookie };
+  const changedAdmin = await postAuth(host, 'admin/password', adminSession, {
+    account: 'admin',
+    currentAdminPassword: adminPassword,
+    newPassword: 'new-admin-password-9876',
+  });
+  assert.equal(changedAdmin.response.status, 200);
+  const oldAdmin = await postAuth(host, 'login', await getSession(host, changedAdmin.cookie), { role: 'admin', password: adminPassword });
+  assert.equal(oldAdmin.response.status, 401);
+  const newAdmin = await postAuth(host, 'login', await getSession(host, oldAdmin.cookie), { role: 'admin', password: 'new-admin-password-9876' });
+  assert.equal(newAdmin.response.status, 200);
+  assert.deepEqual(JSON.parse(await readFile(join(host.data, 'planner.json'), 'utf8')).document, editedDocument);
+});
+
+test('wrong passwords are generic and rate-limited per remote address', async (t) => {
+  const host = await startHost(t);
+  let session = await getSession(host);
+  const bad = () => postAuth(host, 'login', session, { role: 'writer', password: 'wrong-password-0000' });
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const response = await bad();
+    assert.equal(response.response.status, 401);
+    assert.equal(response.data.error, 'Tunnus tai salasana on virheellinen.');
   }
+  const limited = await bad();
+  assert.equal(limited.response.status, 429);
+  assert.match(limited.data.error, /Odota 15 minuuttia/);
 });
 
-test('PHP environment data paths inside the web root remain rejected', async (t) => {
-  const host = await startHost(t, (home) => ({
-    PLANNER_DATA_FILE: join(home, 'public_html', 'site', 'state.json'),
-    PLANNER_WRITE_KEY: key,
-  }));
-  assert.equal((await fetch(host.url)).status, 503);
-});
+function staleWriterSession(host, cookie) {
+  return getSession(host, cookie);
+}

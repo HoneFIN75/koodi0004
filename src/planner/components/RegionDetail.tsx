@@ -13,9 +13,10 @@ interface RegionDetailProps {
   onEdit: () => void;
   onDuplicate: () => void;
   onClose: () => void;
+  readOnly?: boolean;
 }
 
-export function RegionDetail({ region, stats, explanation, warnings, onEdit, onDuplicate, onClose }: RegionDetailProps) {
+export function RegionDetail({ region, stats, explanation, warnings, onEdit, onDuplicate, onClose, readOnly = false }: RegionDetailProps) {
   return (
     <section className="planner-card region-detail" aria-labelledby="region-detail-title" style={{ '--region-color': region.color } as CSSProperties}>
       <header className="card-header">
@@ -26,10 +27,10 @@ export function RegionDetail({ region, stats, explanation, warnings, onEdit, onD
         <button type="button" className="icon-button" onClick={onClose} aria-label="Sulje aluepaneeli"><X size={17} /></button>
       </header>
       {region.description && <p className="region-description">{region.description}</p>}
-      <div className="button-row">
+      {!readOnly && <div className="button-row">
         <button type="button" className="primary-button" onClick={onEdit}><Pencil size={15} /> Muokkaa ja valitse kunnat</button>
         <button type="button" className="secondary-button" onClick={onDuplicate}><Copy size={15} /> Monista</button>
-      </div>
+      </div>}
       <div className="stat-grid compact">
         <StatCard label="Kuntia" value={stats.municipalityCount} />
         <StatCard label="Seuroja" value={stats.clubCount} />

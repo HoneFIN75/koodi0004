@@ -236,7 +236,7 @@ test('storage falls back from IndexedDB to localStorage to memory', async () => 
   assert.equal((await createStorage({ indexedDB: failingIdb, localStorage })).kind, 'LocalStorage');
 });
 
-test('remote storage uses conditional shared writes and reports conflicts', async () => {
+test('remote storage uses CSRF-protected conditional writes and reports conflicts', async () => {
   const originalFetch = globalThis.fetch;
   const document = createDocument();
   let state = { document: null, backups: [], revision: null };
@@ -245,7 +245,8 @@ test('remote storage uses conditional shared writes and reports conflicts', asyn
   globalThis.fetch = async (_url, init) => {
     requests.push(init);
     if (init.method === 'GET') return Response.json(state);
-    assert.equal(init.headers['X-Planner-Write-Key'], 'temporary-write-key');
+    assert.equal(init.headers['X-CSRF-Token'], 'csrf-token');
+    assert.equal(init.headers['X-Planner-Write-Key'], undefined);
     if (state.revision === null) assert.equal(init.headers['If-None-Match'], '*');
     else assert.equal(init.headers['X-Expected-Revision'], state.revision);
     if (rejectWrites) return Response.json({ error: 'conflict' }, { status: 409 });
@@ -256,7 +257,7 @@ test('remote storage uses conditional shared writes and reports conflicts', asyn
   try {
     const adapter = createRemoteStorage('/api/planner.php');
     assert.equal(await adapter.get(STORAGE_KEYS.document), null);
-    adapter.setWriteKey('temporary-write-key');
+    adapter.setCsrfToken('csrf-token');
     await adapter.set(STORAGE_KEYS.document, document);
     assert.deepEqual(state.document, document);
     rejectWrites = true;

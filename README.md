@@ -92,7 +92,8 @@ Clubs are matched to municipalities by Finnish or Swedish name; clubs whose `pai
 - `src/services/statisticsService.ts` — totals, municipal rankings, membership/voting distributions, and approximate location-based regional grouping.
 - `src/services/mapService.ts` — membership-scaled markers, voting-power colors, and safe popup content.
 - `src/services/{regionAnalytics,validationService,plannerDocument,historyService,persistenceService,backupService,exportService}.ts` — framework-free region planner logic and shared-storage client, covered by `tests/planner.test.mjs`.
-- `server/planner.php` — public read/private shared-key write API, with data stored outside the web root and optimistic concurrency checks.
+- `server/planner.php` — public read, session-authenticated shared planner writes, Admin password API and optimistic concurrency checks.
+- `server/setup-auth.php` — one-time CLI-only setup for the shared Writer and Admin accounts.
 - `src/state/plannerStore.ts` — Zustand store with undo history, debounced autosave and backups.
 - `src/planner/` — region planner UI (map, editor, dashboard, comparison, scenario, backup and data views).
 - `src/components/` — clustered map, legend, filters, accessible club details, incrementally rendered results and reusable dashboard charts/rankings.
@@ -101,35 +102,57 @@ Regional comparison is derived from coordinates because the source data has no o
 
 The map uses public OpenStreetMap tiles with attribution and displays a warning on tile failures. Production deployments with high traffic should use an appropriately provisioned tile service in accordance with the provider's usage policy. No club dataset is sent to a geocoding service. Analytics summarize the currently filtered data without changing the source. Dark/light preference is saved locally in the browser.
 
-### Shared region-planner storage
+### Shared region-planner access and storage
 
-Production builds use the PHP endpoint at `api/planner.php` for shared region-planner documents and backups. It requires PHP 8.1+ with JSON support, HTTPS, and a writable data directory **outside the public document root**. PHP must be allowed to read and write this directory (including any `open_basedir` restrictions).
+The production planner is publicly readable. Editing its shared plan, backups, imports and scenario settings requires one of two shared accounts: **Writer** or **Admin**. Both can edit; only Admin can change either account's password. There are no personal accounts, email services, invitations or third-party authentication providers. Because credentials are shared, the application cannot identify which person made a change. The club dataset and the rest of the Seurakartta remain public and read-only.
 
-#### Self-service configuration on shared hosting
+The PHP 8.1+ endpoint needs JSON, PHP sessions, `password_hash`/`password_verify`, `random_bytes`, file locking, and a private writable directory outside the web root. HTTPS is required for login and edits. The host must allow PHP to read and write the private directory (including any `open_basedir` restrictions). No PHP-FPM pool edits, outbound network requests or email service are required. The site should run through the host's HTTPS configuration; the endpoint does not trust forwarded-protocol or client-IP headers.
 
-No PHP-FPM changes or administrator access are needed when PHP runs as your hosting account and can access its home directory. For a document root such as `/home/account/public_html`, create `/home/account/planner-data`. The endpoint searches for `planner-data/config.json` in the document root's parent and then its ancestors, using the first existing file. This also works when the document root is a subdirectory of `public_html`. It never searches inside the web root and rejects configuration files that resolve there or are symbolic links.
+#### One-time shared-host setup
 
-Create the private configuration **on the host**, without printing the key or overwriting an existing configuration:
+The default private directory is `"$HOME/planner-data"`. Confirm it is outside `public_html` and restrict it to the hosting account:
 
 ```sh
-mkdir -p "$HOME/planner-data" &&
-chmod 700 "$HOME/planner-data" &&
-php -r '$dir = getenv("HOME") . "/planner-data"; $json = json_encode(["writeKey" => bin2hex(random_bytes(32))], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR) . PHP_EOL; umask(0077); $f = fopen($dir . "/config.json", "x"); if ($f === false) { exit(1); } if (fwrite($f, $json) !== strlen($json)) { fwrite(STDERR, "Configuration write failed\n"); fclose($f); exit(1); } fclose($f);'
+chmod 700 "$HOME/planner-data"
 ```
 
-The resulting `config.json` has permission `600` and contains a `writeKey` string of at least 32 characters. `planner.json` is created beside it on the first authorized save. Retrieve the key privately via SSH or your hosting file manager when the planner asks for it; never paste it into chat, GitHub, frontend files, or build variables. Do not put the configuration in `.user.ini` or under `public_html`. If PHP runs as another account, arrange restricted read/write access rather than using permission `777`.
+From the repository root on your computer, copy the CLI initializer into that private directory (replace the SSH destination with your host and account):
 
-To move the application, copy the private `planner-data` directory separately from the public build files to an ancestor of the new document root. Keep its permissions restricted and retain `config.json` and `planner.json`; no server-specific absolute path is stored in the local configuration. The existing SSH deployment publishes the endpoint but does not create, overwrite, or back up this private directory.
+```sh
+scp server/setup-auth.php account@example-host:/home/account/planner-data/setup-auth.php
+```
 
-#### Environment-variable configuration (optional)
+Then connect by SSH and run:
 
-Existing deployments can continue to supply both of the following server-side environment variables instead:
+```sh
+chmod 700 "$HOME/planner-data"
+php "$HOME/planner-data/setup-auth.php"
+```
 
-- `PLANNER_DATA_FILE`: absolute path to the JSON database file. Create its parent directory first and make it writable by the PHP worker. The directory must be **outside the public document root**; the endpoint rejects paths inside it.
-- `PLANNER_WRITE_KEY`: random shared write password of at least 32 characters. Generate one with `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'`. Configure it only in the PHP hosting environment, never in GitHub Actions build variables, frontend files, or this repository.
+If the API uses `PLANNER_DATA_FILE`, the CLI setup script stores authentication files beside that configured planner file. Make sure the same absolute path is available to the CLI process, for example:
 
-For PHP-FPM, configure both `env[PLANNER_DATA_FILE]` and `env[PLANNER_WRITE_KEY]` in the relevant pool, then reload PHP-FPM. With Apache `mod_php`, set them in the protected virtual-host configuration. Environment variables take precedence; if either is set, both must be valid and the endpoint will not fall back to the local file. Missing or invalid configuration returns an explicit HTTP 503 error. If the host cannot run PHP or grant access to a private data directory, move the API to a suitable server runtime.
+```sh
+PLANNER_DATA_FILE=/home/account/private/planner.json php /home/account/private/setup-auth.php
+```
 
-Reads are public so visitors can see the shared plan. Writes require the shared key, which authorized editors enter in the planner; it stays in that tab's memory and is sent only to this same-origin endpoint over HTTPS. Anyone with the key can edit, so keep it private and rotate it in the server configuration if exposed. This is a temporary shared write gate, not user-specific authorization.
+In that example, place `setup-auth.php` in `/home/account/private/` before running it. The selected directory must exist, be writable, and be outside the site's public document root.
 
-The server stores the document and up to 10 backups in one JSON file, uses atomic replacement and revision checks, and rejects stale concurrent writes instead of silently overwriting newer server data. On the first visit, existing browser data is offered for explicit migration only when the server is empty; it is never automatically uploaded over an existing server plan. Back up or export plans before deployment. An empty server with no browser plan is initialized after the first authorized save. Development mode continues to use browser storage.
+The script prompts for Writer and Admin passwords without echoing them in a terminal (it uses CLI `proc_open` and `stty` for this). Enter each twice. Use at least 12 characters; when the PHP build lacks Argon2id, passwords are limited to 72 bytes to avoid bcrypt truncation. Passwords are never command-line arguments and are not written to shell history. The script runs only in PHP CLI, refuses to overwrite an existing `auth.json`, stores password hashes and a random rate-limit key with mode `600`, and does not change `planner.json` or its backups. It also removes the obsolete `writeKey` entry from a valid legacy `config.json`; the API no longer reads or accepts that credential.
+
+After successful setup, remove the uploaded initializer:
+
+```sh
+rm "$HOME/planner-data/setup-auth.php"
+```
+
+The API creates `sessions/` and `login-attempts.json` inside `planner-data` as needed. Sessions live in that private directory, use Secure, HttpOnly and SameSite=Strict cookies, expire after eight hours, and are all invalidated whenever either password changes. Failed logins are limited to 10 per account and server-observed remote address per 15 minutes. Keep the directory private; do not use permission `777`. If the host cannot provide these PHP features or filesystem access, do not enable writes.
+
+Remove any obsolete `PLANNER_WRITE_KEY` server setting if one exists. It is ignored by this release, and the old request header cannot authorize writes. The optional `PLANNER_DATA_FILE` environment setting may still select the planner JSON path, but it does not grant access. Never put passwords or hashes in the frontend, GitHub Actions, or this repository.
+
+#### Password changes and recovery
+
+Sign in as Admin and open **Admin** in the planner header. There are separate forms for changing Writer and Admin passwords. Each form requires the current Admin password, the new password twice, and at least 12 characters. A successful change immediately invalidates all sessions; everyone must sign in again with the updated shared account password. Share credentials only with trusted users using a private channel.
+
+The initializer is intentionally non-destructive. If Admin access is lost, first make a private backup of `planner-data`. Then, using SSH or the host's file manager, move the authentication-only entries `auth.json`, `auth-setup.lock`, `login-attempts.json` (if present), and the `sessions/` directory to private recovery names outside the web root. Do not move or delete `planner.json` or planner backups. Upload `setup-auth.php` again, run it to set both passwords, then remove the script. Existing planner data remains intact; all old sessions are revoked.
+
+The planner stores the document and up to 10 backups in `planner.json`, uses atomic replacement and revision checks, and rejects stale concurrent writes instead of silently overwriting newer server data. Existing browser-local data is shown only in that browser and can be migrated after Writer or Admin signs in, only when the server has no plan. It is never automatically uploaded over existing server data. Development mode continues to use browser storage.
