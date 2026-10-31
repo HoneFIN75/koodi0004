@@ -39,6 +39,14 @@
 .save-indicator.error { color: var(--coral); border-color: var(--coral); }
 .save-indicator.error span { color: var(--coral); }
 @keyframes pulse { 50% { opacity: .35; } }
+.auth-control { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 12px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.auth-control:hover, .auth-control.active { border-color: var(--accent); }
+.auth-panel { display: grid; gap: 14px; margin: 14px 0; }
+.auth-form, .password-form { display: grid; gap: 12px; max-width: 460px; }
+.auth-form .card-title, .admin-panel .card-title { margin: 0; }
+.admin-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+.password-form { align-content: start; padding: 14px; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 10px; }
+.password-form h3 { margin: 0; }
 .planner-tabs { display: flex; gap: 4px; margin: 14px 0; padding: 4px; overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; scrollbar-width: thin; }
 .planner-tabs button { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 16px; color: var(--muted); background: none; border: 0; border-radius: 9px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: background .15s, color .15s; }
 .planner-tabs button:hover { color: var(--text); }

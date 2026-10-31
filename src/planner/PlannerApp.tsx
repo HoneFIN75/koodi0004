@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ArrowLeft, Moon, Redo2, Sun, Undo2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { AlertCircle, ArrowLeft, LogIn, LogOut, Moon, Redo2, Shield, Sun, Undo2 } from 'lucide-react';
 import { clubRepository } from '../data/clubRepository';
 import { municipalityRepository } from '../data/municipalityRepository';
 import type { Database } from '../models/club';
 import type { MunicipalityDataset, Region, RegionDraft, Snapshot } from '../models/region';
 import { exportCsv, exportFileName, exportJson, exportXlsx, type ExportContext } from '../services/exportService';
+import { authService, type AuthRole, type AuthSession } from '../services/authService';
 import { activeScenario, documentOps, type ImportResult } from '../services/plannerDocument';
 import { aggregateByMunicipality, analyzeScenario, assignClubs, emptyFilters, explainCoverage, filterPlacements, normalizeName, type PlannerFilters as Filters } from '../services/regionAnalytics';
 import { validateScenario } from '../services/validationService';
@@ -54,14 +55,26 @@ export default function PlannerApp() {
   const [showClubs, setShowClubs] = useState(true);
   const [showBaseMap, setShowBaseMap] = useState(true);
   const [dark, setDark] = useState(() => { try { return localStorage.getItem(THEME_KEY) !== 'light'; } catch { return true; } });
-  const [writeKey, setWriteKey] = useState('');
+  const [authSession, setAuthSession] = useState<AuthSession>({ authReady: false, role: null, csrfToken: '' });
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState('');
+  const [authMessage, setAuthMessage] = useState('');
+  const [loginRole, setLoginRole] = useState<AuthRole>('writer');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [authOpen, setAuthOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [passwordForms, setPasswordForms] = useState<Record<AuthRole, { current: string; next: string; confirmation: string }>>({
+    writer: { current: '', next: '', confirmation: '' },
+    admin: { current: '', next: '', confirmation: '' },
+  });
+  const [viewScenarioId, setViewScenarioId] = useState<string | null>(null);
   const [writeActionError, setWriteActionError] = useState('');
 
   const ready = usePlanner((state) => state.ready);
   const loadError = usePlanner((state) => state.loadError);
   const remoteMode = usePlanner((state) => state.remoteMode);
   const migrationAvailable = usePlanner((state) => state.migrationAvailable);
-  const writeAuthRequired = usePlanner((state) => state.writeAuthRequired);
+  const authRequired = usePlanner((state) => state.authRequired);
   const writeConflict = usePlanner((state) => state.writeConflict);
   const saveError = usePlanner((state) => state.saveError);
   const history = usePlanner((state) => state.history);
@@ -70,11 +83,36 @@ export default function PlannerApp() {
   const lastSavedAt = usePlanner((state) => state.lastSavedAt);
   const backups = usePlanner((state) => state.backups);
   const document_ = history.present;
-  const scenario = activeScenario(document_);
+  const canWrite = !import.meta.env.PROD || authSession.role === 'writer' || authSession.role === 'admin';
+  const displayedDocument = canWrite || !viewScenarioId ? document_ : { ...document_, activeScenarioId: viewScenarioId };
+  const scenario = activeScenario(displayedDocument);
   const regions = scenario.regions;
   const { commit, navigate, undo, redo } = plannerStore.getState();
 
-  useEffect(() => { void plannerStore.getState().init(); }, []);
+  useEffect(() => {
+    void plannerStore.getState().init();
+    if (!import.meta.env.PROD) {
+      setAuthLoading(false);
+      return;
+    }
+    authService.getSession().then((session) => {
+      plannerStore.getState().setCsrfToken(session.csrfToken);
+      setAuthSession(session);
+    }).catch((cause: unknown) => {
+      setAuthError(cause instanceof Error ? cause.message : 'Kirjautumistietoja ei voitu ladata.');
+    }).finally(() => setAuthLoading(false));
+  }, []);
+  useEffect(() => {
+    if (!authRequired) return;
+    authService.getSession().then((session) => {
+      plannerStore.getState().setCsrfToken(session.csrfToken);
+      setAuthSession(session);
+      setAuthOpen(true);
+      setAuthError('Kirjautuminen vanheni. Kirjaudu uudelleen tallentaaksesi muutokset.');
+    }).catch((cause: unknown) => {
+      setAuthError(cause instanceof Error ? cause.message : 'Kirjautumistietoja ei voitu tarkistaa.');
+    });
+  }, [authRequired]);
   useEffect(() => {
     let active = true;
     setError('');
@@ -98,14 +136,14 @@ export default function PlannerApp() {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
-      if (!(event.ctrlKey || event.metaKey)) return;
+      if (!canWrite || !(event.ctrlKey || event.metaKey)) return;
       const key = event.key.toLowerCase();
       if (key === 'z' && !event.shiftKey) { event.preventDefault(); undo(); }
       else if (key === 'y' || (key === 'z' && event.shiftKey)) { event.preventDefault(); redo(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [undo, redo]);
+  }, [canWrite, undo, redo]);
 
   const placements = useMemo(() => clubs && dataset ? assignClubs(clubs.data, dataset) : [], [clubs, dataset]);
   const filtered = useMemo(() => dataset ? filterPlacements(placements, filters, dataset, regions) : [], [placements, filters, dataset, regions]);
@@ -133,32 +171,35 @@ export default function PlannerApp() {
 
   const selectRegion = useCallback((id: string) => { setSelectedRegionId(id); setSelectedMunicipality(null); setEditing(false); setView('map'); }, []);
   const createRegion = () => {
+    if (!canWrite) return;
     let createdId = '';
     commit('Alueen luonti', (current) => { const result = documentOps.addRegion(current); createdId = result.region.id; return result.document; });
     setSelectedRegionId(createdId); setEditing(true); setSelectedMunicipality(null); setView('map');
   };
   const duplicateRegion = (id: string) => {
+    if (!canWrite) return;
     let createdId: string | null = null;
     commit('Alueen monistus', (current) => { const result = documentOps.duplicateRegion(current, id); createdId = result.region?.id ?? null; return result.document; });
     if (createdId) { setSelectedRegionId(createdId); setEditing(false); }
   };
   const deleteRegion = (region: Region) => {
+    if (!canWrite) return;
     if (!window.confirm(`Poistetaanko alue "${region.name}"? Toiminnon voi perua Kumoa-painikkeella.`)) return;
     commit(`Alueen ${region.name} poisto`, (current) => documentOps.deleteRegion(current, region.id));
     if (selectedRegionId === region.id) { setSelectedRegionId(null); setEditing(false); }
   };
-  const updateRegion = (id: string, changes: RegionDraft, label: string, field: string) => commit(label, (current) => documentOps.updateRegion(current, id, changes), `${id}:${field}`);
-  const setMunicipalities = (id: string, codes: string[], mode: 'add' | 'remove' | 'toggle', label: string) => commit(label, (current) => documentOps.setMunicipalities(current, id, codes, mode));
+  const updateRegion = (id: string, changes: RegionDraft, label: string, field: string) => { if (canWrite) commit(label, (current) => documentOps.updateRegion(current, id, changes), `${id}:${field}`); };
+  const setMunicipalities = (id: string, codes: string[], mode: 'add' | 'remove' | 'toggle', label: string) => { if (canWrite) commit(label, (current) => documentOps.setMunicipalities(current, id, codes, mode)); };
   const onMunicipalityClick = useCallback((code: string) => {
-    if (editingRegion) {
+    if (editingRegion && canWrite) {
       const name = dataset?.byCode.get(code)?.name ?? code;
       commit(`${editingRegion.municipalityCodes.includes(code) ? 'Poistettu' : 'Lisätty'} kunta ${name}`, (current) => documentOps.setMunicipalities(current, editingRegion.id, [code], 'toggle'));
     } else {
       setSelectedMunicipality(code);
     }
-  }, [editingRegion, dataset, commit]);
+  }, [canWrite, editingRegion, dataset, commit]);
 
-  const exportContext = (scope: 'all' | 'active'): ExportContext | null => dataset ? { document: document_, dataset, placements, clubMetadata: clubs?.metadata ?? null, scope } : null;
+  const exportContext = (scope: 'all' | 'active'): ExportContext | null => dataset ? { document: displayedDocument, dataset, placements, clubMetadata: clubs?.metadata ?? null, scope } : null;
   const onExport = (format: 'json' | 'csv' | 'xlsx', scope: 'all' | 'active') => {
     const context = exportContext(scope);
     if (!context) return;
@@ -167,6 +208,7 @@ export default function PlannerApp() {
     else download(exportXlsx(context) as BlobPart, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', exportFileName('xlsx'));
   };
   const onImport = async (result: ImportResult, mode: 'scenarios' | 'append' | 'replace') => {
+    if (!canWrite) throw new Error('Kirjautuminen Writer- tai Admin-tunnuksella vaaditaan.');
     await plannerStore.getState().createBackup('Ennen tuontia');
     const imported = result.kind === 'document' ? result.scenarios.flatMap((item) => item.regions) : result.regions;
     if (mode === 'scenarios') commit('Skenaarioiden tuonti', (current) => documentOps.appendScenarios(current, result.scenarios));
@@ -211,18 +253,73 @@ export default function PlannerApp() {
     }
   };
   const switchScenario = (id: string) => { navigate((current) => documentOps.setActiveScenario(current, id)); setSelectedRegionId(null); setEditing(false); setFilters((current) => ({ ...current, regionIds: [] })); };
-  const saveWithKey = async (action: 'save' | 'migrate' | 'empty') => {
+  const selectScenario = (id: string) => {
+    setSelectedRegionId(null);
+    setEditing(false);
+    setFilters((current) => ({ ...current, regionIds: [] }));
+    if (canWrite) switchScenario(id);
+    else setViewScenarioId(id);
+  };
+  const refreshSession = (session: AuthSession) => {
+    plannerStore.getState().setCsrfToken(session.csrfToken);
+    setAuthSession(session);
+  };
+  const login = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setAuthError('');
+    setAuthMessage('');
+    try {
+      const session = await authService.login(loginRole, loginPassword, authSession.csrfToken);
+      refreshSession(session);
+      setLoginPassword('');
+      setAuthOpen(false);
+      setViewScenarioId(null);
+    } catch (cause) {
+      setAuthError(cause instanceof Error ? cause.message : 'Kirjautuminen epäonnistui.');
+    }
+  };
+  const logout = async () => {
+    setAuthError('');
+    setAuthMessage('');
+    try {
+      const session = await authService.logout(authSession.csrfToken);
+      refreshSession(session);
+      setViewScenarioId(null);
+      setAdminOpen(false);
+      setPasswordForms({ writer: { current: '', next: '', confirmation: '' }, admin: { current: '', next: '', confirmation: '' } });
+      if (remoteMode) await plannerStore.getState().reloadRemote();
+    } catch (cause) {
+      setAuthError(cause instanceof Error ? cause.message : 'Uloskirjautuminen epäonnistui.');
+    }
+  };
+  const changeAccountPassword = async (account: AuthRole, event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = passwordForms[account];
+    setAuthError('');
+    setAuthMessage('');
+    if (form.next !== form.confirmation) {
+      setAuthError('Uusi salasana ja sen vahvistus eivät täsmää.');
+      return;
+    }
+    try {
+      const session = await authService.changePassword(account, form.current, form.next, authSession.csrfToken);
+      refreshSession(session);
+      setPasswordForms({ writer: { current: '', next: '', confirmation: '' }, admin: { current: '', next: '', confirmation: '' } });
+      setAdminOpen(false);
+      setAuthOpen(true);
+      setAuthMessage('Salasana vaihdettiin. Kaikki istunnot mitätöitiin; kirjaudu uudelleen.');
+      if (remoteMode) await plannerStore.getState().reloadRemote();
+    } catch (cause) {
+      setAuthError(cause instanceof Error ? cause.message : 'Salasanan vaihtaminen epäonnistui.');
+    }
+  };
+  const migrateLocalPlan = async (action: 'migrate' | 'empty') => {
+    if (!canWrite) return;
     setWriteActionError('');
-    plannerStore.getState().setWriteKey(writeKey);
     try {
       if (action === 'migrate') await plannerStore.getState().migrateLocalData();
       else if (action === 'empty') await plannerStore.getState().startEmpty();
-      else {
-        await plannerStore.getState().flush();
-        if (plannerStore.getState().saveStatus !== 'saved') return;
-      }
       setWriteActionError('');
-      setWriteKey('');
     } catch (cause) {
       setWriteActionError(cause instanceof Error ? cause.message : 'Toiminto epäonnistui.');
     }
@@ -239,7 +336,7 @@ export default function PlannerApp() {
 
   const lastUndo = history.past[history.past.length - 1]?.label;
   const nextRedo = history.future[0]?.label;
-  const loading = !error && (!ready || !dataset || !clubs || !analysis || migrationAvailable || (remoteMode && Boolean(loadError)));
+  const loading = !error && (!ready || !dataset || !clubs || !analysis || (remoteMode && Boolean(loadError)));
 
   return (
     <div className="planner-shell">
@@ -248,18 +345,61 @@ export default function PlannerApp() {
         <div className="planner-brand"><span className="brand-mark"><span /></span><div><h1>ALUESUUNNITTELU</h1><small>SUOMEN FRISBEEGOLFLIITTO</small></div></div>
         <label className="scenario-switch">
           <span>Skenaario</span>
-          <select aria-label="Skenaario" value={document_.activeScenarioId} onChange={(event) => switchScenario(event.target.value)}>
-            {document_.scenarios.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          <select aria-label="Skenaario" value={scenario.id} onChange={(event) => selectScenario(event.target.value)}>
+            {displayedDocument.scenarios.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </label>
-        <div className="history-buttons">
+        {canWrite && <div className="history-buttons">
           <button type="button" className="icon-button" onClick={undo} disabled={!lastUndo} aria-label={lastUndo ? `Kumoa: ${lastUndo}` : 'Kumoa'} title={lastUndo ? `Kumoa: ${lastUndo} (Ctrl+Z)` : 'Ei kumottavaa'}><Undo2 size={17} /></button>
           <button type="button" className="icon-button" onClick={redo} disabled={!nextRedo} aria-label={nextRedo ? `Tee uudelleen: ${nextRedo}` : 'Tee uudelleen'} title={nextRedo ? `Tee uudelleen: ${nextRedo} (Ctrl+Y)` : 'Ei uudelleen tehtävää'}><Redo2 size={17} /></button>
           <span className="history-count" aria-label={`${history.past.length} kumottavaa muutosta`}>{history.past.length}</span>
-        </div>
-        <SaveIndicator status={saveStatus} storage={storageKind} lastSavedAt={lastSavedAt} />
+        </div>}
+        {canWrite
+          ? <SaveIndicator status={saveStatus} storage={storageKind} lastSavedAt={lastSavedAt} />
+          : <span className="save-indicator">Vain luku</span>}
+        {import.meta.env.PROD && authSession.role === 'admin' && <button type="button" className={`auth-control${adminOpen ? ' active' : ''}`} onClick={() => { setAdminOpen((value) => !value); setAuthOpen(false); }} aria-expanded={adminOpen}><Shield size={15} /> Admin</button>}
+        {import.meta.env.PROD && authSession.role ? (
+          <button type="button" className="auth-control" onClick={() => void logout()}><LogOut size={15} /> Kirjaudu ulos ({authSession.role === 'admin' ? 'Admin' : 'Kirjoittaja'})</button>
+        ) : import.meta.env.PROD ? (
+          <button type="button" className="auth-control" onClick={() => { setAuthOpen((value) => !value); setAdminOpen(false); }} aria-expanded={authOpen}><LogIn size={15} /> Kirjaudu</button>
+        ) : null}
         <button type="button" className="icon-button" onClick={() => setDark((value) => !value)} aria-label={dark ? 'Vaihda vaaleaan teemaan' : 'Vaihda tummaan teemaan'}>{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
       </header>
+      {import.meta.env.PROD && (authOpen || adminOpen) && (
+        <section className="planner-card auth-panel" aria-label={adminOpen ? 'Ylläpito' : 'Kirjautuminen'}>
+          {authLoading && <p role="status">Tarkistetaan kirjautumista…</p>}
+          {!authLoading && authOpen && !authSession.role && (
+            <form className="auth-form" onSubmit={(event) => void login(event)}>
+              <div><h2 className="card-title">Kirjaudu Aluesuunnitteluun</h2><p className="hint">Julkinen katselu ei vaadi kirjautumista.</p></div>
+              {!authSession.authReady && <p className="notice">Kirjautumista ei ole vielä alustettu palvelimelle. Pyydä ylläpitäjää suorittamaan käyttöönotto-ohjeen kertaluonteinen CLI-alustus.</p>}
+              <label className="field">Tunnus
+                <select value={loginRole} onChange={(event) => setLoginRole(event.target.value as AuthRole)}>
+                  <option value="writer">Kirjoittaja</option><option value="admin">Admin</option>
+                </select>
+              </label>
+              <label className="field">Salasana<input type="password" autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} required /></label>
+              <button type="submit" className="primary-button" disabled={!authSession.authReady || authLoading}>Kirjaudu</button>
+            </form>
+          )}
+          {adminOpen && authSession.role === 'admin' && (
+            <div className="admin-panel">
+              <div><h2 className="card-title">Admin · tunnusten hallinta</h2><p className="hint">Tunnukset ovat yhteisiä. Salasanan vaihtaminen kirjaa kaikki käyttäjät ulos.</p></div>
+              {(['writer', 'admin'] as const).map((account) => (
+                <form key={account} className="password-form" onSubmit={(event) => void changeAccountPassword(account, event)}>
+                  <h3>{account === 'writer' ? 'Kirjoittajan salasana' : 'Adminin salasana'}</h3>
+                  <label className="field">Nykyinen Admin-salasana<input type="password" autoComplete="current-password" value={passwordForms[account].current} onChange={(event) => setPasswordForms((forms) => ({ ...forms, [account]: { ...forms[account], current: event.target.value } }))} required /></label>
+                  <label className="field">Uusi salasana<input type="password" autoComplete="new-password" minLength={12} value={passwordForms[account].next} onChange={(event) => setPasswordForms((forms) => ({ ...forms, [account]: { ...forms[account], next: event.target.value } }))} required /></label>
+                  <label className="field">Vahvista uusi salasana<input type="password" autoComplete="new-password" minLength={12} value={passwordForms[account].confirmation} onChange={(event) => setPasswordForms((forms) => ({ ...forms, [account]: { ...forms[account], confirmation: event.target.value } }))} required /></label>
+                  <button type="submit" className="primary-button">Vaihda {account === 'writer' ? 'Kirjoittajan' : 'Adminin'} salasana</button>
+                </form>
+              ))}
+            </div>
+          )}
+          {authError && <p className="field-error" role="alert">{authError}</p>}
+          {authMessage && <p className="validation-ok" role="status">{authMessage}</p>}
+          {authSession.role && !adminOpen && <p className="hint">Kirjautunut: {authSession.role === 'admin' ? 'Admin' : 'Kirjoittaja'}.</p>}
+        </section>
+      )}
       <nav className="planner-tabs" aria-label="Aluesuunnittelun näkymät">
         {VIEWS.map((item) => (
           <button key={item.id} type="button" className={view === item.id ? 'active' : ''} aria-current={view === item.id ? 'page' : undefined} onClick={() => setView(item.id)}>
@@ -268,28 +408,19 @@ export default function PlannerApp() {
         ))}
       </nav>
 
-      {migrationAvailable && (
+      {migrationAvailable && canWrite && (
         <section className="planner-card">
           <h2 className="card-title">Palvelin ei sisällä vielä suunnitelmaa</h2>
-          <p>Selaimesta löytyi aiempi suunnitelma. Sitä ei siirretty automaattisesti eikä palvelimen tietoja ylikirjoiteta.</p>
-          <label className="field">Palvelimen kirjoitusavain<input type="password" autoComplete="current-password" value={writeKey} onChange={(event) => setWriteKey(event.target.value)} /></label>
+          <p>Selaimesta löytyi aiempi suunnitelma. Se on näkyvissä tässä selaimessa, mutta sitä ei siirretä automaattisesti eikä palvelimen tietoja ylikirjoiteta.</p>
           <div className="button-row">
-            <button type="button" className="primary-button" disabled={!writeKey} onClick={() => void saveWithKey('migrate')}>Siirrä selaimen suunnitelma palvelimelle</button>
-            <button type="button" className="secondary-button" disabled={!writeKey} onClick={() => void saveWithKey('empty')}>Aloita tyhjällä suunnitelmalla</button>
+            <button type="button" className="primary-button" onClick={() => void migrateLocalPlan('migrate')}>Siirrä selaimen suunnitelma palvelimelle</button>
+            <button type="button" className="secondary-button" onClick={() => void migrateLocalPlan('empty')}>Aloita tyhjällä suunnitelmalla</button>
           </div>
           {writeActionError && <p className="field-error" role="alert">{writeActionError}</p>}
         </section>
       )}
-      {writeAuthRequired && !migrationAvailable && (
-        <section className="planner-card" role="alert">
-          <h2 className="card-title">Palvelintallennus vaatii kirjoitusavaimen</h2>
-          <p>{saveError} Avain pidetään vain tämän välilehden muistissa.</p>
-          <form className="inline-form" onSubmit={(event) => { event.preventDefault(); void saveWithKey('save'); }}>
-            <label className="field grow">Palvelimen kirjoitusavain<input type="password" autoComplete="current-password" value={writeKey} onChange={(event) => setWriteKey(event.target.value)} /></label>
-            <button type="submit" className="primary-button" disabled={!writeKey}>Yritä tallentaa</button>
-          </form>
-          {writeActionError && <p className="field-error" role="alert">{writeActionError}</p>}
-        </section>
+      {migrationAvailable && !canWrite && (
+        <p className="notice">Tässä selaimessa on aiempi paikallinen suunnitelma. Kirjaudu Kirjoittaja- tai Admin-tunnuksella, jos haluat siirtää sen palvelimelle.</p>
       )}
       {writeConflict && (
         <section className="planner-card" role="alert">
@@ -299,8 +430,9 @@ export default function PlannerApp() {
           {writeActionError && <p className="field-error" role="alert">{writeActionError}</p>}
         </section>
       )}
-      {writeActionError && !migrationAvailable && !writeAuthRequired && !writeConflict && <p className="notice" role="alert">{writeActionError}</p>}
-      {saveStatus === 'error' && !writeAuthRequired && !writeConflict && !writeActionError && <p className="notice" role="alert">{saveError ?? 'Tallennus epäonnistui.'}</p>}
+      {authRequired && !canWrite && <p className="notice" role="alert">Kirjoittaminen vaatii kirjautumisen. {saveError}</p>}
+      {writeActionError && !migrationAvailable && !authRequired && !writeConflict && <p className="notice" role="alert">{writeActionError}</p>}
+      {saveStatus === 'error' && !authRequired && !writeConflict && !writeActionError && <p className="notice" role="alert">{saveError ?? 'Tallennus epäonnistui.'}</p>}
       {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}
       {loadError && remoteMode && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Yhteistä suunnitelmaa ei voitu ladata</strong><span>{loadError}</span><button className="clear-filters" onClick={() => void plannerStore.getState().retryInit()}>Yritä uudelleen</button></div></div>}
       {loadError && !remoteMode && <p className="notice" role="alert">Selaimen tallennustilaa ei voitu avata ({loadError}). Muutokset säilyvät vain tämän istunnon ajan.</p>}
@@ -312,7 +444,7 @@ export default function PlannerApp() {
           {view === 'map' && (
             <div className="planner-map-layout">
               <aside className="planner-sidebar" aria-label="Alueet ja suodattimet">
-                <RegionList regions={regions} stats={analysis.stats} selectedRegionId={selectedRegionId} onSelect={selectRegion} onCreate={createRegion}
+                <RegionList regions={regions} stats={analysis.stats} selectedRegionId={selectedRegionId} onSelect={selectRegion} onCreate={createRegion} readOnly={!canWrite}
                   onEdit={(id) => { setSelectedRegionId(id); setEditing(true); setSelectedMunicipality(null); }} onDuplicate={duplicateRegion} onDelete={deleteRegion}
                   onToggle={(region, field) => updateRegion(region.id, { [field]: !region[field] }, `${field === 'visible' ? (region.visible ? 'Piilotettu' : 'Näytetty') : (region.enabled ? 'Poistettu käytöstä' : 'Otettu käyttöön')}: ${region.name}`, field)} />
                 <PlannerFilters filters={filters} regions={regions} maxMembers={Math.max(1, maxMembers)} votingOptions={votingOptions} onChange={setFilters} />
@@ -339,10 +471,10 @@ export default function PlannerApp() {
                 {editingRegion && <RegionEditor region={editingRegion} dataset={dataset} aggregates={fullAggregates} membership={membership}
                   onChange={(changes, label, field) => updateRegion(editingRegion.id, changes, label, field)}
                   onMunicipalities={(codes, mode, label) => setMunicipalities(editingRegion.id, codes, mode, label)} onClose={() => setEditing(false)} />}
-                {!editingRegion && selectedRegion && <RegionDetail region={selectedRegion} stats={analysis.stats.get(selectedRegion.id)!} explanation={explainCoverage(selectedRegion, analysis.stats.get(selectedRegion.id)!, analysis)}
+                {!editingRegion && selectedRegion && <RegionDetail region={selectedRegion} stats={analysis.stats.get(selectedRegion.id)!} explanation={explainCoverage(selectedRegion, analysis.stats.get(selectedRegion.id)!, analysis)} readOnly={!canWrite}
                   warnings={warnings.filter((warning) => warning.regionId === selectedRegion.id)} onEdit={() => setEditing(true)} onDuplicate={() => duplicateRegion(selectedRegion.id)} onClose={() => setSelectedRegionId(null)} />}
                 {!editingRegion && !selectedRegion && selectedMunicipality && dataset.byCode.get(selectedMunicipality) && (
-                  <MunicipalityCard municipality={dataset.byCode.get(selectedMunicipality)!} aggregate={fullAggregates.get(selectedMunicipality)} regions={[...regions].sort((a, b) => a.number - b.number)} memberOf={membership.get(selectedMunicipality) ?? []}
+                  <MunicipalityCard municipality={dataset.byCode.get(selectedMunicipality)!} aggregate={fullAggregates.get(selectedMunicipality)} regions={[...regions].sort((a, b) => a.number - b.number)} memberOf={membership.get(selectedMunicipality) ?? []} readOnly={!canWrite}
                     onAdd={(regionId) => setMunicipalities(regionId, [selectedMunicipality], 'add', `Lisätty kunta ${dataset.byCode.get(selectedMunicipality)?.name}`)}
                     onRemove={(regionId) => setMunicipalities(regionId, [selectedMunicipality], 'remove', `Poistettu kunta ${dataset.byCode.get(selectedMunicipality)?.name}`)}
                     onSelectRegion={selectRegion} onClose={() => setSelectedMunicipality(null)} />
@@ -362,17 +494,17 @@ export default function PlannerApp() {
           {view === 'compare' && <ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} />}
           {view === 'unassigned' && <UnassignedView analysis={analysis} regions={regions} onShowOnMap={() => { setHighlightUnassigned(true); setSelectedRegionId(null); setEditing(false); setView('map'); }}
             onAssign={(regionId, codes) => setMunicipalities(regionId, codes, 'add', `Kohdistettu ${codes.length} kuntaa`)} />}
-          {view === 'scenarios' && <ScenarioManager document={document_}
+          {view === 'scenarios' && <ScenarioManager document={displayedDocument} readOnly={!canWrite}
             onCreate={(name) => { commit('Skenaarion luonti', (current) => documentOps.addScenario(current, name)); setSelectedRegionId(null); }}
             onRename={(id, name) => commit('Skenaarion nimeäminen', (current) => documentOps.renameScenario(current, id, name))}
             onDuplicate={(id) => { commit('Skenaarion monistus', (current) => documentOps.duplicateScenario(current, id)); setSelectedRegionId(null); }}
             onDelete={(id) => void deleteScenario(id)}
-            onSwitch={switchScenario} />}
-          {view === 'backups' && <BackupManager backups={backups} current={document_} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} />}
-          {view === 'data' && <DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} />}
+            onSwitch={selectScenario} />}
+          {view === 'backups' && <BackupManager backups={backups} current={displayedDocument} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} readOnly={!canWrite} />}
+          {view === 'data' && <DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} readOnly={!canWrite} />}
         </main>
       )}
-      <footer className="planner-footer">Kuntarajat © Tilastokeskus, kunta1000k 2025 (CC BY 4.0) · Taustakartta © OpenStreetMap · {remoteMode ? 'Suunnitelmat tallentuvat yhteisesti palvelimelle' : 'Suunnitelmat tallentuvat tähän selaimeen'} ({storageKind ?? '…'}).</footer>
+      <footer className="planner-footer">Kuntarajat © Tilastokeskus, kunta1000k 2025 (CC BY 4.0) · Taustakartta © OpenStreetMap · {remoteMode ? 'Suunnitelmat tallentuvat yhteisesti palvelimelle' : 'Suunnitelmat tallentuvat tähän selaimeen'} ({storageKind ?? '…'}). Tunnukset ovat yhteisiä eikä muutosten tekijää tunnisteta.</footer>
     </div>
   );
 }

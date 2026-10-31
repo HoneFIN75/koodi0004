@@ -8,11 +8,12 @@ interface BackupManagerProps {
   current: PlannerDocument;
   onCreate: () => void;
   onRestore: (snapshot: Snapshot) => void;
+  readOnly?: boolean;
 }
 
 const CURRENT = 'current';
 
-export function BackupManager({ backups, current, onCreate, onRestore }: BackupManagerProps) {
+export function BackupManager({ backups, current, onCreate, onRestore, readOnly = false }: BackupManagerProps) {
   const [left, setLeft] = useState<string>(backups[0]?.id ?? '');
   const [right, setRight] = useState<string>(CURRENT);
   const resolve = (id: string) => id === CURRENT ? current : backups.find((backup) => backup.id === id)?.document;
@@ -26,7 +27,7 @@ export function BackupManager({ backups, current, onCreate, onRestore }: BackupM
     <div className="view-stack">
       <header className="view-header">
         <div><p className="eyebrow">VARMUUSKOPIOT</p><h2>Automaattiset varmuuskopiot</h2><p>Selain säilyttää {BACKUP_LIMIT} viimeisintä tilannekuvaa. Varmuuskopio otetaan automaattisesti viiden minuutin välein muutosten yhteydessä sekä ennen palautusta, tuontia ja skenaarion poistoa.</p></div>
-        <button type="button" className="primary-button" onClick={onCreate}><Save size={16} /> Luo varmuuskopio nyt</button>
+        {!readOnly && <button type="button" className="primary-button" onClick={onCreate}><Save size={16} /> Luo varmuuskopio nyt</button>}
       </header>
       <section className="planner-card">
         {backups.length === 0 && <p className="empty-text">Varmuuskopioita ei ole vielä.</p>}
@@ -35,7 +36,7 @@ export function BackupManager({ backups, current, onCreate, onRestore }: BackupM
             <li key={backup.id}>
               <History size={16} aria-hidden="true" />
               <span className="backup-text"><strong>{new Date(backup.createdAt).toLocaleString('fi-FI')}</strong><small>{backup.reason} · {backup.document.scenarios.length} skenaariota · {backup.document.scenarios.reduce((sum, scenario) => sum + scenario.regions.length, 0)} aluetta</small></span>
-              <button type="button" className="secondary-button" onClick={() => onRestore(backup)} aria-label={`Palauta varmuuskopio ${new Date(backup.createdAt).toLocaleString('fi-FI')}`}><RotateCcw size={15} /> Palauta</button>
+              {!readOnly && <button type="button" className="secondary-button" onClick={() => onRestore(backup)} aria-label={`Palauta varmuuskopio ${new Date(backup.createdAt).toLocaleString('fi-FI')}`}><RotateCcw size={15} /> Palauta</button>}
             </li>
           ))}
         </ol>

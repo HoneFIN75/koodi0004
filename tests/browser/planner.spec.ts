@@ -4,10 +4,28 @@ import AxeBuilder from '@axe-core/playwright';
 test.beforeEach(async ({ page }) => {
   let sharedState = { document: null, backups: [], revision: null as string | null };
   let revision = 0;
-  await page.route('**/api/planner.php', async (route) => {
-    if (route.request().method() === 'GET') return route.fulfill({ json: sharedState });
+  let role: 'writer' | 'admin' | null = 'writer';
+  await page.route('**/api/planner.php**', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const action = url.searchParams.get('action');
+    if (action === 'session') return route.fulfill({ json: { authReady: true, role, csrfToken: 'test-csrf-token' } });
+    if (action === 'login' && request.method() === 'POST') {
+      role = request.postDataJSON().role;
+      return route.fulfill({ json: { role, csrfToken: 'test-csrf-token' } });
+    }
+    if (action === 'logout' && request.method() === 'POST') {
+      role = null;
+      return route.fulfill({ json: { role, csrfToken: 'test-csrf-token' } });
+    }
+    if (action === 'admin/password' && request.method() === 'POST') {
+      role = null;
+      return route.fulfill({ json: { role, csrfToken: 'test-csrf-token' } });
+    }
+    if (request.method() === 'GET') return route.fulfill({ json: sharedState });
     const headers = route.request().headers();
-    if (headers['x-planner-write-key'] !== 'test-shared-write-key') return route.fulfill({ status: 401, json: { error: 'Kirjoitusavain vaaditaan.' } });
+    if (!role) return route.fulfill({ status: 401, json: { error: 'Kirjautuminen vaaditaan.' } });
+    if (headers['x-csrf-token'] !== 'test-csrf-token') return route.fulfill({ status: 403, json: { error: 'CSRF-tarkistus epäonnistui.' } });
     const expected = headers['x-expected-revision'];
     const createOnly = headers['if-none-match'] === '*';
     if ((sharedState.revision === null && !createOnly) || (sharedState.revision !== null && expected !== sharedState.revision)) {
@@ -26,11 +44,8 @@ test.beforeEach(async ({ page }) => {
 
 async function open(page: Page) {
   await page.goto('/koodi0004/#/alueet');
-  await expect(page.getByRole('heading', { name: 'Palvelintallennus vaatii kirjoitusavaimen' })).toBeVisible();
-  await page.getByLabel('Palvelimen kirjoitusavain').fill('test-shared-write-key');
-  await page.getByRole('button', { name: 'Yritä tallentaa' }).click();
   await expect(page.getByRole('button', { name: 'Uusi alue' })).toBeVisible();
-  await expect(page.locator('.save-indicator')).toContainText('Tallennettu');
+  await expect(page.locator('.planner-shell')).toBeVisible();
 }
 
 async function addMunicipality(page: Page, name: string) {
@@ -61,6 +76,38 @@ test('creates a region, analyses it, undoes, redoes and restores after reload', 
   await expect(page.locator('.save-indicator')).toContainText('Tallennettu');
   await page.reload();
   await expect(page.locator('.region-row').filter({ hasText: 'Ahvenanmaa ja Turku' })).toContainText('2 kuntaa');
+});
+
+test('public users can browse but cannot edit until signing in', async ({ page }) => {
+  await page.route('**/api/planner.php?action=session', async (route) => route.fulfill({
+    json: { authReady: true, role: null, csrfToken: 'anonymous-csrf-token' },
+  }));
+  await page.goto('/koodi0004/#/alueet');
+  await expect(page.getByRole('heading', { name: 'ALUESUUNNITTELU' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Uusi alue' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Kirjaudu', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Kirjaudu', exact: true }).click();
+  await page.getByLabel('Tunnus').selectOption('writer');
+  await page.getByLabel('Salasana').fill('test-writer-password');
+  await page.getByRole('button', { name: 'Kirjaudu', exact: true }).last().click();
+  await expect(page.getByRole('button', { name: 'Uusi alue' })).toBeVisible();
+});
+
+test('only Admin sees the password management area', async ({ page }) => {
+  await open(page);
+  await expect(page.getByRole('button', { name: 'Admin', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: /Kirjaudu ulos/ }).click();
+  await page.getByRole('button', { name: 'Kirjaudu', exact: true }).click();
+  await page.getByLabel('Tunnus').selectOption('admin');
+  await page.getByLabel('Salasana').fill('test-admin-password');
+  await page.getByRole('button', { name: 'Kirjaudu', exact: true }).last().click();
+  const adminButton = page.getByRole('button', { name: 'Admin', exact: true });
+  await expect(adminButton).toBeVisible();
+  await adminButton.click();
+  await expect(page.getByRole('heading', { name: 'Admin · tunnusten hallinta' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Kirjoittajan salasana' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Adminin salasana' })).toBeVisible();
+  await expect(page.getByLabel('Nykyinen Admin-salasana')).toHaveCount(2);
 });
 
 test('all views render and pass axe checks in both themes', async ({ page }) => {
@@ -121,11 +168,9 @@ test('browser data migrates only after explicit confirmation when the server is 
   });
   await page.goto('/koodi0004/#/alueet');
   await expect(page.getByRole('heading', { name: 'Palvelin ei sisällä vielä suunnitelmaa' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Siirrä selaimen suunnitelma palvelimelle' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Siirrä selaimen suunnitelma palvelimelle' })).toBeEnabled();
   expect(writes).toHaveLength(0);
 
-  await page.getByLabel('Palvelimen kirjoitusavain').fill('test-shared-write-key');
-  await expect(page.getByRole('button', { name: 'Siirrä selaimen suunnitelma palvelimelle' })).toBeEnabled();
   await page.getByRole('button', { name: 'Siirrä selaimen suunnitelma palvelimelle' }).click();
   await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Vanha suunnitelma');
   await page.reload();

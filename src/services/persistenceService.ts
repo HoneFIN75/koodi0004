@@ -11,7 +11,7 @@ export interface StorageAdapter {
 export interface RemoteStorageAdapter extends StorageAdapter {
   readonly kind: 'Palvelin';
   readonly remote: true;
-  setWriteKey(key: string): void;
+  setCsrfToken(token: string): void;
   migrate(document: PlannerDocument, backups: Snapshot[]): Promise<void>;
   startEmpty(document: PlannerDocument): Promise<void>;
   reload(): Promise<{ document: PlannerDocument | null; backups: Snapshot[] }>;
@@ -103,18 +103,18 @@ export async function createStorage(env: { indexedDB?: IDBFactory; localStorage?
 
 export function createRemoteStorage(url = `${import.meta.env.BASE_URL}api/planner.php`): RemoteStorageAdapter {
   let state: RemoteState | null = null;
-  let writeKey = '';
+  let csrfToken = '';
   let writeQueue: Promise<void> = Promise.resolve();
 
   const request = async (method: 'GET' | 'PUT', payload?: Omit<RemoteState, 'revision'>, expectedRevision?: string | null) => {
     const headers: Record<string, string> = { Accept: 'application/json' };
     if (method === 'PUT') {
       headers['Content-Type'] = 'application/json';
-      headers['X-Planner-Write-Key'] = writeKey;
+      headers['X-CSRF-Token'] = csrfToken;
       if (expectedRevision === null) headers['If-None-Match'] = '*';
       else if (expectedRevision !== undefined) headers['X-Expected-Revision'] = expectedRevision;
     }
-    const response = await fetch(url, { method, headers, ...(payload ? { body: JSON.stringify(payload) } : {}) });
+    const response = await fetch(url, { method, headers, credentials: 'same-origin', ...(payload ? { body: JSON.stringify(payload) } : {}) });
     const result = await response.json().catch(() => null) as { error?: string; document?: PlannerDocument | null; backups?: Snapshot[]; revision?: string | null } | null;
     if (!response.ok) throw new RemoteStorageError(result?.error ?? `Palvelimen tallennus epäonnistui (${response.status}).`, response.status);
     if (!result || typeof result !== 'object'
@@ -161,7 +161,7 @@ export function createRemoteStorage(url = `${import.meta.env.BASE_URL}api/planne
   return {
     kind: 'Palvelin',
     remote: true,
-    setWriteKey(key) { writeKey = key; },
+    setCsrfToken(token) { csrfToken = token; },
     async get<T>(key: string) {
       const current = await load();
       return (key === STORAGE_KEYS.document ? current.document : key === STORAGE_KEYS.backups ? current.backups : null) as T | null;

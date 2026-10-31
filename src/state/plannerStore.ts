@@ -14,13 +14,13 @@ export interface PlannerState {
   storageKind: StorageAdapter['kind'] | null;
   remoteMode: boolean;
   migrationAvailable: boolean;
-  writeAuthRequired: boolean;
+  authRequired: boolean;
   writeConflict: boolean;
   saveError: string | null;
   backups: Snapshot[];
   init: () => Promise<void>;
   retryInit: () => Promise<void>;
-  setWriteKey: (key: string) => void;
+  setCsrfToken: (token: string) => void;
   migrateLocalData: () => Promise<void>;
   startEmpty: () => Promise<void>;
   reloadRemote: () => Promise<void>;
@@ -56,7 +56,7 @@ export function createPlannerStore({ storage = async () => import.meta.env.PROD 
         } catch (error) {
           set({
             saveStatus: 'error',
-            writeAuthRequired: error instanceof RemoteStorageError && error.status === 401,
+            authRequired: error instanceof RemoteStorageError && error.status === 401,
             writeConflict: error instanceof RemoteStorageError && error.status === 409,
             saveError: error instanceof Error ? error.message : 'Tallennus epäonnistui.',
           });
@@ -74,11 +74,11 @@ export function createPlannerStore({ storage = async () => import.meta.env.PROD 
       try {
         await saveDocument(adapter, document);
         if (shouldAutoBackup(get().backups)) await persistBackups(addSnapshot(get().backups, document, 'Automaattinen varmuuskopio'));
-        if (get().history.present === document) set({ saveStatus: 'saved', lastSavedAt: new Date().toISOString(), writeAuthRequired: false, writeConflict: false, saveError: null });
+        if (get().history.present === document) set({ saveStatus: 'saved', lastSavedAt: new Date().toISOString(), authRequired: false, writeConflict: false, saveError: null });
       } catch (error) {
         set({
           saveStatus: 'error',
-          writeAuthRequired: error instanceof RemoteStorageError && error.status === 401,
+          authRequired: error instanceof RemoteStorageError && error.status === 401,
           writeConflict: error instanceof RemoteStorageError && error.status === 409,
           saveError: error instanceof Error ? error.message : 'Tallennus epäonnistui.',
         });
@@ -106,7 +106,7 @@ export function createPlannerStore({ storage = async () => import.meta.env.PROD 
       storageKind: null,
       remoteMode: false,
       migrationAvailable: false,
-      writeAuthRequired: false,
+      authRequired: false,
       writeConflict: false,
       saveError: null,
       backups: [],
@@ -126,12 +126,21 @@ export function createPlannerStore({ storage = async () => import.meta.env.PROD 
               const legacy = await createStorage();
               const legacyDocument = normalizeDocument(await loadDocument(legacy));
               if (legacyDocument) {
-                set({ ready: true, history: createHistory(createDocument()), backups: validBackups, storageKind: adapter.kind, remoteMode, migrationAvailable: true, lastSavedAt: null });
+                set({ ready: true, history: createHistory(legacyDocument), backups: validBackups, storageKind: adapter.kind, remoteMode, migrationAvailable: true, saveStatus: 'unsaved', lastSavedAt: null });
                 return;
               }
             }
-            set({ ready: true, history: createHistory(document ?? createDocument()), backups: validBackups, storageKind: adapter.kind, remoteMode, migrationAvailable: false, lastSavedAt: document ? new Date().toISOString() : null });
-            if (!document) await flush();
+            set({
+              ready: true,
+              history: createHistory(document ?? createDocument()),
+              backups: validBackups,
+              storageKind: adapter.kind,
+              remoteMode,
+              migrationAvailable: false,
+              saveStatus: remoteMode && !document ? 'unsaved' : 'saved',
+              lastSavedAt: document ? new Date().toISOString() : null,
+            });
+            if (!document && !remoteMode) await flush();
           } catch (error) {
             set({ ready: true, remoteMode: adapter?.kind === 'Palvelin', loadError: error instanceof Error ? error.message : 'Tallennustilaa ei voitu avata.' });
           }
@@ -144,8 +153,8 @@ export function createPlannerStore({ storage = async () => import.meta.env.PROD 
         set({ ready: false, loadError: null });
         await get().init();
       },
-      setWriteKey: (key) => {
-        if (isRemoteStorage(adapter)) adapter.setWriteKey(key);
+      setCsrfToken: (token) => {
+        if (isRemoteStorage(adapter)) adapter.setCsrfToken(token);
       },
       migrateLocalData: async () => {
         if (!isRemoteStorage(adapter) || !get().migrationAvailable) return;
@@ -161,13 +170,13 @@ export function createPlannerStore({ storage = async () => import.meta.env.PROD 
           await adapter.migrate(document, backups);
         } catch (error) {
           set({
-            writeAuthRequired: error instanceof RemoteStorageError && error.status === 401,
+            authRequired: error instanceof RemoteStorageError && error.status === 401,
             writeConflict: error instanceof RemoteStorageError && error.status === 409,
             saveError: error instanceof Error ? error.message : 'Selaimen suunnitelmaa ei voitu siirtää.',
           });
           throw error;
         }
-        set({ history: createHistory(document), backups, migrationAvailable: false, saveStatus: 'saved', lastSavedAt: new Date().toISOString(), writeAuthRequired: false, writeConflict: false, saveError: null });
+        set({ history: createHistory(document), backups, migrationAvailable: false, saveStatus: 'saved', lastSavedAt: new Date().toISOString(), authRequired: false, writeConflict: false, saveError: null });
       },
       startEmpty: async () => {
         if (!isRemoteStorage(adapter) || !get().migrationAvailable) return;
@@ -176,13 +185,13 @@ export function createPlannerStore({ storage = async () => import.meta.env.PROD 
           await adapter.startEmpty(document);
         } catch (error) {
           set({
-            writeAuthRequired: error instanceof RemoteStorageError && error.status === 401,
+            authRequired: error instanceof RemoteStorageError && error.status === 401,
             writeConflict: error instanceof RemoteStorageError && error.status === 409,
             saveError: error instanceof Error ? error.message : 'Tyhjää suunnitelmaa ei voitu luoda palvelimelle.',
           });
           throw error;
         }
-        set({ history: createHistory(document), backups: [], migrationAvailable: false, saveStatus: 'saved', lastSavedAt: new Date().toISOString(), writeAuthRequired: false, writeConflict: false, saveError: null });
+        set({ history: createHistory(document), backups: [], migrationAvailable: false, saveStatus: 'saved', lastSavedAt: new Date().toISOString(), authRequired: false, writeConflict: false, saveError: null });
       },
       reloadRemote: async () => {
         if (!isRemoteStorage(adapter)) return;
@@ -193,7 +202,7 @@ export function createPlannerStore({ storage = async () => import.meta.env.PROD 
           const restored = normalizeDocument(backup?.document);
           return restored && typeof backup.createdAt === 'string' ? [{ ...backup, document: restored }] : [];
         });
-        set({ history: createHistory(document), backups, migrationAvailable: false, saveStatus: 'saved', lastSavedAt: new Date().toISOString(), writeAuthRequired: false, writeConflict: false, saveError: null });
+        set({ history: createHistory(document), backups, migrationAvailable: false, saveStatus: 'saved', lastSavedAt: new Date().toISOString(), authRequired: false, writeConflict: false, saveError: null });
       },
       commit: (label, update, coalesceKey) => {
         const { history } = get();
