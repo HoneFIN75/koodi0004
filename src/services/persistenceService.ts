@@ -3,9 +3,34 @@ import type { PlannerDocument, Snapshot } from '../models/region';
 export const STORAGE_KEYS = { document: 'region-planner:document', backups: 'region-planner:backups' } as const;
 
 export interface StorageAdapter {
-  readonly kind: 'IndexedDB' | 'LocalStorage' | 'Muisti';
+  readonly kind: 'IndexedDB' | 'LocalStorage' | 'Muisti' | 'Palvelin';
   get<T>(key: string): Promise<T | null>;
   set<T>(key: string, value: T): Promise<void>;
+}
+
+export interface RemoteStorageAdapter extends StorageAdapter {
+  readonly kind: 'Palvelin';
+  readonly remote: true;
+  setWriteKey(key: string): void;
+  migrate(document: PlannerDocument, backups: Snapshot[]): Promise<void>;
+  startEmpty(document: PlannerDocument): Promise<void>;
+  reload(): Promise<{ document: PlannerDocument | null; backups: Snapshot[] }>;
+}
+
+interface RemoteState {
+  document: PlannerDocument | null;
+  backups: Snapshot[];
+  revision: string | null;
+}
+
+export class RemoteStorageError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'RemoteStorageError';
+    this.status = status;
+  }
 }
 
 const DB_NAME = 'koodi0004-region-planner';
@@ -74,6 +99,88 @@ export async function createStorage(env: { indexedDB?: IDBFactory; localStorage?
   }
   const local = usableLocalStorage(env.localStorage);
   return local ? createLocalStorageAdapter(local) : createMemoryAdapter();
+}
+
+export function createRemoteStorage(url = `${import.meta.env.BASE_URL}api/planner.php`): RemoteStorageAdapter {
+  let state: RemoteState | null = null;
+  let writeKey = '';
+  let writeQueue: Promise<void> = Promise.resolve();
+
+  const request = async (method: 'GET' | 'PUT', payload?: Omit<RemoteState, 'revision'>, expectedRevision?: string | null) => {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (method === 'PUT') {
+      headers['Content-Type'] = 'application/json';
+      headers['X-Planner-Write-Key'] = writeKey;
+      if (expectedRevision === null) headers['If-None-Match'] = '*';
+      else if (expectedRevision !== undefined) headers['X-Expected-Revision'] = expectedRevision;
+    }
+    const response = await fetch(url, { method, headers, ...(payload ? { body: JSON.stringify(payload) } : {}) });
+    const result = await response.json().catch(() => null) as { error?: string; document?: PlannerDocument | null; backups?: Snapshot[]; revision?: string | null } | null;
+    if (!response.ok) throw new RemoteStorageError(result?.error ?? `Palvelimen tallennus epäonnistui (${response.status}).`, response.status);
+    if (!result || typeof result !== 'object'
+      || (method === 'GET' && (!Object.hasOwn(result, 'document') || !Array.isArray(result.backups) || !(typeof result.revision === 'string' || result.revision === null)))
+      || (method === 'PUT' && typeof result.revision !== 'string')) {
+      throw new RemoteStorageError('Palvelin ei vastannut tallennusrajapinnan kelvollisessa muodossa. Tarkista PHP-rajapinnan käyttöönotto.', 502);
+    }
+    return result;
+  };
+
+  const load = async () => {
+    if (!state) {
+      const result = await request('GET');
+      state = { document: result?.document ?? null, backups: result?.backups ?? [], revision: result?.revision ?? null };
+    }
+    return state;
+  };
+
+  const persist = async () => {
+    const current = await load();
+    const result = await request('PUT', { document: current.document, backups: current.backups }, current.revision);
+    current.revision = result?.revision ?? null;
+  };
+
+  const queuePersist = () => {
+    writeQueue = writeQueue.then(persist, persist);
+    return writeQueue;
+  };
+
+  const importIfEmpty = async (document: PlannerDocument, backups: Snapshot[]) => {
+    const current = await load();
+    if (current.revision !== null || current.document !== null) {
+      throw new RemoteStorageError('Palvelimella on jo suunnitelma. Paikallisia tietoja ei siirretty.', 409);
+    }
+    const next = { document, backups };
+    const create = async () => {
+      const result = await request('PUT', next, null);
+      state = { ...next, revision: result?.revision ?? null };
+    };
+    writeQueue = writeQueue.then(create, create);
+    await writeQueue;
+  };
+
+  return {
+    kind: 'Palvelin',
+    remote: true,
+    setWriteKey(key) { writeKey = key; },
+    async get<T>(key: string) {
+      const current = await load();
+      return (key === STORAGE_KEYS.document ? current.document : key === STORAGE_KEYS.backups ? current.backups : null) as T | null;
+    },
+    async set<T>(key: string, value: T) {
+      const current = await load();
+      if (key === STORAGE_KEYS.document) current.document = value as PlannerDocument;
+      else if (key === STORAGE_KEYS.backups) current.backups = value as Snapshot[];
+      else throw new Error(`Tuntematon tallennusavain: ${key}`);
+      await queuePersist();
+    },
+    migrate: importIfEmpty,
+    startEmpty: (document) => importIfEmpty(document, []),
+    async reload() {
+      state = null;
+      const current = await load();
+      return { document: current.document, backups: current.backups };
+    },
+  };
 }
 
 export const loadDocument = (adapter: StorageAdapter) => adapter.get<PlannerDocument>(STORAGE_KEYS.document);

@@ -4,7 +4,7 @@ import { parseImport, type ImportResult } from '../../services/plannerDocument';
 
 interface DataManagerProps {
   onExport: (format: 'json' | 'csv' | 'xlsx', scope: 'all' | 'active') => void;
-  onImport: (result: ImportResult, mode: 'scenarios' | 'append' | 'replace') => void;
+  onImport: (result: ImportResult, mode: 'scenarios' | 'append' | 'replace') => Promise<void>;
   knownCodes: Set<string>;
 }
 
@@ -28,11 +28,16 @@ export function DataManager({ onExport, onImport, knownCodes }: DataManagerProps
   };
   const regions = pending ? (pending.result.kind === 'document' ? pending.result.scenarios.flatMap((scenario) => scenario.regions) : pending.result.regions) : [];
   const unknown = new Set(regions.flatMap((region) => region.municipalityCodes).filter((code) => !knownCodes.has(code)));
-  const apply = (mode: 'scenarios' | 'append' | 'replace') => {
+  const apply = async (mode: 'scenarios' | 'append' | 'replace') => {
     if (!pending) return;
-    onImport(pending.result, mode);
-    setMessage(`Tuotu tiedostosta ${pending.file}.`);
-    setPending(null);
+    setError('');
+    try {
+      await onImport(pending.result, mode);
+      setMessage(`Tuotu tiedostosta ${pending.file}.`);
+      setPending(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Tuontia ei voitu tallentaa palvelimelle.');
+    }
   };
 
   return (
@@ -64,9 +69,9 @@ export function DataManager({ onExport, onImport, knownCodes }: DataManagerProps
             <p><strong>{pending.file}</strong>: {pending.result.kind === 'document' ? `${pending.result.scenarios.length} skenaariota, ` : ''}{regions.length} aluetta.</p>
             {unknown.size > 0 && <p className="field-error">{unknown.size} tuntematonta kuntakoodia: {[...unknown].slice(0, 10).join(', ')}{unknown.size > 10 ? '…' : ''}</p>}
             <div className="button-row">
-              {pending.result.kind === 'document' && <button type="button" className="primary-button" onClick={() => apply('scenarios')}>Tuo uusina skenaarioina</button>}
-              <button type="button" className="secondary-button" onClick={() => apply('append')}>Lisää alueet aktiiviseen skenaarioon</button>
-              <button type="button" className="secondary-button danger" onClick={() => apply('replace')}>Korvaa aktiivisen skenaarion alueet</button>
+              {pending.result.kind === 'document' && <button type="button" className="primary-button" onClick={() => void apply('scenarios')}>Tuo uusina skenaarioina</button>}
+              <button type="button" className="secondary-button" onClick={() => void apply('append')}>Lisää alueet aktiiviseen skenaarioon</button>
+              <button type="button" className="secondary-button danger" onClick={() => void apply('replace')}>Korvaa aktiivisen skenaarion alueet</button>
             </div>
           </div>
         )}

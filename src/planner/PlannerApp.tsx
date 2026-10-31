@@ -54,9 +54,16 @@ export default function PlannerApp() {
   const [showClubs, setShowClubs] = useState(true);
   const [showBaseMap, setShowBaseMap] = useState(true);
   const [dark, setDark] = useState(() => { try { return localStorage.getItem(THEME_KEY) !== 'light'; } catch { return true; } });
+  const [writeKey, setWriteKey] = useState('');
+  const [writeActionError, setWriteActionError] = useState('');
 
   const ready = usePlanner((state) => state.ready);
   const loadError = usePlanner((state) => state.loadError);
+  const remoteMode = usePlanner((state) => state.remoteMode);
+  const migrationAvailable = usePlanner((state) => state.migrationAvailable);
+  const writeAuthRequired = usePlanner((state) => state.writeAuthRequired);
+  const writeConflict = usePlanner((state) => state.writeConflict);
+  const saveError = usePlanner((state) => state.saveError);
   const history = usePlanner((state) => state.history);
   const saveStatus = usePlanner((state) => state.saveStatus);
   const storageKind = usePlanner((state) => state.storageKind);
@@ -165,18 +172,74 @@ export default function PlannerApp() {
     if (mode === 'scenarios') commit('Skenaarioiden tuonti', (current) => documentOps.appendScenarios(current, result.scenarios));
     else if (mode === 'append') commit('Alueiden tuonti', (current) => documentOps.replaceRegions(current, [...activeScenario(current).regions, ...imported]));
     else commit('Alueiden korvaus tuonnilla', (current) => documentOps.replaceRegions(current, imported));
+    await plannerStore.getState().flush();
+    if (plannerStore.getState().saveStatus !== 'saved') throw new Error(plannerStore.getState().saveError ?? 'Tuontia ei tallennettu palvelimelle.');
     setSelectedRegionId(null); setEditing(false);
   };
-  const onRestore = (snapshot: Snapshot) => {
+  const onRestore = async (snapshot: Snapshot) => {
     if (!window.confirm(`Palautetaanko varmuuskopio ${new Date(snapshot.createdAt).toLocaleString('fi-FI')}? Nykytila tallennetaan varmuuskopioksi ennen palautusta.`)) return;
-    void plannerStore.getState().restoreBackup(snapshot.id);
-    setSelectedRegionId(null); setEditing(false);
+    setWriteActionError('');
+    try {
+      await plannerStore.getState().restoreBackup(snapshot.id);
+      await plannerStore.getState().flush();
+      if (plannerStore.getState().saveStatus !== 'saved') throw new Error(plannerStore.getState().saveError ?? 'Palautusta ei tallennettu palvelimelle.');
+      setSelectedRegionId(null); setEditing(false);
+    } catch (cause) {
+      setWriteActionError(cause instanceof Error ? cause.message : 'Palautusta ei voitu tallentaa.');
+    }
+  };
+  const deleteScenario = async (id: string) => {
+    const target = document_.scenarios.find((item) => item.id === id);
+    if (!target || !window.confirm(`Poistetaanko skenaario "${target.name}" ja sen ${target.regions.length} aluetta?`)) return;
+    setWriteActionError('');
+    try {
+      await plannerStore.getState().createBackup(`Ennen skenaarion ${target.name} poistoa`);
+      commit('Skenaarion poisto', (current) => documentOps.deleteScenario(current, id));
+      await plannerStore.getState().flush();
+      if (plannerStore.getState().saveStatus !== 'saved') throw new Error(plannerStore.getState().saveError ?? 'Poistoa ei tallennettu palvelimelle.');
+      setSelectedRegionId(null);
+    } catch (cause) {
+      setWriteActionError(cause instanceof Error ? cause.message : 'Skenaarion poistoa ei voitu tallentaa.');
+    }
+  };
+  const createManualBackup = async () => {
+    setWriteActionError('');
+    try {
+      await plannerStore.getState().createBackup('Käsin luotu');
+    } catch (cause) {
+      setWriteActionError(cause instanceof Error ? cause.message : 'Varmuuskopion luonti epäonnistui.');
+    }
   };
   const switchScenario = (id: string) => { navigate((current) => documentOps.setActiveScenario(current, id)); setSelectedRegionId(null); setEditing(false); setFilters((current) => ({ ...current, regionIds: [] })); };
+  const saveWithKey = async (action: 'save' | 'migrate' | 'empty') => {
+    setWriteActionError('');
+    plannerStore.getState().setWriteKey(writeKey);
+    try {
+      if (action === 'migrate') await plannerStore.getState().migrateLocalData();
+      else if (action === 'empty') await plannerStore.getState().startEmpty();
+      else {
+        await plannerStore.getState().flush();
+        if (plannerStore.getState().saveStatus !== 'saved') return;
+      }
+      setWriteActionError('');
+      setWriteKey('');
+    } catch (cause) {
+      setWriteActionError(cause instanceof Error ? cause.message : 'Toiminto epäonnistui.');
+    }
+  };
+  const reloadSharedPlan = async () => {
+    if (!window.confirm('Ladataanko palvelimen uusin suunnitelma? Tämän selaimen tallentamattomat muutokset hylätään.')) return;
+    setWriteActionError('');
+    try {
+      await plannerStore.getState().reloadRemote();
+    } catch (cause) {
+      setWriteActionError(cause instanceof Error ? cause.message : 'Palvelimen suunnitelman lataaminen epäonnistui.');
+    }
+  };
 
   const lastUndo = history.past[history.past.length - 1]?.label;
   const nextRedo = history.future[0]?.label;
-  const loading = !error && (!ready || !dataset || !clubs || !analysis);
+  const loading = !error && (!ready || !dataset || !clubs || !analysis || migrationAvailable || (remoteMode && Boolean(loadError)));
 
   return (
     <div className="planner-shell">
@@ -205,9 +268,43 @@ export default function PlannerApp() {
         ))}
       </nav>
 
+      {migrationAvailable && (
+        <section className="planner-card">
+          <h2 className="card-title">Palvelin ei sisällä vielä suunnitelmaa</h2>
+          <p>Selaimesta löytyi aiempi suunnitelma. Sitä ei siirretty automaattisesti eikä palvelimen tietoja ylikirjoiteta.</p>
+          <label className="field">Palvelimen kirjoitusavain<input type="password" autoComplete="current-password" value={writeKey} onChange={(event) => setWriteKey(event.target.value)} /></label>
+          <div className="button-row">
+            <button type="button" className="primary-button" disabled={!writeKey} onClick={() => void saveWithKey('migrate')}>Siirrä selaimen suunnitelma palvelimelle</button>
+            <button type="button" className="secondary-button" disabled={!writeKey} onClick={() => void saveWithKey('empty')}>Aloita tyhjällä suunnitelmalla</button>
+          </div>
+          {writeActionError && <p className="field-error" role="alert">{writeActionError}</p>}
+        </section>
+      )}
+      {writeAuthRequired && !migrationAvailable && (
+        <section className="planner-card" role="alert">
+          <h2 className="card-title">Palvelintallennus vaatii kirjoitusavaimen</h2>
+          <p>{saveError} Avain pidetään vain tämän välilehden muistissa.</p>
+          <form className="inline-form" onSubmit={(event) => { event.preventDefault(); void saveWithKey('save'); }}>
+            <label className="field grow">Palvelimen kirjoitusavain<input type="password" autoComplete="current-password" value={writeKey} onChange={(event) => setWriteKey(event.target.value)} /></label>
+            <button type="submit" className="primary-button" disabled={!writeKey}>Yritä tallentaa</button>
+          </form>
+          {writeActionError && <p className="field-error" role="alert">{writeActionError}</p>}
+        </section>
+      )}
+      {writeConflict && (
+        <section className="planner-card" role="alert">
+          <h2 className="card-title">Palvelimen suunnitelmaa on muutettu muualla</h2>
+          <p>{saveError} Tallennusta ei yritetty ylikirjoittamalla palvelimen uudempaa versiota.</p>
+          <button type="button" className="secondary-button" onClick={() => void reloadSharedPlan()}>Lataa palvelimen versio</button>
+          {writeActionError && <p className="field-error" role="alert">{writeActionError}</p>}
+        </section>
+      )}
+      {writeActionError && !migrationAvailable && !writeAuthRequired && !writeConflict && <p className="notice" role="alert">{writeActionError}</p>}
+      {saveStatus === 'error' && !writeAuthRequired && !writeConflict && !writeActionError && <p className="notice" role="alert">{saveError ?? 'Tallennus epäonnistui.'}</p>}
       {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}
-      {loadError && <p className="notice" role="alert">Selaimen tallennustilaa ei voitu avata ({loadError}). Muutokset säilyvät vain tämän istunnon ajan.</p>}
-      {loading && <div className="loading-state" role="status"><span className="loading-spinner" />Ladataan kuntarajoja, seuroja ja tallennettuja suunnitelmia…</div>}
+      {loadError && remoteMode && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Yhteistä suunnitelmaa ei voitu ladata</strong><span>{loadError}</span><button className="clear-filters" onClick={() => void plannerStore.getState().retryInit()}>Yritä uudelleen</button></div></div>}
+      {loadError && !remoteMode && <p className="notice" role="alert">Selaimen tallennustilaa ei voitu avata ({loadError}). Muutokset säilyvät vain tämän istunnon ajan.</p>}
+      {loading && <div className="loading-state" role="status"><span className="loading-spinner" />{migrationAvailable ? 'Valitse, siirretäänkö selaimen suunnitelma palvelimelle vai aloitetaanko tyhjällä…' : 'Ladataan kuntarajoja, seuroja ja tallennettuja suunnitelmia…'}</div>}
 
       {!loading && dataset && analysis && clubs && (
         <main className="planner-main">
@@ -269,18 +366,13 @@ export default function PlannerApp() {
             onCreate={(name) => { commit('Skenaarion luonti', (current) => documentOps.addScenario(current, name)); setSelectedRegionId(null); }}
             onRename={(id, name) => commit('Skenaarion nimeäminen', (current) => documentOps.renameScenario(current, id, name))}
             onDuplicate={(id) => { commit('Skenaarion monistus', (current) => documentOps.duplicateScenario(current, id)); setSelectedRegionId(null); }}
-            onDelete={(id) => {
-              const target = document_.scenarios.find((item) => item.id === id);
-              if (!target || !window.confirm(`Poistetaanko skenaario "${target.name}" ja sen ${target.regions.length} aluetta?`)) return;
-              void plannerStore.getState().createBackup(`Ennen skenaarion ${target.name} poistoa`).then(() => commit('Skenaarion poisto', (current) => documentOps.deleteScenario(current, id)));
-              setSelectedRegionId(null);
-            }}
+            onDelete={(id) => void deleteScenario(id)}
             onSwitch={switchScenario} />}
-          {view === 'backups' && <BackupManager backups={backups} current={document_} onCreate={() => void plannerStore.getState().createBackup('Käsin luotu')} onRestore={onRestore} />}
-          {view === 'data' && <DataManager onExport={onExport} onImport={(result, mode) => void onImport(result, mode)} knownCodes={new Set(dataset.byCode.keys())} />}
+          {view === 'backups' && <BackupManager backups={backups} current={document_} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} />}
+          {view === 'data' && <DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} />}
         </main>
       )}
-      <footer className="planner-footer">Kuntarajat © Tilastokeskus, kunta1000k 2025 (CC BY 4.0) · Taustakartta © OpenStreetMap · Suunnitelmat tallentuvat vain tähän selaimeen ({storageKind ?? '…'}).</footer>
+      <footer className="planner-footer">Kuntarajat © Tilastokeskus, kunta1000k 2025 (CC BY 4.0) · Taustakartta © OpenStreetMap · {remoteMode ? 'Suunnitelmat tallentuvat yhteisesti palvelimelle' : 'Suunnitelmat tallentuvat tähän selaimeen'} ({storageKind ?? '…'}).</footer>
     </div>
   );
 }

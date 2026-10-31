@@ -8,7 +8,7 @@ import { assignClubs, analyzeScenario, computeRegionStats, aggregateByMunicipali
 import { validateScenario, VALIDATION_THRESHOLDS } from '../src/services/validationService.ts';
 import { createDocument, createRegion, activeScenario, documentOps, normalizeDocument, parseImport } from '../src/services/plannerDocument.ts';
 import { createHistory, pushHistory, undoHistory, redoHistory, replacePresent } from '../src/services/historyService.ts';
-import { createStorage, createMemoryAdapter } from '../src/services/persistenceService.ts';
+import { createStorage, createRemoteStorage, createMemoryAdapter, RemoteStorageError, STORAGE_KEYS } from '../src/services/persistenceService.ts';
 import { addSnapshot, compareDocuments, BACKUP_LIMIT, shouldAutoBackup } from '../src/services/backupService.ts';
 import { exportJson, exportCsv, exportXlsx } from '../src/services/exportService.ts';
 import { REGION_COLORS, normalizeHex, nextColor, readableTextColor } from '../src/services/regionColors.ts';
@@ -234,6 +234,52 @@ test('storage falls back from IndexedDB to localStorage to memory', async () => 
   assert.equal(memory.kind, 'Muisti');
   const failingIdb = { open: () => { throw new Error('blocked'); } };
   assert.equal((await createStorage({ indexedDB: failingIdb, localStorage })).kind, 'LocalStorage');
+});
+
+test('remote storage uses conditional shared writes and reports conflicts', async () => {
+  const originalFetch = globalThis.fetch;
+  const document = createDocument();
+  let state = { document: null, backups: [], revision: null };
+  let rejectWrites = false;
+  const requests = [];
+  globalThis.fetch = async (_url, init) => {
+    requests.push(init);
+    if (init.method === 'GET') return Response.json(state);
+    assert.equal(init.headers['X-Planner-Write-Key'], 'temporary-write-key');
+    if (state.revision === null) assert.equal(init.headers['If-None-Match'], '*');
+    else assert.equal(init.headers['X-Expected-Revision'], state.revision);
+    if (rejectWrites) return Response.json({ error: 'conflict' }, { status: 409 });
+    const body = JSON.parse(init.body);
+    state = { ...body, revision: 'revision-1' };
+    return Response.json({ revision: state.revision });
+  };
+  try {
+    const adapter = createRemoteStorage('/api/planner.php');
+    assert.equal(await adapter.get(STORAGE_KEYS.document), null);
+    adapter.setWriteKey('temporary-write-key');
+    await adapter.set(STORAGE_KEYS.document, document);
+    assert.deepEqual(state.document, document);
+    rejectWrites = true;
+    await assert.rejects(() => adapter.set(STORAGE_KEYS.backups, []), (error) => error instanceof RemoteStorageError && error.status === 409);
+    assert.equal(requests.filter((request) => request.method === 'PUT').length, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('remote storage refuses migration when the server already has a plan', async () => {
+  const originalFetch = globalThis.fetch;
+  const document = createDocument();
+  globalThis.fetch = async (_url, init) => {
+    if (init.method === 'GET') return Response.json({ document, backups: [], revision: 'existing' });
+    throw new Error('an existing server plan must never be overwritten');
+  };
+  try {
+    const adapter = createRemoteStorage('/api/planner.php');
+    await assert.rejects(() => adapter.migrate(createDocument(), []), (error) => error instanceof RemoteStorageError && error.status === 409);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test('backups keep the latest 10 snapshots and can be compared', () => {
