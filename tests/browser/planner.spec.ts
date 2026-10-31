@@ -2,6 +2,22 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 test.beforeEach(async ({ page }) => {
+  let sharedState = { document: null, backups: [], revision: null as string | null };
+  let revision = 0;
+  await page.route('**/api/planner.php', async (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: sharedState });
+    const headers = route.request().headers();
+    if (headers['x-planner-write-key'] !== 'test-shared-write-key') return route.fulfill({ status: 401, json: { error: 'Kirjoitusavain vaaditaan.' } });
+    const expected = headers['x-expected-revision'];
+    const createOnly = headers['if-none-match'] === '*';
+    if ((sharedState.revision === null && !createOnly) || (sharedState.revision !== null && expected !== sharedState.revision)) {
+      return route.fulfill({ status: 409, json: { error: 'Suunnitelma muuttui.' } });
+    }
+    const body = route.request().postDataJSON();
+    revision += 1;
+    sharedState = { ...body, revision: `revision-${revision}` };
+    return route.fulfill({ json: { revision: sharedState.revision } });
+  });
   await page.route('https://*.tile.openstreetmap.org/**', (route) => route.fulfill({
     contentType: 'image/png',
     body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zl1sAAAAASUVORK5CYII=', 'base64'),
@@ -10,6 +26,9 @@ test.beforeEach(async ({ page }) => {
 
 async function open(page: Page) {
   await page.goto('/koodi0004/#/alueet');
+  await expect(page.getByRole('heading', { name: 'Palvelintallennus vaatii kirjoitusavaimen' })).toBeVisible();
+  await page.getByLabel('Palvelimen kirjoitusavain').fill('test-shared-write-key');
+  await page.getByRole('button', { name: 'Yritä tallentaa' }).click();
   await expect(page.getByRole('button', { name: 'Uusi alue' })).toBeVisible();
   await expect(page.locator('.save-indicator')).toContainText('Tallennettu');
 }
@@ -72,4 +91,43 @@ test('scenarios can be created and switched without leaking regions', async ({ p
   await expect(page.locator('.region-row')).toHaveCount(0);
   await selector.selectOption({ label: 'Nykyrakenne' });
   await expect(page.locator('.region-row')).toHaveCount(1);
+});
+
+test('browser data migrates only after explicit confirmation when the server is empty', async ({ page }) => {
+  const legacyDocument = {
+    version: 1,
+    activeScenarioId: 'legacy-scenario',
+    scenarios: [{ id: 'legacy-scenario', name: 'Vanha suunnitelma', description: '', regions: [], createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
+  };
+  await page.goto('/koodi0004/');
+  await page.evaluate(async (document) => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('koodi0004-region-planner', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('kv');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction('kv', 'readwrite');
+      transaction.objectStore('kv').put(document, 'region-planner:document');
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+    database.close();
+  }, legacyDocument);
+  const writes: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/planner.php') && request.method() === 'PUT') writes.push(request.method());
+  });
+  await page.goto('/koodi0004/#/alueet');
+  await expect(page.getByRole('heading', { name: 'Palvelin ei sisällä vielä suunnitelmaa' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Siirrä selaimen suunnitelma palvelimelle' })).toBeDisabled();
+  expect(writes).toHaveLength(0);
+
+  await page.getByLabel('Palvelimen kirjoitusavain').fill('test-shared-write-key');
+  await expect(page.getByRole('button', { name: 'Siirrä selaimen suunnitelma palvelimelle' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Siirrä selaimen suunnitelma palvelimelle' }).click();
+  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Vanha suunnitelma');
+  await page.reload();
+  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Vanha suunnitelma');
 });
