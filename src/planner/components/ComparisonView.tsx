@@ -1,0 +1,100 @@
+import { useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
+import { ArrowDown, ArrowUp } from 'lucide-react';
+import type { Region } from '../../models/region';
+import { formatArea, formatPercent, type RegionStats, type ScenarioAnalysis } from '../../services/regionAnalytics';
+import { BarChart, StatCard, decimalFormat, integerFormat } from './ui';
+
+type MetricKey = 'areaKm2' | 'municipalityCount' | 'clubCount' | 'members' | 'votes' | 'areaShare' | 'membersPerKm2';
+const METRICS: { key: MetricKey; label: string; format: (stats: RegionStats) => string }[] = [
+  { key: 'areaKm2', label: 'Pinta-ala', format: (stats) => formatArea(stats.areaKm2) },
+  { key: 'areaShare', label: 'Kattavuus %', format: (stats) => formatPercent(stats.areaShare) },
+  { key: 'municipalityCount', label: 'Kuntia', format: (stats) => String(stats.municipalityCount) },
+  { key: 'clubCount', label: 'Seuroja', format: (stats) => String(stats.clubCount) },
+  { key: 'members', label: 'Jäseniä', format: (stats) => integerFormat.format(stats.members) },
+  { key: 'votes', label: 'Äänimäärä', format: (stats) => integerFormat.format(stats.votes) },
+  { key: 'membersPerKm2', label: 'Jäseniä / 1 000 km²', format: (stats) => decimalFormat.format(stats.membersPerKm2 * 1000) },
+];
+
+export function ComparisonView({ regions, analysis, onSelectRegion }: { regions: Region[]; analysis: ScenarioAnalysis; onSelectRegion: (id: string) => void }) {
+  const sortedRegions = useMemo(() => [...regions].sort((a, b) => a.number - b.number), [regions]);
+  const [chosen, setChosen] = useState<string[] | null>(null);
+  const selectedIds = chosen ?? sortedRegions.filter((region) => region.enabled).map((region) => region.id);
+  const [sort, setSort] = useState<{ key: MetricKey | 'number'; direction: 1 | -1 }>({ key: 'number', direction: 1 });
+  const [chartMetric, setChartMetric] = useState<MetricKey>('members');
+
+  const rows = sortedRegions.filter((region) => selectedIds.includes(region.id)).map((region) => ({ region, stats: analysis.stats.get(region.id)! }))
+    .sort((a, b) => sort.direction * (sort.key === 'number' ? a.region.number - b.region.number : a.stats[sort.key] - b.stats[sort.key]));
+  const total = (key: MetricKey) => rows.reduce((sum, row) => sum + row.stats[key], 0);
+  const toggle = (id: string) => setChosen(selectedIds.includes(id) ? selectedIds.filter((item) => item !== id) : [...selectedIds, id]);
+  const headerButton = (key: MetricKey | 'number', label: string) => (
+    <button type="button" className="sort-button" onClick={() => setSort((current) => ({ key, direction: current.key === key ? (current.direction === 1 ? -1 : 1) : -1 }))}>
+      {label}{sort.key === key && (sort.direction === 1 ? <ArrowUp size={12} aria-label="nouseva" /> : <ArrowDown size={12} aria-label="laskeva" />)}
+    </button>
+  );
+  const metric = METRICS.find((item) => item.key === chartMetric)!;
+
+  return (
+    <div className="view-stack">
+      <header className="view-header"><div><p className="eyebrow">ALUEVERTAILU</p><h2>Vertaile alueita</h2><p>Valitse vertailtavat alueet. Oletuksena mukana ovat kaikki käytössä olevat alueet.</p></div></header>
+      <section className="planner-card">
+        <div className="chip-toggle-list" role="group" aria-label="Vertailtavat alueet">
+          {sortedRegions.map((region) => (
+            <button key={region.id} type="button" className="chip-toggle" aria-pressed={selectedIds.includes(region.id)} onClick={() => toggle(region.id)} style={{ '--chip-color': region.color } as CSSProperties}>{region.number} {region.name}</button>
+          ))}
+          {sortedRegions.length === 0 && <p className="empty-text">Skenaariossa ei ole alueita.</p>}
+        </div>
+      </section>
+      <div className="stat-grid">
+        <StatCard label="Vertailussa" value={`${rows.length} aluetta`} />
+        <StatCard label="Pinta-ala yhteensä" value={formatArea(total('areaKm2'))} detail="päällekkäisyydet lasketaan kumpaankin" />
+        <StatCard label="Seuroja yhteensä" value={integerFormat.format(total('clubCount'))} />
+        <StatCard label="Jäseniä yhteensä" value={integerFormat.format(total('members'))} detail={rows.length ? `keskimäärin ${integerFormat.format(total('members') / rows.length)} / alue` : undefined} />
+        <StatCard label="Äänimäärä yhteensä" value={integerFormat.format(total('votes'))} detail={rows.length ? `keskimäärin ${integerFormat.format(total('votes') / rows.length)} / alue` : undefined} />
+      </div>
+      <section className="planner-card table-card">
+        <table className="data-table">
+          <caption className="sr-only">Aluevertailu</caption>
+          <thead><tr>
+            <th scope="col">{headerButton('number', 'Alue')}</th>
+            {METRICS.map((item) => <th key={item.key} scope="col" className="numeric">{headerButton(item.key, item.label)}</th>)}
+          </tr></thead>
+          <tbody>
+            {rows.map(({ region, stats }) => (
+              <tr key={region.id}>
+                <th scope="row"><button type="button" className="link-button" onClick={() => onSelectRegion(region.id)}><span className="region-number small" style={{ background: region.color }}>{region.number}</span> {region.name}</button></th>
+                {METRICS.map((item) => <td key={item.key} className="numeric">{item.format(stats)}</td>)}
+              </tr>
+            ))}
+            {rows.length === 0 && <tr><td colSpan={METRICS.length + 1} className="empty-text">Valitse vähintään yksi alue.</td></tr>}
+          </tbody>
+        </table>
+      </section>
+      <section className="planner-card">
+        <label className="field inline">Kaavion mittari
+          <select value={chartMetric} onChange={(event) => setChartMetric(event.target.value as MetricKey)}>{METRICS.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select>
+        </label>
+        <BarChart title={metric.label} rows={[...rows].sort((a, b) => b.stats[chartMetric] - a.stats[chartMetric]).map(({ region, stats }) => ({ id: region.id, label: `${region.number} ${region.shortName}`, value: stats[chartMetric], color: region.color, display: metric.format(stats) }))} />
+      </section>
+      <section className="planner-card">
+        <h2 className="card-title">Pinta-alaosuus vs. jäsenosuus</h2>
+        <p className="hint">Suuri ero osuuksien välillä kertoo maantieteellisesti laajasta mutta harvaan jäsenistetystä alueesta tai päinvastoin.</p>
+        <ul className="share-compare">
+          {rows.map(({ region, stats }) => {
+            const memberShare = analysis.totals.members ? stats.members / analysis.totals.members : 0;
+            return (
+              <li key={region.id}>
+                <span className="share-label">{region.number} {region.shortName}</span>
+                <span className="share-bars" aria-label={`Pinta-ala ${formatPercent(stats.areaShare)}, jäsenet ${formatPercent(memberShare)}`}>
+                  <span className="share-bar area" style={{ width: `${Math.min(100, stats.areaShare * 100 * 2)}%` }}>{formatPercent(stats.areaShare)}</span>
+                  <span className="share-bar members" style={{ width: `${Math.min(100, memberShare * 100 * 2)}%`, background: region.color }}>{formatPercent(memberShare)}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="legend-inline"><span className="share-bar area sample" /> Pinta-ala <span className="share-bar members sample" /> Jäsenet</p>
+      </section>
+    </div>
+  );
+}

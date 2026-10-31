@@ -10,7 +10,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'mkdir -p dist/koodi0004 && cp -R dist/assets dist/jsondb dist/index.html dist/koodi0004/ && npm run preview -- --host 127.0.0.1 --port 5180',
+    command: 'mkdir -p dist/koodi0004 && cp -R dist/assets dist/jsondb dist/geo dist/index.html dist/koodi0004/ && npm run preview -- --host 127.0.0.1 --port 5180',
     url: 'http://127.0.0.1:5180/koodi0004/',
     reuseExistingServer: false,
   },
