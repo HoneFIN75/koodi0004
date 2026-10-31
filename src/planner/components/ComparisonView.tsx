@@ -4,8 +4,10 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import type { Region } from '../../models/region';
 import { formatArea, formatPercent, type RegionStats, type ScenarioAnalysis } from '../../services/regionAnalytics';
 import { BarChart, StatCard, decimalFormat, integerFormat } from './ui';
+import { formatCount } from '../../services/mapService';
+import { summarizePopulation } from '../../services/populationService';
 
-type MetricKey = 'areaKm2' | 'municipalityCount' | 'clubCount' | 'members' | 'votes' | 'areaShare' | 'membersPerKm2';
+type MetricKey = 'areaKm2' | 'municipalityCount' | 'clubCount' | 'members' | 'votes' | 'areaShare' | 'membersPerKm2' | 'population' | 'populationShare' | 'averagePopulation' | 'medianPopulation' | 'clubsPer10000' | 'membersPer10000' | 'populationDensity';
 const METRICS: { key: MetricKey; label: string; format: (stats: RegionStats) => string }[] = [
   { key: 'areaKm2', label: 'Pinta-ala', format: (stats) => formatArea(stats.areaKm2) },
   { key: 'areaShare', label: 'Kattavuus %', format: (stats) => formatPercent(stats.areaShare) },
@@ -14,6 +16,13 @@ const METRICS: { key: MetricKey; label: string; format: (stats: RegionStats) => 
   { key: 'members', label: 'Jäseniä', format: (stats) => integerFormat.format(stats.members) },
   { key: 'votes', label: 'Äänimäärä', format: (stats) => integerFormat.format(stats.votes) },
   { key: 'membersPerKm2', label: 'Jäseniä / 1 000 km²', format: (stats) => decimalFormat.format(stats.membersPerKm2 * 1000) },
+  { key: 'population', label: 'Väestö 2025', format: (stats) => formatCount(stats.population) },
+  { key: 'populationShare', label: 'Osuus Suomen väestöstä', format: (stats) => stats.populationShare === null ? 'Ei tietoa' : formatPercent(stats.populationShare) },
+  { key: 'averagePopulation', label: 'Kuntaväestön keskiarvo', format: (stats) => formatCount(stats.averagePopulation) },
+  { key: 'medianPopulation', label: 'Kuntaväestön mediaani', format: (stats) => formatCount(stats.medianPopulation) },
+  { key: 'clubsPer10000', label: 'Seuroja / 10 000 asukasta', format: (stats) => formatCount(stats.clubsPer10000) },
+  { key: 'membersPer10000', label: 'Jäseniä / 10 000 asukasta', format: (stats) => formatCount(stats.membersPer10000) },
+  { key: 'populationDensity', label: 'Asukkaita / km²', format: (stats) => formatCount(stats.populationDensity) },
 ];
 
 export function ComparisonView({ regions, analysis, onSelectRegion }: { regions: Region[]; analysis: ScenarioAnalysis; onSelectRegion: (id: string) => void }) {
@@ -24,8 +33,15 @@ export function ComparisonView({ regions, analysis, onSelectRegion }: { regions:
   const [chartMetric, setChartMetric] = useState<MetricKey>('members');
 
   const rows = sortedRegions.filter((region) => selectedIds.includes(region.id)).map((region) => ({ region, stats: analysis.stats.get(region.id)! }))
-    .sort((a, b) => sort.direction * (sort.key === 'number' ? a.region.number - b.region.number : a.stats[sort.key] - b.stats[sort.key]));
-  const total = (key: MetricKey) => rows.reduce((sum, row) => sum + row.stats[key], 0);
+    .sort((a, b) => {
+      if (sort.key === 'number') return sort.direction * (a.region.number - b.region.number);
+      const left = a.stats[sort.key]; const right = b.stats[sort.key];
+      if (left === null) return right === null ? 0 : 1;
+      if (right === null) return -1;
+      return sort.direction * (left - right);
+    });
+  const total = (key: MetricKey) => rows.reduce((sum, row) => sum + (row.stats[key] ?? 0), 0);
+  const population = summarizePopulation(rows.flatMap((row) => row.stats.municipalities)).total;
   const toggle = (id: string) => setChosen(selectedIds.includes(id) ? selectedIds.filter((item) => item !== id) : [...selectedIds, id]);
   const headerButton = (key: MetricKey | 'number', label: string) => (
     <button type="button" className="sort-button" onClick={() => setSort((current) => ({ key, direction: current.key === key ? (current.direction === 1 ? -1 : 1) : -1 }))}>
@@ -46,6 +62,7 @@ export function ComparisonView({ regions, analysis, onSelectRegion }: { regions:
         </div>
       </section>
       <div className="stat-grid">
+        <StatCard label="Vertailualueiden väestö 2025" value={rows.some((row) => row.stats.population === null) ? 'Ei tietoa' : formatCount(population)} detail="päällekkäiset kunnat vain kerran" />
         <StatCard label="Vertailussa" value={`${rows.length} aluetta`} />
         <StatCard label="Pinta-ala yhteensä" value={formatArea(total('areaKm2'))} detail="päällekkäisyydet lasketaan kumpaankin" />
         <StatCard label="Seuroja yhteensä" value={integerFormat.format(total('clubCount'))} />
@@ -74,7 +91,7 @@ export function ComparisonView({ regions, analysis, onSelectRegion }: { regions:
         <label className="field inline">Kaavion mittari
           <select value={chartMetric} onChange={(event) => setChartMetric(event.target.value as MetricKey)}>{METRICS.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select>
         </label>
-        <BarChart title={metric.label} rows={[...rows].sort((a, b) => b.stats[chartMetric] - a.stats[chartMetric]).map(({ region, stats }) => ({ id: region.id, label: `${region.number} ${region.shortName}`, value: stats[chartMetric], color: region.color, display: metric.format(stats) }))} />
+        <BarChart title={metric.label} rows={[...rows].filter((row) => row.stats[chartMetric] !== null).sort((a, b) => (b.stats[chartMetric] ?? 0) - (a.stats[chartMetric] ?? 0)).map(({ region, stats }) => ({ id: region.id, label: `${region.number} ${region.shortName}`, value: stats[chartMetric] ?? 0, color: region.color, display: metric.format(stats) }))} />
       </section>
       <section className="planner-card">
         <h2 className="card-title">Pinta-alaosuus vs. jäsenosuus</h2>

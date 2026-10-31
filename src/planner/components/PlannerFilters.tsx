@@ -1,5 +1,6 @@
 import type React from 'react';
 import { RotateCcw } from 'lucide-react';
+import { PopulationFilters } from '../../components/PopulationFilters';
 import type { Region } from '../../models/region';
 import { emptyFilters, type PlannerFilters as Filters } from '../../services/regionAnalytics';
 
@@ -19,6 +20,7 @@ export function PlannerFilters({ filters, regions, maxMembers, votingOptions, on
     <details className="planner-card filters-card" open>
       <summary><h2>Suodattimet</h2>{active && <span className="pill">käytössä</span>}</summary>
       <div className="filter-grid">
+        <PopulationFilters filters={filters} onChange={(next) => onChange({ ...filters, ...next })} />
         <label className="field">Seuran nimi<input type="search" value={filters.clubQuery} onChange={(event) => onChange({ ...filters, clubQuery: event.target.value })} placeholder="Hae seuraa…" /></label>
         <label className="field">Kunta<input type="search" value={filters.municipalityQuery} onChange={(event) => onChange({ ...filters, municipalityQuery: event.target.value })} placeholder="Hae kuntaa…" /></label>
         <fieldset className="field range-pair">

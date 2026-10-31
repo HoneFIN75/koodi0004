@@ -1,5 +1,6 @@
 import type { Municipality, MunicipalityDataset, MunicipalityGeometry, PolygonCoordinates, Position } from '../models/region';
 import { geometryAreaKm2, geometryBounds, geometryLabelPoint } from '../services/geoService.ts';
+import { populationService } from '../services/populationService.ts';
 
 export const MUNICIPALITY_URL = './geo/kunnat.geojson';
 
@@ -56,6 +57,10 @@ export function parseMunicipalities(input: unknown): MunicipalityDataset {
   }
   if (municipalities.length === 0) throw new Error('Kuntarajojen aineistossa ei ole kelvollisia kuntia.');
   municipalities.sort((a, b) => a.name.localeCompare(b.name, 'fi'));
+  populationService.registerNames(municipalities);
+  for (const municipality of municipalities) {
+    municipality.population = populationService.getMunicipalityPopulation(municipality.name);
+  }
   const metadata = isRecord(input.metadata) ? input.metadata : {};
   return {
     municipalities, byCode,

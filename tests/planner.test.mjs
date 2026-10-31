@@ -62,7 +62,7 @@ test('region statistics aggregate clubs, members, votes and area', () => {
   assert.equal(stats.votes, expected.reduce((sum, item) => sum + (item.club.aanimaara ?? 0), 0));
   assert.ok(stats.largestClub.jasenmaara >= stats.smallestClub.jasenmaara);
   assert.ok(stats.areaShare > 0 && stats.areaShare < 0.01);
-  assert.equal(stats.population, null);
+  assert.equal(stats.population, 1_020_108);
 
   const unknown = computeRegionStats({ ...region, municipalityCodes: ['999999'] }, dataset, index);
   assert.deepEqual(unknown.missingCodes, ['999999']);

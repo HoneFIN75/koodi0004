@@ -13,11 +13,12 @@ interface MapViewProps {
   allClubs: Club[];
   selectedClub: Club | null;
   onSelect: (club: Club) => void;
+  populationFor: (club: Club) => number | null;
 }
 
 const finlandBounds: L.LatLngTuple[] = [[59.6, 19], [70.2, 32]];
 
-export function MapView({ clubs, allClubs, selectedClub, onSelect }: MapViewProps) {
+export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor }: MapViewProps) {
   const element = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const cluster = useRef<L.MarkerClusterGroup | null>(null);
@@ -106,7 +107,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect }: MapViewProp
         title: `${club.seura}, ${club.paikkakunta}: ${formatCount(club.jasenmaara)} jäsentä, ${formatCount(club.aanimaara)} ääntä. Avaa tiedot.`,
         alt: club.seura,
         keyboard: true,
-      }).bindTooltip(makePopup(club), { direction: 'top', opacity: 1 });
+      }).bindTooltip(makePopup(club, populationFor(club)), { direction: 'top', opacity: 1 });
       marker.on('click', () => onSelect(club));
       marker.on('add', () => {
         const node = marker.getElement();
@@ -125,7 +126,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect }: MapViewProp
       layers.push(marker);
     }
     group.addLayers(layers);
-  }, [clubs, onSelect]);
+  }, [clubs, onSelect, populationFor]);
 
   useEffect(() => {
     if (!selectedClub || !hasLocation(selectedClub) || !map.current) return;

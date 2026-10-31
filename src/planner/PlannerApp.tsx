@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { AlertCircle, ArrowLeft, LogIn, LogOut, Moon, Redo2, Shield, Sun, Undo2 } from 'lucide-react';
 import { clubRepository } from '../data/clubRepository';
+import { PopulationExplorer } from '../components/PopulationExplorer';
 import { municipalityRepository } from '../data/municipalityRepository';
 import type { Database } from '../models/club';
 import type { MunicipalityDataset, Region, RegionDraft, Snapshot } from '../models/region';
@@ -54,6 +55,7 @@ export default function PlannerApp() {
   const [highlightUnassigned, setHighlightUnassigned] = useState(false);
   const [showClubs, setShowClubs] = useState(true);
   const [showBaseMap, setShowBaseMap] = useState(true);
+  const [populationLayer, setPopulationLayer] = useState(false);
   const [dark, setDark] = useState(() => { try { return localStorage.getItem(THEME_KEY) !== 'light'; } catch { return true; } });
   const [authSession, setAuthSession] = useState<AuthSession>({ authReady: false, role: null, csrfToken: '' });
   const [authLoading, setAuthLoading] = useState(true);
@@ -454,12 +456,13 @@ export default function PlannerApp() {
                   <label className="checkbox"><input type="checkbox" checked={showClubs} onChange={(event) => setShowClubs(event.target.checked)} /> Seurat</label>
                   <label className="checkbox"><input type="checkbox" checked={highlightUnassigned} onChange={(event) => setHighlightUnassigned(event.target.checked)} /> Korosta kohdistamattomat</label>
                   <label className="checkbox"><input type="checkbox" checked={showBaseMap} onChange={(event) => setShowBaseMap(event.target.checked)} /> Taustakartta</label>
+                  <label className="checkbox"><input type="checkbox" checked={populationLayer} onChange={(event) => setPopulationLayer(event.target.checked)} /> Väestökartta 2025</label>
                   <span className="map-status" role="status" aria-live="polite">{filtered.length} / {placements.length} seuraa{filtersActive ? ' (suodatettu)' : ''}</span>
                 </div>
                 {editingRegion && <p className="edit-banner" role="status"><ColorDot color={editingRegion.color} /><span>Valintatila: napsauta kuntia lisätäksesi tai poistaaksesi ne alueesta <strong>{editingRegion.name}</strong>.</span></p>}
                 <RegionMap dataset={dataset} regions={mapRegions} membership={membership} editingRegion={editingRegion} selectedRegionId={selectedRegionId} selectedMunicipalityCode={selectedMunicipality}
                   highlightCodes={unassignedCodes} matchCodes={matchCodes} aggregates={fullAggregates} placements={filtered} showClubs={showClubs} showBaseMap={showBaseMap} dark={dark}
-                  onMunicipalityClick={onMunicipalityClick} onRegionSelect={selectRegion} />
+                  populationLayer={populationLayer} onMunicipalityClick={onMunicipalityClick} onRegionSelect={selectRegion} />
                 <div className="map-legend-bar" aria-label="Selite">
                   <span><i className="legend-swatch outline" /> Alueen raja</span>
                   <span><i className="legend-swatch dashed" /> Päällekkäinen alue</span>
@@ -494,14 +497,14 @@ export default function PlannerApp() {
           {view === 'compare' && <ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} />}
           {view === 'unassigned' && <UnassignedView analysis={analysis} regions={regions} onShowOnMap={() => { setHighlightUnassigned(true); setSelectedRegionId(null); setEditing(false); setView('map'); }}
             onAssign={(regionId, codes) => setMunicipalities(regionId, codes, 'add', `Kohdistettu ${codes.length} kuntaa`)} />}
-          {view === 'scenarios' && <ScenarioManager document={displayedDocument} readOnly={!canWrite}
+          {view === 'scenarios' && <ScenarioManager document={displayedDocument} dataset={dataset} readOnly={!canWrite}
             onCreate={(name) => { commit('Skenaarion luonti', (current) => documentOps.addScenario(current, name)); setSelectedRegionId(null); }}
             onRename={(id, name) => commit('Skenaarion nimeäminen', (current) => documentOps.renameScenario(current, id, name))}
             onDuplicate={(id) => { commit('Skenaarion monistus', (current) => documentOps.duplicateScenario(current, id)); setSelectedRegionId(null); }}
             onDelete={(id) => void deleteScenario(id)}
             onSwitch={selectScenario} />}
-          {view === 'backups' && <BackupManager backups={backups} current={displayedDocument} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} readOnly={!canWrite} />}
-          {view === 'data' && <DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} readOnly={!canWrite} />}
+          {view === 'backups' && <BackupManager backups={backups} current={displayedDocument} dataset={dataset} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} readOnly={!canWrite} />}
+          {view === 'data' && <><DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} readOnly={!canWrite} /><PopulationExplorer municipalities={dataset.municipalities} /></>}
         </main>
       )}
       <footer className="planner-footer">Kuntarajat © Tilastokeskus, kunta1000k 2025 (CC BY 4.0) · Taustakartta © OpenStreetMap · {remoteMode ? 'Suunnitelmat tallentuvat yhteisesti palvelimelle' : 'Suunnitelmat tallentuvat tähän selaimeen'} ({storageKind ?? '…'}). Tunnukset ovat yhteisiä eikä muutosten tekijää tunnisteta.</footer>

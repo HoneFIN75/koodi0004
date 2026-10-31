@@ -1,11 +1,15 @@
 import { useMemo, useState } from 'react';
 import { History, RotateCcw, Save } from 'lucide-react';
-import type { PlannerDocument, Snapshot } from '../../models/region';
+import type { MunicipalityDataset, PlannerDocument, Snapshot } from '../../models/region';
 import { BACKUP_LIMIT, compareDocuments } from '../../services/backupService';
+import { getCoveragePopulation } from '../../services/populationService';
+import { activeScenario } from '../../services/plannerDocument';
+import { formatCount } from '../../services/mapService';
 
 interface BackupManagerProps {
   backups: Snapshot[];
   current: PlannerDocument;
+  dataset: MunicipalityDataset;
   onCreate: () => void;
   onRestore: (snapshot: Snapshot) => void;
   readOnly?: boolean;
@@ -13,7 +17,7 @@ interface BackupManagerProps {
 
 const CURRENT = 'current';
 
-export function BackupManager({ backups, current, onCreate, onRestore, readOnly = false }: BackupManagerProps) {
+export function BackupManager({ backups, current, dataset, onCreate, onRestore, readOnly = false }: BackupManagerProps) {
   const [left, setLeft] = useState<string>(backups[0]?.id ?? '');
   const [right, setRight] = useState<string>(CURRENT);
   const resolve = (id: string) => id === CURRENT ? current : backups.find((backup) => backup.id === id)?.document;
@@ -21,6 +25,8 @@ export function BackupManager({ backups, current, onCreate, onRestore, readOnly 
   const after = resolve(right);
   const comparison = useMemo(() => before && after ? compareDocuments(before, after) : null, [before, after]);
   const empty = comparison && Object.values(comparison).every((list) => list.length === 0);
+  const beforePopulation = useMemo(() => before ? getCoveragePopulation(activeScenario(before).regions, dataset) : null, [before, dataset]);
+  const afterPopulation = useMemo(() => after ? getCoveragePopulation(activeScenario(after).regions, dataset) : null, [after, dataset]);
   const options = [{ id: CURRENT, label: 'Nykytila' }, ...backups.map((backup) => ({ id: backup.id, label: `${new Date(backup.createdAt).toLocaleString('fi-FI')} – ${backup.reason}` }))];
 
   return (
@@ -48,6 +54,7 @@ export function BackupManager({ backups, current, onCreate, onRestore, readOnly 
             <label className="field grow">Lähtötilanne<select value={left} onChange={(event) => setLeft(event.target.value)}>{options.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
             <label className="field grow">Verrattava<select value={right} onChange={(event) => setRight(event.target.value)}>{options.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
           </div>
+          <p className="hint">Aktiivisen skenaarion väestökattavuus vuoden 2025 aineistolla: {formatCount(beforePopulation)} → {formatCount(afterPopulation)} asukasta. Muutos: {beforePopulation !== null && afterPopulation !== null ? formatCount(afterPopulation - beforePopulation) : 'Ei tietoa'}. Päällekkäiset kunnat lasketaan kerran; tämä ei kuvaa historiallista väestömuutosta.</p>
           {comparison && (empty ? <p className="validation-ok">Tilannekuvat ovat sisällöltään samat.</p> : (
             <ul className="diff-list">
               {comparison.addedScenarios.map((name) => <li key={`as-${name}`} className="added">+ Skenaario {name}</li>)}

@@ -1,5 +1,6 @@
 import type { ClubFilters as Filters } from '../services/searchService';
 import { formatCount } from '../services/mapService';
+import { PopulationFilters } from './PopulationFilters';
 
 interface ClubFiltersProps {
   filters: Filters;
@@ -26,7 +27,8 @@ export function ClubFilters({ filters, maxMembers, votingOptions, onChange }: Cl
         </select>
       </div>
       <button className="clear-filters" onClick={() => onChange({ query: '', maxMembers: null, votes: null })}
-        disabled={!filters.query && filters.maxMembers === null && filters.votes === null}>Tyhjennä suodattimet</button>
+        disabled={!filters.query && filters.maxMembers === null && filters.votes === null && filters.minPopulation == null && filters.maxPopulation == null && !filters.populationCategory}>Tyhjennä suodattimet</button>
+      <PopulationFilters filters={filters} onChange={(next) => onChange({ ...filters, ...next })} />
     </div>
   );
 }

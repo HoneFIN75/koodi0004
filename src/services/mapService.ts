@@ -32,7 +32,7 @@ export function formatCount(value: number | null): string {
   return value === null ? 'Ei tietoa' : value.toLocaleString('fi-FI', { maximumFractionDigits: 1 });
 }
 
-export function makePopup(club: Club): HTMLElement {
+export function makePopup(club: Club, population: number | null = null): HTMLElement {
   const content = document.createElement('div');
   content.className = 'map-popup';
   const title = document.createElement('strong');
@@ -41,6 +41,8 @@ export function makePopup(club: Club): HTMLElement {
   municipality.textContent = club.paikkakunta;
   const stats = document.createElement('span');
   stats.textContent = `Jäseniä: ${formatCount(club.jasenmaara)} · Ääniä: ${formatCount(club.aanimaara)}`;
-  content.append(title, municipality, stats);
+  const residents = document.createElement('span');
+  residents.textContent = `Kunnan väestö 2025: ${formatCount(population)}`;
+  content.append(title, municipality, stats, residents);
   return content;
 }

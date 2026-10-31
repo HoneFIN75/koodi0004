@@ -53,6 +53,27 @@ async function addMunicipality(page: Page, name: string) {
   await page.getByRole('list', { name: 'Kuntaluettelo' }).getByRole('checkbox', { name: new RegExp(`^${name}`) }).check();
 }
 
+test('population appears in planner maps, region details, dashboards, comparisons and exports', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Uusi alue' }).click();
+  await page.getByLabel('Nimi', { exact: true }).fill('Väestöalue');
+  await addMunicipality(page, 'Helsinki');
+  await addMunicipality(page, 'Espoo');
+  await page.getByRole('button', { name: 'Valmis', exact: true }).click();
+  await expect(page.locator('.region-detail')).toContainText('1 020 108');
+  await expect(page.locator('.region-detail')).toContainText('510 054');
+  await page.getByLabel('Väestökartta 2025').check();
+  await expect(page.getByLabel('Väestökartan selite')).toContainText('Suurkaupunki');
+  await page.getByRole('button', { name: 'Kojelauta', exact: true }).click();
+  await expect(page.locator('.planner-main')).toContainText('5 652 881');
+  await expect(page.locator('.planner-main')).toContainText('Väestö 2025 alueittain');
+  await page.getByRole('button', { name: 'Vertailu', exact: true }).click();
+  await page.getByLabel('Kaavion mittari').selectOption('population');
+  await expect(page.locator('.data-table')).toContainText('1 020 108');
+  await page.getByRole('button', { name: 'Tuonti ja vienti', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Kuntien väestöanalyysi' })).toContainText('308 kuntaa');
+});
+
 test('creates a region, analyses it, undoes, redoes and restores after reload', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();
