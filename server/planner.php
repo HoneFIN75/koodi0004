@@ -27,20 +27,65 @@ function request_header(string $name): string
     return is_string($_SERVER[$serverName] ?? null) ? $_SERVER[$serverName] : '';
 }
 
+function inside_directory(string $path, string $directory): bool
+{
+    return $path === $directory || str_starts_with($path, $directory . DIRECTORY_SEPARATOR);
+}
+
+function local_config(string $documentRoot): array
+{
+    $parent = dirname($documentRoot);
+    while ($parent !== $documentRoot) {
+        $candidate = $parent . DIRECTORY_SEPARATOR . 'planner-data' . DIRECTORY_SEPARATOR . 'config.json';
+        if (file_exists($candidate) || is_link($candidate)) {
+            $resolved = realpath($candidate);
+            if (!$resolved || is_link($candidate) || !is_file($resolved) || !is_readable($resolved)
+                || inside_directory($resolved, $documentRoot)) {
+                respond(503, ['error' => 'Palvelimen asetustiedostoa ei voi käyttää web-juuren ulkopuolelta.']);
+            }
+            $contents = @file_get_contents($resolved);
+            if ($contents === false) {
+                error_log('Planner: local configuration could not be read.');
+                respond(503, ['error' => 'Palvelimen asetustiedoston lukeminen epäonnistui.']);
+            }
+            $config = json_decode($contents, true);
+            if (!is_array($config) || !is_string($config['writeKey'] ?? null) || strlen($config['writeKey']) < 32) {
+                respond(503, ['error' => 'Palvelimen config.json ei ole kelvollinen tai kirjoitusavain on liian lyhyt.']);
+            }
+            return [dirname($resolved) . DIRECTORY_SEPARATOR . 'planner.json', $config['writeKey']];
+        }
+        $next = dirname($parent);
+        if ($next === $parent) {
+            break;
+        }
+        $parent = $next;
+    }
+    respond(503, ['error' => 'Palvelimen Aluesuunnittelu-tallennusta ei ole määritetty.']);
+}
+
 function planner_config(): array
 {
+    clearstatcache(true);
+    $documentRoot = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
+    if (!$documentRoot) {
+        respond(503, ['error' => 'Palvelimen web-juurta ei voi määrittää.']);
+    }
     $file = getenv('PLANNER_DATA_FILE');
     $key = getenv('PLANNER_WRITE_KEY');
-    if (!$file || !str_starts_with($file, DIRECTORY_SEPARATOR) || !$key || strlen($key) < 32) {
+    // A partial environment configuration is an error, not a reason to use another key.
+    if ($file === false && $key === false) {
+        [$file, $key] = local_config($documentRoot);
+    }
+    if (!is_string($file) || !str_starts_with($file, DIRECTORY_SEPARATOR)
+        || !is_string($key) || strlen($key) < 32) {
         respond(503, ['error' => 'Palvelimen Aluesuunnittelu-tallennusta ei ole määritetty.']);
     }
 
     $directory = realpath(dirname($file));
-    $documentRoot = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
-    if (!$directory || !$documentRoot || !is_writable($directory)) {
+    if (!$directory || !is_writable($directory)) {
         respond(503, ['error' => 'Palvelimen tallennushakemistoa ei voi käyttää.']);
     }
-    if ($directory === $documentRoot || str_starts_with($directory . DIRECTORY_SEPARATOR, $documentRoot . DIRECTORY_SEPARATOR)) {
+    if (inside_directory($directory, $documentRoot)) {
         respond(503, ['error' => 'PLANNER_DATA_FILE pitää sijoittaa julkisen web-juuren ulkopuolelle.']);
     }
 

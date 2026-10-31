@@ -103,12 +103,32 @@ The map uses public OpenStreetMap tiles with attribution and displays a warning 
 
 ### Shared region-planner storage
 
-Production builds use the PHP endpoint at `api/planner.php` for shared region-planner documents and backups. It requires PHP 8.1+ with JSON support, HTTPS, and a PHP-FPM/Apache configuration that supplies the following server-side environment variables:
+Production builds use the PHP endpoint at `api/planner.php` for shared region-planner documents and backups. It requires PHP 8.1+ with JSON support, HTTPS, and a writable data directory **outside the public document root**. PHP must be allowed to read and write this directory (including any `open_basedir` restrictions).
+
+#### Self-service configuration on shared hosting
+
+No PHP-FPM changes or administrator access are needed when PHP runs as your hosting account and can access its home directory. For a document root such as `/home/account/public_html`, create `/home/account/planner-data`. The endpoint searches for `planner-data/config.json` in the document root's parent and then its ancestors, using the first existing file. This also works when the document root is a subdirectory of `public_html`. It never searches inside the web root and rejects configuration files that resolve there or are symbolic links.
+
+Create the private configuration **on the host**, without printing the key or overwriting an existing configuration:
+
+```sh
+mkdir -p "$HOME/planner-data" &&
+chmod 700 "$HOME/planner-data" &&
+php -r '$dir = getenv("HOME") . "/planner-data"; $json = json_encode(["writeKey" => bin2hex(random_bytes(32))], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR) . PHP_EOL; umask(0077); $f = fopen($dir . "/config.json", "x"); if ($f === false) { exit(1); } if (fwrite($f, $json) !== strlen($json)) { fwrite(STDERR, "Configuration write failed\n"); fclose($f); exit(1); } fclose($f);'
+```
+
+The resulting `config.json` has permission `600` and contains a `writeKey` string of at least 32 characters. `planner.json` is created beside it on the first authorized save. Retrieve the key privately via SSH or your hosting file manager when the planner asks for it; never paste it into chat, GitHub, frontend files, or build variables. Do not put the configuration in `.user.ini` or under `public_html`. If PHP runs as another account, arrange restricted read/write access rather than using permission `777`.
+
+To move the application, copy the private `planner-data` directory separately from the public build files to an ancestor of the new document root. Keep its permissions restricted and retain `config.json` and `planner.json`; no server-specific absolute path is stored in the local configuration. The existing SSH deployment publishes the endpoint but does not create, overwrite, or back up this private directory.
+
+#### Environment-variable configuration (optional)
+
+Existing deployments can continue to supply both of the following server-side environment variables instead:
 
 - `PLANNER_DATA_FILE`: absolute path to the JSON database file. Create its parent directory first and make it writable by the PHP worker. The directory must be **outside the public document root**; the endpoint rejects paths inside it.
 - `PLANNER_WRITE_KEY`: random shared write password of at least 32 characters. Generate one with `php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'`. Configure it only in the PHP hosting environment, never in GitHub Actions build variables, frontend files, or this repository.
 
-For PHP-FPM, configure both `env[PLANNER_DATA_FILE]` and `env[PLANNER_WRITE_KEY]` in the relevant pool, then reload PHP-FPM. With Apache `mod_php`, set them in the protected virtual-host configuration. If the current host cannot run PHP or set these server-side values, the deployed endpoint will return an explicit configuration error; enable PHP or move the API to a server runtime before enabling shared persistence. The existing SSH deployment publishes the endpoint but does not configure the PHP host or create the data directory.
+For PHP-FPM, configure both `env[PLANNER_DATA_FILE]` and `env[PLANNER_WRITE_KEY]` in the relevant pool, then reload PHP-FPM. With Apache `mod_php`, set them in the protected virtual-host configuration. Environment variables take precedence; if either is set, both must be valid and the endpoint will not fall back to the local file. Missing or invalid configuration returns an explicit HTTP 503 error. If the host cannot run PHP or grant access to a private data directory, move the API to a suitable server runtime.
 
 Reads are public so visitors can see the shared plan. Writes require the shared key, which authorized editors enter in the planner; it stays in that tab's memory and is sent only to this same-origin endpoint over HTTPS. Anyone with the key can edit, so keep it private and rotate it in the server configuration if exposed. This is a temporary shared write gate, not user-specific authorization.
 
