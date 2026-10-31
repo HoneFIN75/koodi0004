@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import { readFile } from 'node:fs/promises';
 
 const databaseUrl = new URL('./jsondb/seurat.json', import.meta.url);
+const plannerApiUrl = new URL('./server/planner.php', import.meta.url);
 
 function serveDatabase(): Plugin {
   return {
@@ -36,6 +37,11 @@ function serveDatabase(): Plugin {
         type: 'asset',
         fileName: 'jsondb/seurat.json',
         source: database,
+      });
+      this.emitFile({
+        type: 'asset',
+        fileName: 'api/planner.php',
+        source: await readFile(plannerApiUrl),
       });
     },
   };
