@@ -11,3 +11,16 @@ export function searchClubs(clubs: readonly Club[], query: string): Club[] {
     normalize(club.seura).includes(term) || normalize(club.paikkakunta).includes(term),
   );
 }
+
+export interface ClubFilters {
+  query: string;
+  maxMembers: number | null;
+  votes: number | null;
+}
+
+export function filterClubs(clubs: readonly Club[], filters: ClubFilters): Club[] {
+  return searchClubs(clubs, filters.query).filter((club) =>
+    (filters.maxMembers === null || (club.jasenmaara !== null && club.jasenmaara <= filters.maxMembers))
+    && (filters.votes === null || club.aanimaara === filters.votes),
+  );
+}
