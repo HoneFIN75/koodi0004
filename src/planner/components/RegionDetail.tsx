@@ -5,6 +5,8 @@ import { formatArea, formatDensity, formatPercent, type RegionStats } from '../.
 import type { ValidationWarning } from '../../services/validationService';
 import { StatCard, WarningList, decimalFormat, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
+import type { CompetitionContext } from '../../state/useCompetitions';
+import { CompetitionScope } from '../../components/CompetitionScope';
 
 interface RegionDetailProps {
   region: Region;
@@ -15,9 +17,10 @@ interface RegionDetailProps {
   onDuplicate: () => void;
   onClose: () => void;
   readOnly?: boolean;
+  competitions: CompetitionContext;
 }
 
-export function RegionDetail({ region, stats, explanation, warnings, onEdit, onDuplicate, onClose, readOnly = false }: RegionDetailProps) {
+export function RegionDetail({ region, stats, explanation, warnings, onEdit, onDuplicate, onClose, readOnly = false, competitions }: RegionDetailProps) {
   return (
     <section className="planner-card region-detail" aria-labelledby="region-detail-title" style={{ '--region-color': region.color } as CSSProperties}>
       <header className="card-header">
@@ -56,6 +59,7 @@ export function RegionDetail({ region, stats, explanation, warnings, onEdit, onD
         <div><dt>Väestöltään suurin kunta</dt><dd>{stats.largestMunicipality ? `${stats.largestMunicipality.name} (${formatCount(stats.largestMunicipality.population)})` : 'Ei tietoa'}</dd></div>
         <div><dt>Väestöltään pienin kunta</dt><dd>{stats.smallestMunicipality ? `${stats.smallestMunicipality.name} (${formatCount(stats.smallestMunicipality.population)})` : 'Ei tietoa'}</dd></div>
       </dl>
+      <CompetitionScope context={competitions} codes={region.municipalityCodes} title={region.name} />
       <h3>Maantieteellinen kattavuus</h3>
       <p className="coverage-text">{explanation}</p>
       <h3>Tarkistukset</h3>

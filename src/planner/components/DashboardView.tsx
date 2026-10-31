@@ -4,6 +4,9 @@ import { formatArea, formatPercent, type ScenarioAnalysis } from '../../services
 import type { ValidationWarning } from '../../services/validationService';
 import { BarChart, StatCard, WarningList, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
+import type { CompetitionContext } from '../../state/useCompetitions';
+import { CompetitionScope } from '../../components/CompetitionScope';
+import { per10000Residents } from '../../services/populationService';
 
 interface DashboardViewProps {
   analysis: ScenarioAnalysis;
@@ -14,9 +17,10 @@ interface DashboardViewProps {
   warnings: ValidationWarning[];
   filtered: boolean;
   onSelectRegion: (id: string) => void;
+  competitions: CompetitionContext;
 }
 
-export function DashboardView({ analysis, regions, dataset, scenarioCount, scenarioName, warnings, filtered, onSelectRegion }: DashboardViewProps) {
+export function DashboardView({ analysis, regions, dataset, scenarioCount, scenarioName, warnings, filtered, onSelectRegion, competitions }: DashboardViewProps) {
   const active = analysis.activeRegions.map((region) => ({ region, stats: analysis.stats.get(region.id)! })).filter((item) => item.stats.municipalityCount > 0);
   const byArea = [...active].sort((a, b) => b.stats.areaKm2 - a.stats.areaKm2);
   const largest = byArea[0];
@@ -44,7 +48,10 @@ export function DashboardView({ analysis, regions, dataset, scenarioCount, scena
         <StatCard icon={Minimize2} label="Pienin alue" value={smallest ? smallest.region.name : '–'} detail={smallest ? `${formatArea(smallest.stats.areaKm2)} · ${formatPercent(smallest.stats.areaShare)}` : undefined} />
         <StatCard icon={Scale} label="Varoituksia" value={warnings.filter((warning) => warning.severity === 'warning').length} tone={warnings.length ? 'warning' : undefined} detail={`${warnings.filter((warning) => warning.severity === 'info').length} huomiota`} />
       </div>
+      <CompetitionScope context={competitions} codes={[...analysis.assignedCodes]} title="Skenaarion käytössä olevat alueet" />
       <div className="chart-grid">
+        {competitions.filters.visibility !== 'hidden' && <section className="planner-card"><BarChart title="Ensisijaiset kilpailut alueittain · suodatettu" rows={active.map(({ region }) => ({ id: region.id, label: label(region), value: competitions.analysis?.regionCounts.get(region.id) ?? 0, color: region.color })).sort((a, b) => b.value - a.value)} /><p className="hint">Tapahtuma kerran kussakin isäntäkuntaansa sisältävässä alueessa. Päällekkäisiä alueita ei summata.</p></section>}
+        {competitions.filters.visibility !== 'hidden' && <section className="planner-card"><BarChart title="Ensisijaiset kilpailut / 10 000 asukasta · suodatettu" rows={active.flatMap(({ region, stats }) => { const value = per10000Residents(competitions.analysis?.regionCounts.get(region.id) ?? 0, stats.population); return value === null ? [] : [{ id: region.id, label: label(region), value, color: region.color, display: formatCount(value) }]; }).sort((a, b) => b.value - a.value)} /></section>}
         <section className="planner-card"><BarChart title="Väestö 2025 alueittain" rows={[...active].filter(({ stats }) => stats.population !== null).sort((a, b) => (b.stats.population ?? 0) - (a.stats.population ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.population ?? 0, color: region.color, display: formatCount(stats.population) }))} /></section>
         <section className="planner-card"><BarChart title="Jäseniä / 10 000 asukasta" rows={[...active].filter(({ stats }) => stats.membersPer10000 !== null).sort((a, b) => (b.stats.membersPer10000 ?? 0) - (a.stats.membersPer10000 ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.membersPer10000 ?? 0, color: region.color, display: formatCount(stats.membersPer10000) }))} /><p className="hint">Väestö koskee koko aluetta; seuraluvut seuraavat suodatusta. Päällekkäisillä alueilla sama väestö näkyy kummassakin aluepalkissa.</p></section>
         <section className="planner-card"><BarChart title="Kattavuusjakauma: osuus Suomen pinta-alasta" rows={byArea.map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.areaShare * 100, color: region.color, display: formatPercent(stats.areaShare) }))} emptyText="Ei käytössä olevia alueita, joissa on kuntia." /></section>

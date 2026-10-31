@@ -4,6 +4,8 @@ import type { Municipality, Region } from '../../models/region';
 import { formatArea, type MunicipalityAggregate } from '../../services/regionAnalytics';
 import { formatCount } from '../../services/mapService';
 import { getMunicipalityRank, getNationalPopulation, getPopulationCategory, per10000Residents } from '../../services/populationService';
+import type { CompetitionContext } from '../../state/useCompetitions';
+import { CompetitionScope } from '../../components/CompetitionScope';
 
 interface MunicipalityCardProps {
   municipality: Municipality;
@@ -15,9 +17,10 @@ interface MunicipalityCardProps {
   onSelectRegion: (regionId: string) => void;
   onClose: () => void;
   readOnly?: boolean;
+  competitions: CompetitionContext;
 }
 
-export function MunicipalityCard({ municipality, aggregate, regions, memberOf, onAdd, onRemove, onSelectRegion, onClose, readOnly = false }: MunicipalityCardProps) {
+export function MunicipalityCard({ municipality, aggregate, regions, memberOf, onAdd, onRemove, onSelectRegion, onClose, readOnly = false, competitions }: MunicipalityCardProps) {
   const candidates = regions.filter((region) => !memberOf.some((member) => member.id === region.id));
   const [target, setTarget] = useState('');
   return (
@@ -35,6 +38,7 @@ export function MunicipalityCard({ municipality, aggregate, regions, memberOf, o
         <div><dt>Asukkaita / km²</dt><dd>{municipality.population !== null && municipality.areaKm2 > 0 ? formatCount(municipality.population / municipality.areaKm2) : 'Ei tietoa'}</dd></div>
         <div><dt>Seuroja / 10 000 asukasta</dt><dd>{formatCount(per10000Residents(aggregate?.clubs.length ?? 0, municipality.population))}</dd></div>
       </dl>
+      <CompetitionScope context={competitions} codes={[municipality.code]} title={municipality.name} />
       <h3>Alueet</h3>
       {memberOf.length === 0 && <p className="empty-text">Kunta ei kuulu mihinkään alueeseen.</p>}
       <ul className="membership-list">
