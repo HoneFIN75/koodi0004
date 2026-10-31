@@ -18,7 +18,7 @@ export function ChartCard({ title, description, rows, color = 'var(--accent)' }:
         {rows.map((row) => (
           <div className="bar-row" key={row.label}>
             <span className="bar-label">{row.label}</span>
-            <div className="bar-track"><span style={{ width: `${(row.count / max) * 100}%`, background: color }} /></div>
+            <div className="bar-track" aria-hidden="true"><span style={{ width: `${(row.count / max) * 100}%`, background: color, minWidth: row.count === 0 ? 0 : undefined }} /></div>
             <span className="bar-value">{row.count}</span>
           </div>
         ))}

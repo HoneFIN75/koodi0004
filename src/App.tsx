@@ -1,19 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertCircle, MapPin, Moon, Search, Sun, Users, Vote, type LucideIcon } from 'lucide-react';
 import { clubRepository } from './data/clubRepository';
 import type { Club, Database, MunicipalityStat } from './models/club';
 import { ChartCard } from './components/ChartCard';
 import { MapView } from './components/MapView';
 import { RankingCard } from './components/RankingCard';
-import { searchClubs } from './services/searchService';
+import { ClubFilters } from './components/ClubFilters';
+import { ClubDetail } from './components/ClubDetail';
+import { ClubResults } from './components/ClubResults';
+import { filterClubs, type ClubFilters as Filters } from './services/searchService';
+import { formatCount, hasLocation } from './services/mapService';
 import { getMembershipDistribution, getMunicipalityStats, getRegionalStats, getTotals, getVotingDistribution } from './services/statisticsService';
 
 const numberFormat = new Intl.NumberFormat('fi-FI');
+const emptyClubs: Club[] = [];
+const initialFilters: Filters = { query: '', maxMembers: null, votes: null };
 
 interface MetricCardProps {
   icon: LucideIcon;
   label: string;
-  value: number;
+  value: number | null;
   suffix: string;
 }
 
@@ -22,7 +28,18 @@ function MetricCard({ icon: Icon, label, value, suffix }: MetricCardProps) {
     <article className="metric-card panel">
       <div className="metric-icon"><Icon size={18} /></div>
       <div className="metric-label">{label}</div>
-      <div className="metric-value">{numberFormat.format(value)} <span>{suffix}</span></div>
+      <div className="metric-value">{formatCount(value)} <span>{suffix}</span></div>
+    </article>
+  );
+}
+
+function ExtremeCard({ label, club, onSelect }: { label: string; club: Club | null; onSelect: (club: Club) => void }) {
+  return (
+    <article className="metric-card panel extreme-card">
+      <div className="metric-icon"><Users size={18} /></div>
+      <div className="metric-label">{label}</div>
+      <div className="metric-value">{formatCount(club?.jasenmaara ?? null)} <span>jäsentä</span></div>
+      {club ? <button onClick={() => onSelect(club)}>{club.seura}</button> : <p className="empty-note">Ei jäsenmäärätietoja.</p>}
     </article>
   );
 }
@@ -52,29 +69,40 @@ function OverviewBars({ rows }: { rows: MunicipalityStat[] }) {
 export default function App() {
   const [database, setDatabase] = useState<Database | null>(null);
   const [error, setError] = useState('');
-  const [query, setQuery] = useState('');
+  const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [attempt, setAttempt] = useState(0);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('seurakartta-theme') !== 'light');
 
   useEffect(() => {
-    clubRepository.getDatabase().then(setDatabase).catch((cause: unknown) => {
-      setError(cause instanceof Error ? cause.message : 'Seuratietokannan lataus epäonnistui.');
+    let active = true;
+    setError('');
+    clubRepository.getDatabase().then((result) => {
+      if (active) setDatabase(result);
+    }).catch((cause: unknown) => {
+      if (active) setError(cause instanceof Error ? cause.message : 'Seuratietokannan lataus epäonnistui.');
     });
-  }, []);
+    return () => { active = false; };
+  }, [attempt]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = darkMode ? 'dark' : 'light';
     localStorage.setItem('seurakartta-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  const clubs = database?.data ?? [];
-  const filteredClubs = useMemo(() => searchClubs(clubs, query), [clubs, query]);
-  const totals = useMemo(() => getTotals(clubs), [clubs]);
-  const municipalityStats = useMemo(() => getMunicipalityStats(clubs), [clubs]);
-  const regions = useMemo(() => getRegionalStats(clubs), [clubs]);
-  const membershipDistribution = useMemo(() => getMembershipDistribution(clubs), [clubs]);
-  const votingDistribution = useMemo(() => getVotingDistribution(clubs), [clubs]);
-  const closeSearch = () => { setQuery(''); setSelectedClub(null); };
+  const clubs = database?.data ?? emptyClubs;
+  const filteredClubs = useMemo(() => filterClubs(clubs, filters), [clubs, filters]);
+  const sortedClubs = useMemo(() => [...filteredClubs].sort((a, b) => (b.jasenmaara ?? -1) - (a.jasenmaara ?? -1)), [filteredClubs]);
+  const mappedCount = useMemo(() => filteredClubs.filter(hasLocation).length, [filteredClubs]);
+  const maxMembers = useMemo(() => clubs.reduce((maximum, club) => Math.max(maximum, club.jasenmaara ?? 0), 0), [clubs]);
+  const votingOptions = useMemo(() => [...new Set([10, 15, 20, ...clubs.flatMap((club) => club.aanimaara === null ? [] : [club.aanimaara])])].sort((a, b) => a - b), [clubs]);
+  const totals = useMemo(() => getTotals(filteredClubs), [filteredClubs]);
+  const municipalityStats = useMemo(() => getMunicipalityStats(filteredClubs), [filteredClubs]);
+  const regions = useMemo(() => getRegionalStats(filteredClubs), [filteredClubs]);
+  const membershipDistribution = useMemo(() => getMembershipDistribution(filteredClubs), [filteredClubs]);
+  const votingDistribution = useMemo(() => getVotingDistribution(filteredClubs), [filteredClubs]);
+  const onFilterChange = (next: Filters) => { setFilters(next); setSelectedClub(null); };
+  const closeDetail = useCallback(() => setSelectedClub(null), []);
 
   return (
     <main className="app-shell">
@@ -95,54 +123,55 @@ export default function App() {
           <h1>Suomen seurat,<br /><span>yhdellä kartalla.</span></h1>
           <p>Jäsenmäärät ja äänivalta näkyviin. Tutki, vertaile ja löydä seuratoiminnan koko kuva.</p>
         </div>
-        <div className="hero-aside"><div className="hero-number">{numberFormat.format(totals.clubs)}</div><span>seuraa mukana</span><div className="hero-line" /><small>DATA PÄIVITETTY<br />{database ? new Date(database.metadata.generatedAt).toLocaleDateString('fi-FI') : '—'}</small></div>
+        <div className="hero-aside"><div className="hero-number">{database ? numberFormat.format(totals.clubs) : '—'}</div><span>seuraa mukana</span><div className="hero-line" /><small>DATA PÄIVITETTY<br />{database?.metadata.generatedAt ? new Date(database.metadata.generatedAt).toLocaleDateString('fi-FI') : 'Ei tietoa'}</small></div>
       </section>
 
-      {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span></div></div>}
+      {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}
+      {!database && !error && <div className="loading-state" role="status"><span className="loading-spinner" />Ladataan seuroja ja rakennetaan tilannekuvaa…</div>}
+      {database && <>
+      {database.warnings.length > 0 && <div className="data-warning" role="status"><AlertCircle size={20} /><div><strong>Aineiston huomautukset</strong>{database.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div></div>}
+      {clubs.length === 0 && <p className="data-warning" role="status">Tietokannassa ei ole vielä seuroja. Kartta ja tilastot päivittyvät aineiston mukana.</p>}
 
       <section className="metrics-grid" aria-label="Yhteenveto">
         <MetricCard icon={MapPin} label="SEUROJA" value={totals.clubs} suffix="seuraa" />
         <MetricCard icon={Users} label="JÄSENIÄ YHTEENSÄ" value={totals.members} suffix="jäsentä" />
         <MetricCard icon={Users} label="KESKIMÄÄRIN" value={totals.average} suffix="jäsentä / seura" />
-        <MetricCard icon={Vote} label="KUNTIA" value={totals.municipalities} suffix="kuntaa" />
+        <MetricCard icon={Vote} label="MEDIAANI" value={totals.median} suffix="jäsentä / seura" />
+        <ExtremeCard label="SUURIN SEURA" club={totals.largest} onSelect={setSelectedClub} />
+        <ExtremeCard label="PIENIN SEURA" club={totals.smallest} onSelect={setSelectedClub} />
       </section>
 
       <section className="map-section panel" id="kartta">
         <div className="map-toolbar">
-          <div className="map-title"><div className="section-icon"><MapPin size={18} /></div><div><h2>Seurojen sijainnit</h2><p>{filteredClubs.length} / {clubs.length} seuraa kartalla</p></div></div>
-          <label className="search-box"><Search size={17} /><input value={query} onChange={(event) => { setQuery(event.target.value); setSelectedClub(null); }} placeholder="Hae seuraa tai kuntaa..." aria-label="Hae seuraa tai kuntaa" />{query && <button onClick={closeSearch} aria-label="Tyhjennä haku">×</button>}</label>
-          <div className="map-legend"><span><i className="legend-dot green" />10 ääntä</span><span><i className="legend-dot yellow" />15 ääntä</span><span><i className="legend-dot coral" />20 ääntä</span></div>
+          <div className="map-title"><div className="section-icon"><MapPin size={18} /></div><div><h2>Seurojen sijainnit</h2><p role="status" aria-live="polite">{filteredClubs.length} / {clubs.length} seuraa · {mappedCount} kartalla</p></div></div>
+          <label className="search-box"><Search size={17} /><input value={filters.query} onChange={(event) => onFilterChange({ ...filters, query: event.target.value })} placeholder="Hae seuraa tai kuntaa..." aria-label="Hae seuraa tai kuntaa" />{filters.query && <button onClick={() => onFilterChange({ ...filters, query: '' })} aria-label="Tyhjennä haku">×</button>}</label>
+          <span className="filter-hint">Suodatus päivittää myös tilastot</span>
         </div>
+        <ClubFilters filters={filters} maxMembers={maxMembers} votingOptions={votingOptions} onChange={onFilterChange} />
         <div className="map-layout">
-          <MapView clubs={filteredClubs} selectedClub={selectedClub} />
-          <aside className="club-results">
-            <div className="results-heading"><strong>{query ? 'HAKUTULOKSET' : 'SUURIMMAT SEURAT'}</strong><span>{filteredClubs.length}</span></div>
-            {filteredClubs.length === 0 ? <p className="empty-note">Ei hakutuloksia. Kokeile toista hakusanaa.</p> :
-              [...filteredClubs].sort((a, b) => b.jasenmaara - a.jasenmaara).slice(0, query ? 12 : 5).map((club, index) => (
-                <button className={`club-result ${selectedClub === club ? 'selected' : ''}`} key={`${club.seura}-${club.paikkakunta}-${index}`} onClick={() => setSelectedClub(club)}>
-                  <span className="club-index">{String(index + 1).padStart(2, '0')}</span>
-                  <span className="club-name"><strong>{club.seura}</strong><small>{club.paikkakunta}</small></span>
-                  <span className="club-members">{numberFormat.format(club.jasenmaara)}<small>jäsentä</small></span>
-                </button>
-              ))}
-            {!query && filteredClubs.length > 5 && <button className="show-all" onClick={() => document.querySelector<HTMLInputElement>('.search-box input')?.focus()}>Hae kaikkia seuroja <span>→</span></button>}
-          </aside>
+          <MapView clubs={filteredClubs} allClubs={clubs} selectedClub={selectedClub} onSelect={setSelectedClub} />
+          <div hidden={selectedClub !== null}>
+            <ClubResults key={JSON.stringify(filters)} clubs={sortedClubs} selectedClub={selectedClub} onSelect={setSelectedClub} />
+          </div>
+          {selectedClub && <ClubDetail club={selectedClub} onClose={closeDetail} />}
         </div>
+        {mappedCount < filteredClubs.length && <p className="empty-note">{filteredClubs.length - mappedCount} seuralta puuttuu karttasijainti. Niiden muut tiedot ovat mukana tilastoissa ja luettelossa.</p>}
       </section>
 
       <section className="analytics-section" id="tilastot">
-        <div className="section-heading"><div><div className="eyebrow">DATASTA NÄKEMYKSIIN</div><h2>Seurakenttä lukuina</h2><p>Vertaa jäsenmääriä, äänivaltaa ja alueellisia eroja.</p></div><div className="section-count"><span>{numberFormat.format(totals.members)}</span> jäsentä analyysissä</div></div>
+        <div className="section-heading"><div><div className="eyebrow">DATASTA NÄKEMYKSIIN</div><h2>Seurakenttä lukuina</h2><p>Suodatettu aineisto: {totals.clubs} seuraa, {totals.municipalities} kuntaa. Jäsenmäärä tiedossa {totals.knownMembers} seuralla.</p></div><div className="section-count"><span>{numberFormat.format(totals.members)}</span> jäsentä analyysissä</div></div>
         <div className="analytics-grid">
-          <RankingCard title="Suurimmat seurat" description="Jäsenmäärän mukaan" rows={clubs.map((club) => ({ name: club.seura, clubs: 1, members: club.jasenmaara })).sort((a, b) => b.members - a.members)} valueLabel="jäsentä" />
+          <RankingCard title="Suurimmat seurat" description="Tunnetun jäsenmäärän mukaan" rows={sortedClubs.flatMap((club) => club.jasenmaara === null ? [] : [{ name: club.seura, clubs: 1, members: club.jasenmaara }])} valueLabel="jäsentä" />
           <RankingCard title="Suurimmat kunnat" description="Jäseniä kunnittain" rows={municipalityStats} valueLabel="jäsentä" />
           <ChartCard title="Jäsenmäärän jakauma" description="Seuroja jäsenmäärän mukaan" rows={membershipDistribution} />
           <ChartCard title="Äänimäärän jakauma" description="Seuroja äänimäärän mukaan" rows={votingDistribution} color="var(--gold)" />
           <OverviewBars rows={municipalityStats} />
-          <RankingCard title="Aluevertailu" description="Suuntaa-antava vertailu sijainnin mukaan" rows={regions} valueLabel="jäsentä" limit={5} />
+          <RankingCard title="Aluevertailu" description="Aineiston alue tai suuntaa-antava koordinaattiryhmä" rows={regions} valueLabel="jäsentä" limit={5} />
         </div>
       </section>
+      </>}
 
-      <footer className="footer"><div className="brand-mark small"><span /></div><span>SEURAKARTTA</span><span className="footer-source">Tietolähde: seuratietokanta{database ? ` · ${database.metadata.recordCount} tietuetta` : ''}</span><a href="https://www.openstreetmap.org/copyright">Kartta © OpenStreetMap</a></footer>
+      <footer className="footer"><div className="brand-mark small"><span /></div><span>SEURAKARTTA</span><span className="footer-source">Tietolähde: seuratietokanta{database ? ` · ${database.data.length} seuraa · metadata: ${database.metadata.recordCount ?? 'ei tietoa'}` : ''}</span><a href="https://www.openstreetmap.org/copyright">Kartta © OpenStreetMap</a></footer>
     </main>
   );
 }

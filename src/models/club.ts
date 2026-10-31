@@ -1,19 +1,23 @@
 export interface Club {
   seura: string;
   paikkakunta: string;
-  latitude: number;
-  longitude: number;
-  jasenmaara: number;
-  aanimaara: number;
+  latitude: number | null;
+  longitude: number | null;
+  jasenmaara: number | null;
+  aanimaara: number | null;
+  details: Record<string, string | number>;
 }
+
+export type LocatedClub = Club & { latitude: number; longitude: number };
 
 export interface Database {
   metadata: {
-    generatedAt: string;
-    recordCount: number;
-    source: string;
+    generatedAt: string | null;
+    recordCount: number | null;
+    source: string | null;
   };
   data: Club[];
+  warnings: string[];
 }
 
 export interface MunicipalityStat {
