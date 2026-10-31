@@ -41,4 +41,7 @@ function serveDatabase(): Plugin {
   };
 }
 
-export default defineConfig({ plugins: [react(), serveDatabase()] });
+export default defineConfig({
+  base: './',
+  plugins: [react(), serveDatabase()],
+});

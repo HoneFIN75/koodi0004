@@ -20,7 +20,7 @@ const smallData = fixture([
 
 async function load(page: Page, data = smallData) {
   await page.route('**/jsondb/seurat.json', (route) => route.fulfill({ json: data }));
-  await page.goto('/');
+  await page.goto('/koodi0004/');
   await expect(page.locator('.map-title p')).toContainText(`${data.data.length} /`);
 }
 
@@ -129,7 +129,7 @@ test('failed data load can be retried; tile failures are explicit', async ({ pag
     return attempts === 1 ? route.fulfill({ status: 503, body: '' }) : route.fulfill({ json: smallData });
   });
   await page.route('https://*.tile.openstreetmap.org/**', (route) => route.abort());
-  await page.goto('/');
+  await page.goto('/koodi0004/');
   await expect(page.getByRole('alert')).toContainText('503');
   await page.getByRole('button', { name: 'Yritä uudelleen' }).click();
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
@@ -144,7 +144,7 @@ test('loading is announced and reduced-motion preferences are respected', async 
     await pending;
     await route.fulfill({ json: smallData });
   });
-  await page.goto('/');
+  await page.goto('/koodi0004/');
   await expect(page.locator('.loading-state')).toBeVisible();
   await expect(page.locator('.metric-card')).toHaveCount(0);
   release();

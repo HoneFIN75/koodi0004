@@ -133,7 +133,7 @@ test('repository caches successful requests and retries failures', async () => {
   const originalFetch = globalThis.fetch;
   let requests = 0;
   globalThis.fetch = async (url) => {
-    assert.equal(url, '/jsondb/seurat.json');
+    assert.equal(url, './jsondb/seurat.json');
     requests++;
     return requests === 1 ? new Response('', { status: 503 }) : Response.json(payload([record()]));
   };
