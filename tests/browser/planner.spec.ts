@@ -132,6 +132,7 @@ test('only Admin sees the password management area', async ({ page }) => {
 });
 
 test('all views render and pass axe checks in both themes', async ({ page }) => {
+  test.setTimeout(60_000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();

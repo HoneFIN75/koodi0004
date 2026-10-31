@@ -4,6 +4,8 @@ import type { Club } from '../models/club';
 import type { Municipality } from '../models/region';
 import { getMunicipalityRank, getPopulationCategory, per10000Residents } from '../services/populationService';
 import { formatCount, hasLocation, markerColor } from '../services/mapService';
+import type { CompetitionContext } from '../state/useCompetitions';
+import { CompetitionScope } from './CompetitionScope';
 
 const labels: Record<string, string> = {
   district: 'Piiri', region: 'Alue', website: 'Verkkosivusto', email: 'Sähköposti', foundedYear: 'Perustamisvuosi',
@@ -22,7 +24,7 @@ function detailLink(key: string, value: string | number): string | undefined {
   if (key === 'email' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return `mailto:${encodeURIComponent(value)}`;
 }
 
-export function ClubDetail({ club, onClose, municipality }: { club: Club; onClose: () => void; municipality: Municipality | null }) {
+export function ClubDetail({ club, onClose, municipality, competitions }: { club: Club; onClose: () => void; municipality: Municipality | null; competitions: CompetitionContext }) {
   const closeButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const previous = document.activeElement;
@@ -58,6 +60,7 @@ export function ClubDetail({ club, onClose, municipality }: { club: Club; onClos
         })}
         <div><dt>Koordinaatit</dt><dd>{hasLocation(club) ? `${club.latitude.toFixed(5)}, ${club.longitude.toFixed(5)}` : 'Sijaintitieto puuttuu'}</dd></div>
       </dl>
+      {municipality && <CompetitionScope context={competitions} codes={[municipality.code]} title={municipality.name} />}
     </aside>
   );
 }

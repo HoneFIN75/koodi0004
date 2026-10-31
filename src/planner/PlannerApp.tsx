@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { AlertCircle, ArrowLeft, LogIn, LogOut, Moon, Redo2, Shield, Sun, Undo2 } from 'lucide-react';
 import { clubRepository } from '../data/clubRepository';
 import { PopulationExplorer } from '../components/PopulationExplorer';
+import { CompetitionPanel } from '../components/CompetitionPanel';
+import { CompetitionLayerControl } from '../components/CompetitionLayerControl';
+import { CompetitionScope } from '../components/CompetitionScope';
+import { useCompetitions } from '../state/useCompetitions';
 import { municipalityRepository } from '../data/municipalityRepository';
 import type { Database } from '../models/club';
 import type { MunicipalityDataset, Region, RegionDraft, Snapshot } from '../models/region';
@@ -89,6 +93,7 @@ export default function PlannerApp() {
   const displayedDocument = canWrite || !viewScenarioId ? document_ : { ...document_, activeScenarioId: viewScenarioId };
   const scenario = activeScenario(displayedDocument);
   const regions = scenario.regions;
+  const competitions = useCompetitions(dataset, regions);
   const { commit, navigate, undo, redo } = plannerStore.getState();
 
   useEffect(() => {
@@ -201,7 +206,7 @@ export default function PlannerApp() {
     }
   }, [canWrite, editingRegion, dataset, commit]);
 
-  const exportContext = (scope: 'all' | 'active'): ExportContext | null => dataset ? { document: displayedDocument, dataset, placements, clubMetadata: clubs?.metadata ?? null, scope } : null;
+  const exportContext = (scope: 'all' | 'active'): ExportContext | null => dataset ? { document: displayedDocument, dataset, placements, clubMetadata: clubs?.metadata ?? null, scope, competitions: competitions.competitions, competitionFilters: competitions.filters } : null;
   const onExport = (format: 'json' | 'csv' | 'xlsx', scope: 'all' | 'active') => {
     const context = exportContext(scope);
     if (!context) return;
@@ -446,7 +451,7 @@ export default function PlannerApp() {
           {view === 'map' && (
             <div className="planner-map-layout">
               <aside className="planner-sidebar" aria-label="Alueet ja suodattimet">
-                <RegionList regions={regions} stats={analysis.stats} selectedRegionId={selectedRegionId} onSelect={selectRegion} onCreate={createRegion} readOnly={!canWrite}
+                <RegionList regions={regions} stats={analysis.stats} selectedRegionId={selectedRegionId} onSelect={selectRegion} onCreate={createRegion} readOnly={!canWrite} competitions={competitions}
                   onEdit={(id) => { setSelectedRegionId(id); setEditing(true); setSelectedMunicipality(null); }} onDuplicate={duplicateRegion} onDelete={deleteRegion}
                   onToggle={(region, field) => updateRegion(region.id, { [field]: !region[field] }, `${field === 'visible' ? (region.visible ? 'Piilotettu' : 'Näytetty') : (region.enabled ? 'Poistettu käytöstä' : 'Otettu käyttöön')}: ${region.name}`, field)} />
                 <PlannerFilters filters={filters} regions={regions} maxMembers={Math.max(1, maxMembers)} votingOptions={votingOptions} onChange={setFilters} />
@@ -459,10 +464,11 @@ export default function PlannerApp() {
                   <label className="checkbox"><input type="checkbox" checked={populationLayer} onChange={(event) => setPopulationLayer(event.target.checked)} /> Väestökartta 2025</label>
                   <span className="map-status" role="status" aria-live="polite">{filtered.length} / {placements.length} seuraa{filtersActive ? ' (suodatettu)' : ''}</span>
                 </div>
+                <CompetitionLayerControl context={competitions} />
                 {editingRegion && <p className="edit-banner" role="status"><ColorDot color={editingRegion.color} /><span>Valintatila: napsauta kuntia lisätäksesi tai poistaaksesi ne alueesta <strong>{editingRegion.name}</strong>.</span></p>}
                 <RegionMap dataset={dataset} regions={mapRegions} membership={membership} editingRegion={editingRegion} selectedRegionId={selectedRegionId} selectedMunicipalityCode={selectedMunicipality}
                   highlightCodes={unassignedCodes} matchCodes={matchCodes} aggregates={fullAggregates} placements={filtered} showClubs={showClubs} showBaseMap={showBaseMap} dark={dark}
-                  populationLayer={populationLayer} onMunicipalityClick={onMunicipalityClick} onRegionSelect={selectRegion} />
+                  populationLayer={populationLayer} onMunicipalityClick={onMunicipalityClick} onRegionSelect={selectRegion} competitions={competitions} />
                 <div className="map-legend-bar" aria-label="Selite">
                   <span><i className="legend-swatch outline" /> Alueen raja</span>
                   <span><i className="legend-swatch dashed" /> Päällekkäinen alue</span>
@@ -474,10 +480,10 @@ export default function PlannerApp() {
                 {editingRegion && <RegionEditor region={editingRegion} dataset={dataset} aggregates={fullAggregates} membership={membership}
                   onChange={(changes, label, field) => updateRegion(editingRegion.id, changes, label, field)}
                   onMunicipalities={(codes, mode, label) => setMunicipalities(editingRegion.id, codes, mode, label)} onClose={() => setEditing(false)} />}
-                {!editingRegion && selectedRegion && <RegionDetail region={selectedRegion} stats={analysis.stats.get(selectedRegion.id)!} explanation={explainCoverage(selectedRegion, analysis.stats.get(selectedRegion.id)!, analysis)} readOnly={!canWrite}
+                {!editingRegion && selectedRegion && <RegionDetail region={selectedRegion} stats={analysis.stats.get(selectedRegion.id)!} explanation={explainCoverage(selectedRegion, analysis.stats.get(selectedRegion.id)!, analysis)} readOnly={!canWrite} competitions={competitions}
                   warnings={warnings.filter((warning) => warning.regionId === selectedRegion.id)} onEdit={() => setEditing(true)} onDuplicate={() => duplicateRegion(selectedRegion.id)} onClose={() => setSelectedRegionId(null)} />}
                 {!editingRegion && !selectedRegion && selectedMunicipality && dataset.byCode.get(selectedMunicipality) && (
-                  <MunicipalityCard municipality={dataset.byCode.get(selectedMunicipality)!} aggregate={fullAggregates.get(selectedMunicipality)} regions={[...regions].sort((a, b) => a.number - b.number)} memberOf={membership.get(selectedMunicipality) ?? []} readOnly={!canWrite}
+                  <MunicipalityCard municipality={dataset.byCode.get(selectedMunicipality)!} aggregate={fullAggregates.get(selectedMunicipality)} regions={[...regions].sort((a, b) => a.number - b.number)} memberOf={membership.get(selectedMunicipality) ?? []} readOnly={!canWrite} competitions={competitions}
                     onAdd={(regionId) => setMunicipalities(regionId, [selectedMunicipality], 'add', `Lisätty kunta ${dataset.byCode.get(selectedMunicipality)?.name}`)}
                     onRemove={(regionId) => setMunicipalities(regionId, [selectedMunicipality], 'remove', `Poistettu kunta ${dataset.byCode.get(selectedMunicipality)?.name}`)}
                     onSelectRegion={selectRegion} onClose={() => setSelectedMunicipality(null)} />
@@ -488,23 +494,25 @@ export default function PlannerApp() {
                     <p className="hint">Valitse alue luettelosta tai kartalta, tai napsauta kuntaa nähdäksesi sen seurat ja alueet.</p>
                     <h3>Tarkistukset</h3>
                     <WarningList warnings={warnings} onSelectRegion={selectRegion} />
+                    <CompetitionScope context={competitions} codes={[...analysis.assignedCodes]} title="Skenaarion käytössä olevat alueet" />
                   </section>
                 )}
               </aside>
             </div>
           )}
-          {view === 'dashboard' && <DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} />}
-          {view === 'compare' && <ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} />}
+          {view === 'dashboard' && <DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} competitions={competitions} />}
+          {view === 'compare' && <ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} competitions={competitions} />}
           {view === 'unassigned' && <UnassignedView analysis={analysis} regions={regions} onShowOnMap={() => { setHighlightUnassigned(true); setSelectedRegionId(null); setEditing(false); setView('map'); }}
-            onAssign={(regionId, codes) => setMunicipalities(regionId, codes, 'add', `Kohdistettu ${codes.length} kuntaa`)} />}
-          {view === 'scenarios' && <ScenarioManager document={displayedDocument} dataset={dataset} readOnly={!canWrite}
+            onAssign={(regionId, codes) => setMunicipalities(regionId, codes, 'add', `Kohdistettu ${codes.length} kuntaa`)} competitions={competitions} />}
+          {view === 'scenarios' && <ScenarioManager document={displayedDocument} dataset={dataset} readOnly={!canWrite} competitions={competitions}
             onCreate={(name) => { commit('Skenaarion luonti', (current) => documentOps.addScenario(current, name)); setSelectedRegionId(null); }}
             onRename={(id, name) => commit('Skenaarion nimeäminen', (current) => documentOps.renameScenario(current, id, name))}
             onDuplicate={(id) => { commit('Skenaarion monistus', (current) => documentOps.duplicateScenario(current, id)); setSelectedRegionId(null); }}
             onDelete={(id) => void deleteScenario(id)}
             onSwitch={selectScenario} />}
-          {view === 'backups' && <BackupManager backups={backups} current={displayedDocument} dataset={dataset} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} readOnly={!canWrite} />}
-          {view === 'data' && <><DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} readOnly={!canWrite} /><PopulationExplorer municipalities={dataset.municipalities} /></>}
+          {view === 'backups' && <BackupManager backups={backups} current={displayedDocument} dataset={dataset} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} readOnly={!canWrite} competitions={competitions} />}
+          {view === 'data' && <><DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} readOnly={!canWrite} /><PopulationExplorer municipalities={dataset.municipalities} competitions={competitions} /></>}
+          <CompetitionPanel context={competitions} />
         </main>
       )}
       <footer className="planner-footer">Kuntarajat © Tilastokeskus, kunta1000k 2025 (CC BY 4.0) · Taustakartta © OpenStreetMap · {remoteMode ? 'Suunnitelmat tallentuvat yhteisesti palvelimelle' : 'Suunnitelmat tallentuvat tähän selaimeen'} ({storageKind ?? '…'}). Tunnukset ovat yhteisiä eikä muutosten tekijää tunnisteta.</footer>

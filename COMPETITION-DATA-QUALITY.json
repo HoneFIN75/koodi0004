@@ -1,0 +1,2919 @@
+{
+  "source": "public/data/SFL-Kilpailut_lopullinen.json",
+  "sha256": "3b88dc4eda38047f2512d4a2b4930436cea96d39d53a62e849690f16c23646e9",
+  "sourceIndexConvention": "Nollapohjainen competitions-taulukon indeksi; käyttöliittymän rivi on sourceIndex + 1.",
+  "recordCount": 2304,
+  "uniqueIdentifiers": 2304,
+  "repeatedIdentityFields": [
+    [
+      {
+        "sourceIndex": 1,
+        "competitionId": "vampulan-xi-toukokuunkisat-2020-2020-05-30-2020-05-30-vampula-vampulan-urheilijat-ry-1",
+        "name": "Vampulan XI Toukokuunkisat"
+      },
+      {
+        "sourceIndex": 2,
+        "competitionId": "vampulan-xi-toukokuunkisat-2020-2020-05-30-2020-05-30-vampula-vampulan-urheilijat-ry-2",
+        "name": "Vampulan XI Toukokuunkisat"
+      }
+    ],
+    [
+      {
+        "sourceIndex": 562,
+        "competitionId": "iso-viisari-2022-2022-05-14-2022-05-14-hameenlinna-hameenlinnan-discaajat-ry-562",
+        "name": "Iso Viisari"
+      },
+      {
+        "sourceIndex": 563,
+        "competitionId": "iso-viisari-2022-2022-05-14-2022-05-14-hameenlinna-hameenlinnan-discaajat-ry-563",
+        "name": "Iso Viisari"
+      }
+    ],
+    [
+      {
+        "sourceIndex": 674,
+        "competitionId": "tammela-am-2022-2022-2022-06-18-2022-06-18-tammela-team-griplock-ry-674",
+        "name": "Tammela AM 2022"
+      },
+      {
+        "sourceIndex": 677,
+        "competitionId": "tammela-am-2022-2022-2022-06-18-2022-06-18-tammela-team-griplock-ry-677",
+        "name": "Tammela AM 2022"
+      }
+    ],
+    [
+      {
+        "sourceIndex": 1236,
+        "competitionId": "spincom-winter-games-mukkula-2024-2024-04-21-2024-04-21-lahti-spincom-1236",
+        "name": "Spincom Winter Games Mukkula"
+      },
+      {
+        "sourceIndex": 1281,
+        "competitionId": "spincom-winter-games-mukkula-2024-2024-04-21-2024-04-21-lahti-spincom-1281",
+        "name": "Spincom Winter Games Mukkula"
+      }
+    ],
+    [
+      {
+        "sourceIndex": 1286,
+        "competitionId": "honkimaa-open-2024-2024-2024-01-06-2024-01-06-oulu-oulun-frisbeeseura-ry-1286",
+        "name": "Honkimaa Open 2024"
+      },
+      {
+        "sourceIndex": 1322,
+        "competitionId": "honkimaa-open-2024-2024-2024-01-06-2024-01-06-oulu-oulun-frisbeeseura-ry-1322",
+        "name": "Honkimaa Open 2024"
+      }
+    ],
+    [
+      {
+        "sourceIndex": 1956,
+        "competitionId": "nokia-open-beast-oneround-2025-2025-08-09-2025-08-09-nokia-prodiscus-1956",
+        "name": "Nokia Open - Beast OneRound"
+      },
+      {
+        "sourceIndex": 1957,
+        "competitionId": "nokia-open-beast-oneround-2025-2025-08-09-2025-08-09-nokia-prodiscus-1957",
+        "name": "Nokia Open - Beast OneRound"
+      }
+    ]
+  ],
+  "identifierBaseCollisions": [
+    {
+      "base": "vampulan-xi-toukokuunkisat-2020-2020-05-30-2020-05-30-vampula-vampulan-urheilijat-ry",
+      "records": [
+        {
+          "sourceIndex": 1,
+          "competitionId": "vampulan-xi-toukokuunkisat-2020-2020-05-30-2020-05-30-vampula-vampulan-urheilijat-ry-1",
+          "name": "Vampulan XI Toukokuunkisat"
+        },
+        {
+          "sourceIndex": 2,
+          "competitionId": "vampulan-xi-toukokuunkisat-2020-2020-05-30-2020-05-30-vampula-vampulan-urheilijat-ry-2",
+          "name": "Vampulan XI Toukokuunkisat"
+        }
+      ]
+    },
+    {
+      "base": "odfl-oktober-discgolf-fest-lohja-2021-2021-10-30-2021-10-30-lohja-lohjan-liitokiekkoilijat-ry",
+      "records": [
+        {
+          "sourceIndex": 299,
+          "competitionId": "odfl-oktober-discgolf-fest-lohja-2021-2021-10-30-2021-10-30-lohja-lohjan-liitokiekkoilijat-ry-299",
+          "name": "ODFL(Oktober DiscGolf Fest Lohja)"
+        },
+        {
+          "sourceIndex": 300,
+          "competitionId": "odfl-oktober-discgolf-fest-lohja-2021-2021-10-30-2021-10-30-lohja-lohjan-liitokiekkoilijat-ry-300",
+          "name": "ODFL (Oktober Discgolf Fest Lohja)"
+        }
+      ]
+    },
+    {
+      "base": "iso-viisari-2022-2022-05-14-2022-05-14-hameenlinna-hameenlinnan-discaajat-ry",
+      "records": [
+        {
+          "sourceIndex": 562,
+          "competitionId": "iso-viisari-2022-2022-05-14-2022-05-14-hameenlinna-hameenlinnan-discaajat-ry-562",
+          "name": "Iso Viisari"
+        },
+        {
+          "sourceIndex": 563,
+          "competitionId": "iso-viisari-2022-2022-05-14-2022-05-14-hameenlinna-hameenlinnan-discaajat-ry-563",
+          "name": "Iso Viisari"
+        }
+      ]
+    },
+    {
+      "base": "tammela-am-2022-2022-2022-06-18-2022-06-18-tammela-team-griplock-ry",
+      "records": [
+        {
+          "sourceIndex": 674,
+          "competitionId": "tammela-am-2022-2022-2022-06-18-2022-06-18-tammela-team-griplock-ry-674",
+          "name": "Tammela AM 2022"
+        },
+        {
+          "sourceIndex": 677,
+          "competitionId": "tammela-am-2022-2022-2022-06-18-2022-06-18-tammela-team-griplock-ry-677",
+          "name": "Tammela AM 2022"
+        }
+      ]
+    },
+    {
+      "base": "spincom-winter-games-mukkula-2024-2024-04-21-2024-04-21-lahti-spincom",
+      "records": [
+        {
+          "sourceIndex": 1236,
+          "competitionId": "spincom-winter-games-mukkula-2024-2024-04-21-2024-04-21-lahti-spincom-1236",
+          "name": "Spincom Winter Games Mukkula"
+        },
+        {
+          "sourceIndex": 1281,
+          "competitionId": "spincom-winter-games-mukkula-2024-2024-04-21-2024-04-21-lahti-spincom-1281",
+          "name": "Spincom Winter Games Mukkula"
+        }
+      ]
+    },
+    {
+      "base": "honkimaa-open-2024-2024-2024-01-06-2024-01-06-oulu-oulun-frisbeeseura-ry",
+      "records": [
+        {
+          "sourceIndex": 1286,
+          "competitionId": "honkimaa-open-2024-2024-2024-01-06-2024-01-06-oulu-oulun-frisbeeseura-ry-1286",
+          "name": "Honkimaa Open 2024"
+        },
+        {
+          "sourceIndex": 1322,
+          "competitionId": "honkimaa-open-2024-2024-2024-01-06-2024-01-06-oulu-oulun-frisbeeseura-ry-1322",
+          "name": "Honkimaa Open 2024"
+        }
+      ]
+    },
+    {
+      "base": "karkkila-open-2024-2024-2024-05-18-2024-05-19-karkkila-karkkilan-frisbeegolfkerho-ry",
+      "records": [
+        {
+          "sourceIndex": 1339,
+          "competitionId": "karkkila-open-2024-2024-2024-05-18-2024-05-19-karkkila-karkkilan-frisbeegolfkerho-ry-1339",
+          "name": "Karkkila Open 2024"
+        },
+        {
+          "sourceIndex": 1346,
+          "competitionId": "karkkila-open-2024-2024-2024-05-18-2024-05-19-karkkila-karkkilan-frisbeegolfkerho-ry-1346",
+          "name": "Karkkila Open #2024"
+        }
+      ]
+    },
+    {
+      "base": "nokia-open-beast-oneround-2025-2025-08-09-2025-08-09-nokia-prodiscus",
+      "records": [
+        {
+          "sourceIndex": 1956,
+          "competitionId": "nokia-open-beast-oneround-2025-2025-08-09-2025-08-09-nokia-prodiscus-1956",
+          "name": "Nokia Open - Beast OneRound"
+        },
+        {
+          "sourceIndex": 1957,
+          "competitionId": "nokia-open-beast-oneround-2025-2025-08-09-2025-08-09-nokia-prodiscus-1957",
+          "name": "Nokia Open - Beast OneRound"
+        }
+      ]
+    }
+  ],
+  "multiMunicipalityCount": 64,
+  "primaryCountIssues": [],
+  "mapEligibleCount": 2151,
+  "coveredMunicipalityCount": 164,
+  "coveredPopulation": 5003971,
+  "courseCount": 965,
+  "years": [
+    {
+      "year": 2019,
+      "count": 1,
+      "color": "#E69F00"
+    },
+    {
+      "year": 2020,
+      "count": 235,
+      "color": "#56B4E9"
+    },
+    {
+      "year": 2021,
+      "count": 262,
+      "color": "#009E73"
+    },
+    {
+      "year": 2022,
+      "count": 303,
+      "color": "#F0E442"
+    },
+    {
+      "year": 2023,
+      "count": 369,
+      "color": "#0072B2"
+    },
+    {
+      "year": 2024,
+      "count": 399,
+      "color": "#D55E00"
+    },
+    {
+      "year": 2025,
+      "count": 413,
+      "color": "#CC79A7"
+    },
+    {
+      "year": 2026,
+      "count": 322,
+      "color": "#000000"
+    }
+  ],
+  "unresolvedMunicipalities": [
+    {
+      "name": "???, Ahvenanmaa",
+      "sourceIndexes": [
+        696
+      ]
+    },
+    {
+      "name": "6 eri kenttää Pohjois-Savossa",
+      "sourceIndexes": [
+        987
+      ]
+    },
+    {
+      "name": "9 kpl Keski-Pohjamaan kuntaa",
+      "sourceIndexes": [
+        1648
+      ]
+    },
+    {
+      "name": "Ahvenanmaa",
+      "sourceIndexes": [
+        347
+      ]
+    },
+    {
+      "name": "Alustava suunnitelma: Kontiolahti-Outokumpu-Kitee-Kontiolahti-Joensuu-Joensuu",
+      "sourceIndexes": [
+        395
+      ]
+    },
+    {
+      "name": "Bosund",
+      "sourceIndexes": [
+        1769
+      ]
+    },
+    {
+      "name": "Espoo, Helsinki, Hyvinkää, Järvenpää, Sipoo",
+      "sourceIndexes": [
+        1406
+      ]
+    },
+    {
+      "name": "Espoo, Kirkkonummi",
+      "sourceIndexes": [
+        400
+      ]
+    },
+    {
+      "name": "Espoo, Porvoo, Mäntsälä, Pornainen, Hyvinkää",
+      "sourceIndexes": [
+        671
+      ]
+    },
+    {
+      "name": "Geta, Eckerö",
+      "sourceIndexes": [
+        1372
+      ]
+    },
+    {
+      "name": "Haapavesi, Pulkkila, Oulainen",
+      "sourceIndexes": [
+        683
+      ]
+    },
+    {
+      "name": "Hanko,Koko Raasepori",
+      "sourceIndexes": [
+        1436
+      ]
+    },
+    {
+      "name": "Harjavalta, Pöytyä, Eura, Säkylä, Huittinen",
+      "sourceIndexes": [
+        1096
+      ]
+    },
+    {
+      "name": "Heinola, Hollola",
+      "sourceIndexes": [
+        1407
+      ]
+    },
+    {
+      "name": "HML",
+      "sourceIndexes": [
+        251
+      ]
+    },
+    {
+      "name": "Hollola, Lahti",
+      "sourceIndexes": [
+        1217
+      ]
+    },
+    {
+      "name": "Honkilahti",
+      "sourceIndexes": [
+        1099
+      ]
+    },
+    {
+      "name": "Hyvinkää, Porvoo",
+      "sourceIndexes": [
+        797
+      ]
+    },
+    {
+      "name": "Hyvinkää, Riihimäki",
+      "sourceIndexes": [
+        401,
+        669
+      ]
+    },
+    {
+      "name": "Joensuu, Kontiolahti, Outokumpu",
+      "sourceIndexes": [
+        1435,
+        1870
+      ]
+    },
+    {
+      "name": "Joensuu, Outokumpu, Kontiolahti, Polvijärvi",
+      "sourceIndexes": [
+        1051
+      ]
+    },
+    {
+      "name": "Joroinen, Varkaus",
+      "sourceIndexes": [
+        938
+      ]
+    },
+    {
+      "name": "Juankoski",
+      "sourceIndexes": [
+        472,
+        1834,
+        2197
+      ]
+    },
+    {
+      "name": "Jurva",
+      "sourceIndexes": [
+        1926
+      ]
+    },
+    {
+      "name": "Jyväskylä, Espoo, Sipoo, Heinola, Tuusula, Paimio, Nurmijärvi, Lempäälä, Hyvinkää, Oulu",
+      "sourceIndexes": [
+        1830
+      ]
+    },
+    {
+      "name": "Jyväskylä, Laukaa, jämsänkoski",
+      "sourceIndexes": [
+        1877,
+        1878
+      ]
+    },
+    {
+      "name": "Järvenpää, Lohja, Mäntsälä, Loviisa, Pyhtää, Hyvinkää",
+      "sourceIndexes": [
+        332
+      ]
+    },
+    {
+      "name": "Järvenpää, Tuusula",
+      "sourceIndexes": [
+        937
+      ]
+    },
+    {
+      "name": "Karjaa",
+      "sourceIndexes": [
+        15,
+        424,
+        425,
+        924,
+        1008,
+        1009,
+        1071,
+        1400,
+        1401,
+        1402,
+        1792,
+        1794,
+        1866,
+        2080,
+        2083,
+        2148,
+        2201,
+        2202,
+        2300,
+        2302
+      ]
+    },
+    {
+      "name": "Kastelholm, Ahvenanmaa",
+      "sourceIndexes": [
+        346
+      ]
+    },
+    {
+      "name": "Kastelholm, Åland",
+      "sourceIndexes": [
+        695
+      ]
+    },
+    {
+      "name": "Kausala",
+      "sourceIndexes": [
+        1057
+      ]
+    },
+    {
+      "name": "Keikyä, Sastamala",
+      "sourceIndexes": [
+        1075
+      ]
+    },
+    {
+      "name": "Kerava, Tuusula, Järvenpää",
+      "sourceIndexes": [
+        402
+      ]
+    },
+    {
+      "name": "Keski-Pohjanmaan",
+      "sourceIndexes": [
+        344
+      ]
+    },
+    {
+      "name": "Keuruu sekä Muultia",
+      "sourceIndexes": [
+        411
+      ]
+    },
+    {
+      "name": "Kivikko",
+      "sourceIndexes": [
+        1640
+      ]
+    },
+    {
+      "name": "Koski tl*****-",
+      "sourceIndexes": [
+        1529
+      ]
+    },
+    {
+      "name": "Kotka, Hamina, Kouvola, (Miehikkälä)",
+      "sourceIndexes": [
+        1036
+      ]
+    },
+    {
+      "name": "Kuusjoki",
+      "sourceIndexes": [
+        136
+      ]
+    },
+    {
+      "name": "Kylmäkoski",
+      "sourceIndexes": [
+        267,
+        335,
+        336,
+        1030,
+        1031,
+        1606
+      ]
+    },
+    {
+      "name": "Kyläsaari",
+      "sourceIndexes": [
+        1315
+      ]
+    },
+    {
+      "name": "Lahti Hollola",
+      "sourceIndexes": [
+        186
+      ]
+    },
+    {
+      "name": "Lahti, Heinola, Hollola, Orimattila",
+      "sourceIndexes": [
+        455
+      ]
+    },
+    {
+      "name": "Lappeenranta, Imatra",
+      "sourceIndexes": [
+        2242
+      ]
+    },
+    {
+      "name": "Lappi",
+      "sourceIndexes": [
+        2224
+      ]
+    },
+    {
+      "name": "Lieto, Yliskulma",
+      "sourceIndexes": [
+        1634
+      ]
+    },
+    {
+      "name": "Littoinen",
+      "sourceIndexes": [
+        1509
+      ]
+    },
+    {
+      "name": "Lohja, Kerava, Mäntsälä, Järvenpää, Hyvinkää",
+      "sourceIndexes": [
+        746
+      ]
+    },
+    {
+      "name": "Loviisa, Porvoo",
+      "sourceIndexes": [
+        1085
+      ]
+    },
+    {
+      "name": "lähiseutu",
+      "sourceIndexes": [
+        137
+      ]
+    },
+    {
+      "name": "Länsi-Uusimaa",
+      "sourceIndexes": [
+        1793,
+        2081
+      ]
+    },
+    {
+      "name": "Masku, Nousiainen, Naantali, Yläne, Rusko",
+      "sourceIndexes": [
+        970
+      ]
+    },
+    {
+      "name": "Masku, Turku, Yläne, Mynämäki",
+      "sourceIndexes": [
+        1078
+      ]
+    },
+    {
+      "name": "Nastola",
+      "sourceIndexes": [
+        1056,
+        1488
+      ]
+    },
+    {
+      "name": "Nilsiä",
+      "sourceIndexes": [
+        634,
+        1644
+      ]
+    },
+    {
+      "name": "Nokia, Tampere",
+      "sourceIndexes": [
+        1348
+      ]
+    },
+    {
+      "name": "Nokia, Tampere, Ylöjärvi",
+      "sourceIndexes": [
+        236,
+        528,
+        1624
+      ]
+    },
+    {
+      "name": "Nokia, Ylöjärvi, Tampere",
+      "sourceIndexes": [
+        936
+      ]
+    },
+    {
+      "name": "Nousiainen, Marttila, Turku, Naantali, Laitila, Masku",
+      "sourceIndexes": [
+        774
+      ]
+    },
+    {
+      "name": "Nousiainen, Rusko, Masku, Mynämäki, Laitila",
+      "sourceIndexes": [
+        711
+      ]
+    },
+    {
+      "name": "Pirkanmaa",
+      "sourceIndexes": [
+        142,
+        1880
+      ]
+    },
+    {
+      "name": "Pirkkalan",
+      "sourceIndexes": [
+        379
+      ]
+    },
+    {
+      "name": "Pohja",
+      "sourceIndexes": [
+        923,
+        1743,
+        2082
+      ]
+    },
+    {
+      "name": "Pohjois-Karjala (Joensuu, Kontiolahti, Outokumpu, Lieksa)",
+      "sourceIndexes": [
+        708
+      ]
+    },
+    {
+      "name": "Pomarkku Pori",
+      "sourceIndexes": [
+        1153
+      ]
+    },
+    {
+      "name": "Porvoo, Lohja, Mäntsälä, Hyvinkää, Pornainen, Tuusula",
+      "sourceIndexes": [
+        399
+      ]
+    },
+    {
+      "name": "Porvoo, Tuusula, Loviisa",
+      "sourceIndexes": [
+        237
+      ]
+    },
+    {
+      "name": "Puolanka, Suomussalmi",
+      "sourceIndexes": [
+        426
+      ]
+    },
+    {
+      "name": "Pöytyä, Äetsä, Rauma, Sastamala, Marttila, Eura",
+      "sourceIndexes": [
+        1039
+      ]
+    },
+    {
+      "name": "Raasepori,Inkoo",
+      "sourceIndexes": [
+        1982
+      ]
+    },
+    {
+      "name": "Riihikoski",
+      "sourceIndexes": [
+        353
+      ]
+    },
+    {
+      "name": "Ryttylä, Hausjärvi",
+      "sourceIndexes": [
+        705
+      ]
+    },
+    {
+      "name": "Saarijärvi, Kyyjärvi, Kivijärvi, Kannonkoski (Piispala).",
+      "sourceIndexes": [
+        835
+      ]
+    },
+    {
+      "name": "Salo - Inkereen kaupunginosa",
+      "sourceIndexes": [
+        722
+      ]
+    },
+    {
+      "name": "Salo Inkere",
+      "sourceIndexes": [
+        1092
+      ]
+    },
+    {
+      "name": "Salo Märynummi",
+      "sourceIndexes": [
+        1152,
+        2089
+      ]
+    },
+    {
+      "name": "Sammatti",
+      "sourceIndexes": [
+        157
+      ]
+    },
+    {
+      "name": "Siiilinjärvi",
+      "sourceIndexes": [
+        1355
+      ]
+    },
+    {
+      "name": "Simpele",
+      "sourceIndexes": [
+        312
+      ]
+    },
+    {
+      "name": "Sipoo, Kerava, Porvoo, Tuusula",
+      "sourceIndexes": [
+        510
+      ]
+    },
+    {
+      "name": "Sipoo, Kerava, Tuusula",
+      "sourceIndexes": [
+        792
+      ]
+    },
+    {
+      "name": "Sipoo, Kerava, Tuusula, Porvoo",
+      "sourceIndexes": [
+        146
+      ]
+    },
+    {
+      "name": "Sipoo, Porvoo, Loviisa, Pernaja, Liljendal",
+      "sourceIndexes": [
+        1272
+      ]
+    },
+    {
+      "name": "Soltuna DGP, Skag DGP",
+      "sourceIndexes": [
+        808
+      ]
+    },
+    {
+      "name": "Sonka",
+      "sourceIndexes": [
+        358
+      ]
+    },
+    {
+      "name": "Sonka sekä Ylitornio",
+      "sourceIndexes": [
+        470
+      ]
+    },
+    {
+      "name": "Suomen Turku",
+      "sourceIndexes": [
+        1084
+      ]
+    },
+    {
+      "name": "Tammisaari",
+      "sourceIndexes": [
+        927,
+        1516,
+        1930,
+        2033
+      ]
+    },
+    {
+      "name": "TAMMISAARI",
+      "sourceIndexes": [
+        2244
+      ]
+    },
+    {
+      "name": "Tervakoski",
+      "sourceIndexes": [
+        46
+      ]
+    },
+    {
+      "name": "Turenki",
+      "sourceIndexes": [
+        150,
+        754
+      ]
+    },
+    {
+      "name": "Turku, Lieto, Masku",
+      "sourceIndexes": [
+        2208
+      ]
+    },
+    {
+      "name": "Tuusula, Helsinki, Hyvinkää, Espoo, Porvoo, Pornainen, Järvenpää",
+      "sourceIndexes": [
+        1035
+      ]
+    },
+    {
+      "name": "Tuusula, Lohja, Vantaa, Helsinki, Espoo",
+      "sourceIndexes": [
+        998
+      ]
+    },
+    {
+      "name": "Tuutla",
+      "sourceIndexes": [
+        2106
+      ]
+    },
+    {
+      "name": "Valekeakoski",
+      "sourceIndexes": [
+        169
+      ]
+    },
+    {
+      "name": "Valkeakoski Pirkanmaa",
+      "sourceIndexes": [
+        2116
+      ]
+    },
+    {
+      "name": "Vampula",
+      "sourceIndexes": [
+        1,
+        2,
+        3,
+        4,
+        256
+      ]
+    },
+    {
+      "name": "Veikkola",
+      "sourceIndexes": [
+        239
+      ]
+    },
+    {
+      "name": "Vesterkalmar",
+      "sourceIndexes": [
+        1070
+      ]
+    },
+    {
+      "name": "Vesterkalmar DiscGolfPark",
+      "sourceIndexes": [
+        1209
+      ]
+    },
+    {
+      "name": "Vesterkalmare DGP, Åland",
+      "sourceIndexes": [
+        1912
+      ]
+    },
+    {
+      "name": "Vuorela",
+      "sourceIndexes": [
+        1452
+      ]
+    },
+    {
+      "name": "Ylihärmä",
+      "sourceIndexes": [
+        1803
+      ]
+    },
+    {
+      "name": "Ylläsjärvi",
+      "sourceIndexes": [
+        158,
+        375,
+        692,
+        1044
+      ]
+    },
+    {
+      "name": "Åland",
+      "sourceIndexes": [
+        390
+      ]
+    },
+    {
+      "name": "Äkäslompolo",
+      "sourceIndexes": [
+        158,
+        375,
+        692,
+        1044
+      ]
+    },
+    {
+      "name": "Äänekoski, Laukaa",
+      "sourceIndexes": [
+        1109
+      ]
+    },
+    {
+      "name": "Äänekoski,Suolahti,Viitasaari",
+      "sourceIndexes": [
+        1047
+      ]
+    }
+  ],
+  "aliasResolutions": [
+    {
+      "sourceIndex": 51,
+      "competitionId": "tahkovuori-open-2020-2020-07-18-2020-07-19-kuopio-nilsia-vuorelan-veikot-ry",
+      "sourceName": "Kuopio (Nilsiä)",
+      "municipalityCode": "297",
+      "municipalityName": "Kuopio"
+    },
+    {
+      "sourceIndex": 123,
+      "competitionId": "raaseporin-helmi-2020-2020-2020-07-25-2020-07-26-raasepori-karjaa-raaseporin-korilla-ry",
+      "sourceName": "Raasepori, Karjaa",
+      "municipalityCode": "710",
+      "municipalityName": "Raasepori"
+    },
+    {
+      "sourceIndex": 124,
+      "competitionId": "skogby-end-of-2020-2020-2020-12-26-2020-12-27-raasepori-skogby-skogby-ik-discgolf",
+      "sourceName": "Raasepori, Skogby",
+      "municipalityCode": "710",
+      "municipalityName": "Raasepori"
+    },
+    {
+      "sourceIndex": 149,
+      "competitionId": "nbdg-premium-vasterby-2020-2020-12-07-2020-12-07-tammisaari-raasepori-nbdg",
+      "sourceName": "Tammisaari, Raasepori",
+      "municipalityCode": "710",
+      "municipalityName": "Raasepori"
+    },
+    {
+      "sourceIndex": 279,
+      "competitionId": "raaseporin-helmi-2021-2021-2021-07-24-2021-07-25-raasepori-karjaa-raaseporin-korilla-ry",
+      "sourceName": "Raasepori ,Karjaa",
+      "municipalityCode": "710",
+      "municipalityName": "Raasepori"
+    },
+    {
+      "sourceIndex": 297,
+      "competitionId": "sammon-ryosto-2021-2021-10-04-2021-10-04-sammatti-lohja-lohjan-liitokiekkoilijat-ry",
+      "sourceName": "Sammatti, Lohja",
+      "municipalityCode": "444",
+      "municipalityName": "Lohja"
+    },
+    {
+      "sourceIndex": 298,
+      "competitionId": "lohja-open-2021-2021-05-06-2021-06-06-lohja-sammatti-lohjan-liitokiekkoilijat-ry",
+      "sourceName": "Lohja + Sammatti",
+      "municipalityCode": "444",
+      "municipalityName": "Lohja"
+    },
+    {
+      "sourceIndex": 309,
+      "competitionId": "tahkovuori-open-2021-2021-10-07-2021-11-07-nilsia-kuopio-vuorelan-veikot",
+      "sourceName": "Nilsiä (Kuopio)",
+      "municipalityCode": "297",
+      "municipalityName": "Kuopio"
+    },
+    {
+      "sourceIndex": 382,
+      "competitionId": "nbdg-amateurs-jamsa-2021-2021-07-24-2021-07-24-jamsa-jamsankoski-nbdg",
+      "sourceName": "Jämsä (Jämsänkoski)",
+      "municipalityCode": "182",
+      "municipalityName": "Jämsä"
+    },
+    {
+      "sourceIndex": 465,
+      "competitionId": "veto-dgp-syys-am-2021-2021-2021-10-10-2021-10-10-eurajoki-luvia-vetofrisbee-luvian-veto-ry",
+      "sourceName": "Eurajoki (Luvia)",
+      "municipalityCode": "051",
+      "municipalityName": "Eurajoki"
+    },
+    {
+      "sourceIndex": 518,
+      "competitionId": "ept-x-aland-open-2022-2022-10-06-2022-12-06-ahvenanmaa-geta-nbdg",
+      "sourceName": "Ahvenanmaa (Geta)",
+      "municipalityCode": "065",
+      "municipalityName": "Geta"
+    },
+    {
+      "sourceIndex": 569,
+      "competitionId": "bothnia-cup-1-by-momentum-disc-golf-and-ax-discgolf-2022-2022-07-05-2022-07-05-geta-aland-ax-discgolf-rf-partnership-with-momentum-disc-golf",
+      "sourceName": "Geta, Åland",
+      "municipalityCode": "065",
+      "municipalityName": "Geta"
+    },
+    {
+      "sourceIndex": 572,
+      "competitionId": "exel-open-2022-2022-02-07-2022-03-07-tammisaari-raasepori-nbdg",
+      "sourceName": "Tammisaari, Raasepori",
+      "municipalityCode": "710",
+      "municipalityName": "Raasepori"
+    },
+    {
+      "sourceIndex": 579,
+      "competitionId": "sammon-ryosto-2022-2022-05-14-2022-05-14-sammatti-lohja-lohjan-liitokiekkoilijat-ry",
+      "sourceName": "Sammatti, Lohja",
+      "municipalityCode": "444",
+      "municipalityName": "Lohja"
+    },
+    {
+      "sourceIndex": 581,
+      "competitionId": "lohja-open-2022-2022-2022-06-18-2022-06-19-lohja-sammatti-lohjan-liitokiekkoilijat-ry",
+      "sourceName": "Lohja, Sammatti",
+      "municipalityCode": "444",
+      "municipalityName": "Lohja"
+    },
+    {
+      "sourceIndex": 859,
+      "competitionId": "tahkovuori-open-2023-2023-07-22-2023-07-23-nilsia-kuopio-vuorelan-veikot",
+      "sourceName": "Nilsiä (Kuopio)",
+      "municipalityCode": "297",
+      "municipalityName": "Kuopio"
+    },
+    {
+      "sourceIndex": 1037,
+      "competitionId": "nbdg-ladies-series-nastola-2023-2023-12-08-2023-12-08-lahti-nastola-natural-born-disc-golfer",
+      "sourceName": "Lahti (Nastola)",
+      "municipalityCode": "398",
+      "municipalityName": "Lahti"
+    },
+    {
+      "sourceIndex": 1130,
+      "competitionId": "nbdg-amateurs-nastola-2023-2023-01-10-2023-01-10-lahti-nastola-natural-born-disc-golfer",
+      "sourceName": "Lahti (Nastola)",
+      "municipalityCode": "398",
+      "municipalityName": "Lahti"
+    },
+    {
+      "sourceIndex": 1388,
+      "competitionId": "tahkovuori-open-2024-2024-07-20-2024-07-21-nilsia-kuopio-vuorelan-veikot",
+      "sourceName": "Nilsiä, Kuopio",
+      "municipalityCode": "297",
+      "municipalityName": "Kuopio"
+    },
+    {
+      "sourceIndex": 1480,
+      "competitionId": "aland-discgolf-tour-axdg-5-2024-2024-09-14-2024-09-14-ahvenanmaa-geta-ax-discgolf-rf",
+      "sourceName": "Ahvenanmaa, Geta",
+      "municipalityCode": "065",
+      "municipalityName": "Geta"
+    },
+    {
+      "sourceIndex": 1536,
+      "competitionId": "aland-discgolf-tour-axdg-6-2024-2024-09-29-2024-09-29-jomala-aland-islands-ax-discgolf-rf",
+      "sourceName": "Jomala, Åland Islands",
+      "municipalityCode": "170",
+      "municipalityName": "Jomala"
+    },
+    {
+      "sourceIndex": 1807,
+      "competitionId": "vesterkalmare-open-2025-2025-2025-06-14-2025-06-15-jomala-aland-islands-ax-discgolf-rf",
+      "sourceName": "Jomala, Åland Islands",
+      "municipalityCode": "170",
+      "municipalityName": "Jomala"
+    },
+    {
+      "sourceIndex": 2070,
+      "competitionId": "nbdg-morning-round-hammarland-2026-2026-07-22-2026-07-22-hammarland-ahvenanmaa-nbdg",
+      "sourceName": "Hammarland, Ahvenanmaa",
+      "municipalityCode": "076",
+      "municipalityName": "Hammarland"
+    },
+    {
+      "sourceIndex": 2071,
+      "competitionId": "nbdg-experience-soltuna-2026-2026-07-24-2026-07-24-geta-ahvenanmaa-nbdg",
+      "sourceName": "Geta, Ahvenanmaa",
+      "municipalityCode": "065",
+      "municipalityName": "Geta"
+    },
+    {
+      "sourceIndex": 2072,
+      "competitionId": "nbdg-morning-round-vesterkalmare-2026-2026-07-26-2026-07-26-maarianhamina-ahvenanmaa-nbdg",
+      "sourceName": "Maarianhamina, Ahvenanmaa",
+      "municipalityCode": "478",
+      "municipalityName": "Maarianhamina"
+    },
+    {
+      "sourceIndex": 2092,
+      "competitionId": "sammon-ryosto-2026-2026-05-16-2026-05-16-sammatti-lohja-lohjan-liitokiekkoilijat-ry",
+      "sourceName": "Sammatti, Lohja",
+      "municipalityCode": "444",
+      "municipalityName": "Lohja"
+    },
+    {
+      "sourceIndex": 2135,
+      "competitionId": "lohja-open-2026-2026-2026-06-06-2026-07-06-lohja-lohja-sammatti-lohjan-liitokiekkoilijat-ry",
+      "sourceName": "Lohja(Lohja, Sammatti)",
+      "municipalityCode": "444",
+      "municipalityName": "Lohja"
+    }
+  ],
+  "missingYearIndexes": [],
+  "nonCalculableDurationIndexes": [
+    70,
+    154,
+    175,
+    252,
+    269,
+    286,
+    352,
+    355,
+    387,
+    399,
+    401,
+    406,
+    492,
+    549,
+    587,
+    653,
+    669,
+    671,
+    714,
+    716,
+    717,
+    721,
+    791,
+    802,
+    835,
+    860,
+    880,
+    927,
+    966,
+    1019,
+    1029,
+    1047,
+    1051,
+    1054,
+    1055,
+    1071,
+    1087,
+    1136,
+    1140,
+    1163,
+    1248,
+    1311,
+    1348,
+    1407,
+    1435,
+    1497,
+    1569,
+    1616,
+    1653,
+    1670,
+    1723,
+    1726,
+    1731,
+    1772,
+    1847,
+    1865,
+    1870,
+    1898,
+    1966,
+    2010,
+    2019,
+    2041,
+    2042,
+    2065,
+    2138,
+    2154,
+    2193,
+    2298
+  ],
+  "conflictingDivisionIndexes": [
+    2281
+  ],
+  "issueCount": 281,
+  "issues": [
+    {
+      "sourceIndex": 1,
+      "competitionId": "vampulan-xi-toukokuunkisat-2020-2020-05-30-2020-05-30-vampula-vampulan-urheilijat-ry-1",
+      "name": "Vampulan XI Toukokuunkisat",
+      "message": "Kuntaa ”Vampula” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2,
+      "competitionId": "vampulan-xi-toukokuunkisat-2020-2020-05-30-2020-05-30-vampula-vampulan-urheilijat-ry-2",
+      "name": "Vampulan XI Toukokuunkisat",
+      "message": "Kuntaa ”Vampula” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 3,
+      "competitionId": "vampulan-syysmasteri-2020-2020-09-19-2020-09-19-vampula-vampulan-urheilijat-ry",
+      "name": "Vampulan Syysmasteri",
+      "message": "Kuntaa ”Vampula” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 4,
+      "competitionId": "vampula-open-2020-2020-07-24-2020-07-26-vampula-vampulan-urheilijat-ry-frisbeejaosto",
+      "name": "Vampula Open",
+      "message": "Kuntaa ”Vampula” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 15,
+      "competitionId": "nbdg-amateurs-karjaa-2020-2020-01-02-2020-01-02-karjaa-nbdg",
+      "name": "NBDG Amateurs Karjaa",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 46,
+      "competitionId": "tervan-amatoorit-2020-2020-2020-04-25-2020-04-25-tervakoski-retee-ry",
+      "name": "Tervan amatöörit 2020",
+      "message": "Kuntaa ”Tervakoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 54,
+      "competitionId": "kokkola-400-2020-2020-06-06-2020-06-06-kokkola-west-coast-disc-golfers-kokkola-ry",
+      "name": "Kokkola 400",
+      "message": "PDGA-taso ”C-tier flex start” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 70,
+      "competitionId": "nbdg-spring-league-by-k-citymarket-porvoo-2020-2020-04-27-2020-01-06-porvoo-nbdg",
+      "name": "NBDG Spring League by K-Citymarket Porvoo",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 112,
+      "competitionId": "kaakon-kingi-2020-2020-05-07-2020-05-07-kotka-frisbeekotkat-huutjarven-forettajat",
+      "name": "Kaakon Kingi",
+      "message": "Pyhtää: rata puuttuu."
+    },
+    {
+      "sourceIndex": 135,
+      "competitionId": "and-a-bit-more-after-easter-flex-viidentienristeys-2020-2020-04-19-2020-04-19-kankaanpaa-tomoottajat",
+      "name": "And a Bit More After Easter Flex Viidentienristeys",
+      "message": "PDGA-taso ”C-flex” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 136,
+      "competitionId": "kuusjoki-open-2020-2020-05-21-2020-05-21-kuusjoki-salon-frisbeegolf-ry-sfg",
+      "name": "Kuusjoki Open",
+      "message": "Kuntaa ”Kuusjoki” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 137,
+      "competitionId": "turku-cup-2020-2020-04-20-2020-06-07-turku-frisbeegolfseura-7k-ry",
+      "name": "Turku CUP",
+      "message": "Kuntaa ”lähiseutu” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 142,
+      "competitionId": "kai-vesa-2020-2020-04-06-2020-08-27-pirkanmaa-pirkanmaan-frisbeegolf-ry",
+      "name": "Kai Vesa",
+      "message": "Kuntaa ”Pirkanmaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 146,
+      "competitionId": "not-so-tyyni-useampia-kilpailuja-2020-2020-06-25-2020-06-27-sipoo-kerava-tuusula-porvoo-nbdg",
+      "name": "Not-so-Tyyni (useampia kilpailuja)",
+      "message": "Kuntaa ”Sipoo, Kerava, Tuusula, Porvoo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 150,
+      "competitionId": "laastujarven-amatoorit-2020-2020-2020-07-25-2020-07-25-turenki-retee-ry",
+      "name": "Laastujärven amatöörit 2020",
+      "message": "Kuntaa ”Turenki” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 154,
+      "competitionId": "nbdg-special-raasepori-2020-2020-12-09-2020-09-13-raasepori-nbdg",
+      "name": "NBDG Special Raasepori",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 157,
+      "competitionId": "nbdg-amateurs-sammatti-2020-2020-08-15-2020-08-15-sammatti-nbdg",
+      "name": "NBDG Amateurs Sammatti",
+      "message": "Kuntaa ”Sammatti” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 158,
+      "competitionId": "yllas-open-2020-2020-2020-08-29-2020-08-30-yllasjarvi-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2020",
+      "message": "Kuntaa ”Ylläsjärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 158,
+      "competitionId": "yllas-open-2020-2020-2020-08-29-2020-08-30-yllasjarvi-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2020",
+      "message": "Äkäslompolo: rata puuttuu."
+    },
+    {
+      "sourceIndex": 158,
+      "competitionId": "yllas-open-2020-2020-2020-08-29-2020-08-30-yllasjarvi-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2020",
+      "message": "Kuntaa ”Äkäslompolo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 169,
+      "competitionId": "pirkanmaan-summer-series-korkeakangas-2020-2020-06-28-2020-06-28-valekeakoski-valkeakoski-disc-golf-ry",
+      "name": "Pirkanmaan Summer Series Korkeakangas",
+      "message": "Kuntaa ”Valekeakoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 175,
+      "competitionId": "nbdg-special-yla-kainuu-2020-2020-12-09-2020-09-13-suomussalmi-nbdg",
+      "name": "NBDG Special Ylä-Kainuu",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 186,
+      "competitionId": "suur-hollola-open-2020-2020-2020-08-29-2020-08-30-lahti-hollola-lahden-frisbeeclub-ry-ja-hyzer-hollola",
+      "name": "Suur-Hollola Open 2020",
+      "message": "Kuntaa ”Lahti Hollola” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 226,
+      "competitionId": "nbdg-winter-league-2020-2020-11-21-2020-12-26-loviisa-nbdg",
+      "name": "NBDG Winter League",
+      "message": "Porvoo: rata puuttuu."
+    },
+    {
+      "sourceIndex": 226,
+      "competitionId": "nbdg-winter-league-2020-2020-11-21-2020-12-26-loviisa-nbdg",
+      "name": "NBDG Winter League",
+      "message": "Tuusula: rata puuttuu."
+    },
+    {
+      "sourceIndex": 234,
+      "competitionId": "meilahti-open-2020-2020-05-12-2020-05-12-helsinki-team-hippo-ry",
+      "name": "Meilahti Open",
+      "message": "PDGA-taso ”Gold 970+ White <935 Green <850 Purple < 800” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 236,
+      "competitionId": "european-amateur-open-2021-2021-2021-09-07-2021-11-07-nokia-tampere-ylojarvi-spin18-oy",
+      "name": "European Amateur Open 2021",
+      "message": "Kuntaa ”Nokia, Tampere, Ylöjärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 237,
+      "competitionId": "nbdg-winter-league-2021-2021-01-17-2021-02-21-porvoo-tuusula-loviisa-nbdg",
+      "name": "NBDG Winter League",
+      "message": "Kuntaa ”Porvoo, Tuusula, Loviisa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 239,
+      "competitionId": "veikkola-juniors-powered-by-prodigy-2021-2021-02-27-2021-02-27-veikkola-vdgc-ry-pasi-riihonen",
+      "name": "Veikkola Juniors - Powered by Prodigy",
+      "message": "Kuntaa ”Veikkola” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 239,
+      "competitionId": "veikkola-juniors-powered-by-prodigy-2021-2021-02-27-2021-02-27-veikkola-vdgc-ry-pasi-riihonen",
+      "name": "Veikkola Juniors - Powered by Prodigy",
+      "message": "Kirkkonummi: rata puuttuu."
+    },
+    {
+      "sourceIndex": 251,
+      "competitionId": "amateur-series-hameenlinna-2021-2021-05-22-2021-05-23-hml-hameenlinnan-discaajat",
+      "name": "Amateur Series Hämeenlinna",
+      "message": "Kuntaa ”HML” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 252,
+      "competitionId": "amateur-series-multia-2021-2021-12-06-2021-06-13-multia-multi-ace-dg-multian-jyske-ry",
+      "name": "Amateur Series Multia",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 256,
+      "competitionId": "amateur-series-vampula-2021-2021-06-19-2021-06-20-vampula-vampulan-urheilijat-frisbeejaosto",
+      "name": "Amateur Series Vampula",
+      "message": "Kuntaa ”Vampula” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 267,
+      "competitionId": "amateur-series-2021-2021-05-15-2021-05-16-kylmakoski-tampereen-frisbeeseura",
+      "name": "Amateur Series",
+      "message": "Kuntaa ”Kylmäkoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 268,
+      "competitionId": "ford-open-2021-2021-2021-04-06-2021-05-06-tuusula-frisbeegolfclub-hyryla-ry",
+      "name": "Ford Open 2021",
+      "message": "PDGA-taso ”B/C-Tier AM-luokat B-tier ja Pro-luokat C-tier” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 269,
+      "competitionId": "pohjois-karjalan-avoimet-2021-sponsored-by-innovastore-2021-2021-12-06-2021-06-13-joensuu-joen-liitokiekko-ry",
+      "name": "Pohjois-Karjalan avoimet 2021 sponsored by InnovaStore",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 269,
+      "competitionId": "pohjois-karjalan-avoimet-2021-sponsored-by-innovastore-2021-2021-12-06-2021-06-13-joensuu-joen-liitokiekko-ry",
+      "name": "Pohjois-Karjalan avoimet 2021 sponsored by InnovaStore",
+      "message": "Kontiolahti: rata puuttuu."
+    },
+    {
+      "sourceIndex": 286,
+      "competitionId": "nbdg-special-raasepori-2021-2021-07-31-2021-01-08-raasepori-nbdg",
+      "name": "NBDG Special Raasepori",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 312,
+      "competitionId": "nbdg-amateurs-simpele-2021-2021-04-25-2021-04-25-simpele-nbdg",
+      "name": "NBDG Amateurs Simpele",
+      "message": "Kuntaa ”Simpele” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 332,
+      "competitionId": "nbdg-friday-league-2021-2021-05-14-2021-06-18-jarvenpaa-lohja-mantsala-loviisa-pyhtaa-hyvinkaa-nbdg",
+      "name": "NBDG Friday League",
+      "message": "Kuntaa ”Järvenpää, Lohja, Mäntsälä, Loviisa, Pyhtää, Hyvinkää” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 335,
+      "competitionId": "kylma-kesakuu-am-2021-2021-06-19-2021-06-19-kylmakoski-tampereen-frisbeeseura-ry",
+      "name": "Kylmä Kesäkuu Am",
+      "message": "Kuntaa ”Kylmäkoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 336,
+      "competitionId": "kylma-kesakuu-pro-2021-2021-06-20-2021-06-20-kylmakoski-tampereen-frisbeeseura-ry",
+      "name": "Kylmä Kesäkuu Pro",
+      "message": "Kuntaa ”Kylmäkoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 344,
+      "competitionId": "keski-pohjanmaan-liiga-2021-2021-04-21-2021-06-16-keski-pohjanmaan-west-coast-disc-golfers-ry-perhonjokilaakson-frisbeegolf",
+      "name": "Keski-Pohjanmaan liiga",
+      "message": "Kuntaa ”Keski-Pohjanmaan” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 346,
+      "competitionId": "nbdg-fast-round-kastelholm-2021-2021-08-19-2021-08-19-kastelholm-ahvenanmaa-nbdg",
+      "name": "NBDG Fast Round Kastelholm",
+      "message": "Kuntaa ”Kastelholm, Ahvenanmaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 347,
+      "competitionId": "nbdg-special-aland-2021-2021-08-21-2021-08-22-ahvenanmaa-nbdg",
+      "name": "NBDG Special Åland",
+      "message": "Kuntaa ”Ahvenanmaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 352,
+      "competitionId": "jokiliiga-01-2021-2021-2021-12-05-2021-06-16-joensuu-joen-liitokiekko",
+      "name": "Jokiliiga 01/2021",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 352,
+      "competitionId": "jokiliiga-01-2021-2021-2021-12-05-2021-06-16-joensuu-joen-liitokiekko",
+      "name": "Jokiliiga 01/2021",
+      "message": "Kontiolahti: rata puuttuu."
+    },
+    {
+      "sourceIndex": 353,
+      "competitionId": "haukkavuori-am-2021-2021-07-17-2021-07-17-riihikoski-vampulan-urheilijat-ry-frisbeejaosto",
+      "name": "Haukkavuori AM",
+      "message": "Kuntaa ”Riihikoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 355,
+      "competitionId": "honkakyla-open-2021-2021-2021-12-06-2021-06-13-seinajoki-disc-golf-club-provinssi-ry",
+      "name": "Honkakylä Open 2021",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 358,
+      "competitionId": "palojarvi-open-2021-2021-06-13-2021-06-13-rovaniemi-rovaniemen-rolffarit",
+      "name": "Palojärvi Open",
+      "message": "Sonka: rata puuttuu."
+    },
+    {
+      "sourceIndex": 358,
+      "competitionId": "palojarvi-open-2021-2021-06-13-2021-06-13-rovaniemi-rovaniemen-rolffarit",
+      "name": "Palojärvi Open",
+      "message": "Kuntaa ”Sonka” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 361,
+      "competitionId": "lanis-uusimaa-liiga-2021-2021-05-24-2021-06-28-lohja-nbdg",
+      "name": "Länis-Uusimaa liiga",
+      "message": "Raasepori: rata puuttuu."
+    },
+    {
+      "sourceIndex": 361,
+      "competitionId": "lanis-uusimaa-liiga-2021-2021-05-24-2021-06-28-lohja-nbdg",
+      "name": "Länis-Uusimaa liiga",
+      "message": "Vihti: rata puuttuu."
+    },
+    {
+      "sourceIndex": 365,
+      "competitionId": "ainon-paivan-parikisa-2021-2021-07-05-2021-07-05-oulu-oulun-frisbeeseura-ry",
+      "name": "Ainon päivän parikisa",
+      "message": "PDGA-taso ”Parikilpailu, eli XC” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 370,
+      "competitionId": "naamivaara-open-2021-parigolf-2021-2021-05-21-2021-05-21-pello-mika-ylisaukko-oja",
+      "name": "Naamivaara Open 2021 parigolf",
+      "message": "PDGA-taso ”X-tier” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 373,
+      "competitionId": "ramirent-doubles-2021-2021-05-21-2021-05-21-sipoo-nbdg",
+      "name": "Ramirent Doubles",
+      "message": "PDGA-taso ”XC-tier, parikilpailu” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 375,
+      "competitionId": "yllas-open-2021-2021-2021-08-28-2021-08-29-yllasjarvi-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2021",
+      "message": "Kuntaa ”Ylläsjärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 375,
+      "competitionId": "yllas-open-2021-2021-2021-08-28-2021-08-29-yllasjarvi-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2021",
+      "message": "Äkäslompolo: rata puuttuu."
+    },
+    {
+      "sourceIndex": 375,
+      "competitionId": "yllas-open-2021-2021-2021-08-28-2021-08-29-yllasjarvi-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2021",
+      "message": "Kuntaa ”Äkäslompolo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 376,
+      "competitionId": "susiraja-open-2021-sponsored-by-discmania-2021-2021-07-24-2021-07-25-joensuu-joen-liitokiekko-ry",
+      "name": "Susiraja Open 2021 sponsored by Discmania",
+      "message": "Outokumpu: rata puuttuu."
+    },
+    {
+      "sourceIndex": 379,
+      "competitionId": "pirkkalan-mestaruuskilpailut-2021-2021-07-17-2021-07-18-pirkkalan-pirkkalan-frisbeeseura-aviaattorit",
+      "name": "Pirkkalan Mestaruuskilpailut",
+      "message": "Kuntaa ”Pirkkalan” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 386,
+      "competitionId": "kaakon-kingi-mmxxi-2021-2021-04-07-2021-04-07-kotka-frisbeekotkat-ry-huutjarven-forettajat",
+      "name": "Kaakon Kingi MMXXI",
+      "message": "Pyhtää: rata puuttuu."
+    },
+    {
+      "sourceIndex": 387,
+      "competitionId": "virpiniemi-open-2021-2021-2021-07-31-2021-01-08-oulu-bsc-disc-golf-team",
+      "name": "Virpiniemi Open 2021",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 390,
+      "competitionId": "bothnia-cup-1-by-momentum-disc-golf-ab-2021-2021-09-25-2021-09-26-aland-prettyfly-ax-discgolf-rf",
+      "name": "Bothnia Cup 1 by Momentum Disc Golf AB",
+      "message": "Kuntaa ”Åland” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 392,
+      "competitionId": "sekaparifrisbeegolfin-sm-2021-2021-2021-10-07-2021-11-07-jyvaskyla-jyvaskylan-liitokiekkoilijat-ry",
+      "name": "Sekaparifrisbeegolfin SM 2021",
+      "message": "PDGA-taso ”XC-tier” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 395,
+      "competitionId": "jokiliiga-2-2021-2021-2021-07-14-2021-08-18-alustava-suunnitelma-kontiolahti-outokumpu-kitee-kontiolahti-joensuu-joensuu-joen-liitokiekko-ry",
+      "name": "JokiLiiga 2/2021",
+      "message": "Kuntaa ”Alustava suunnitelma: Kontiolahti-Outokumpu-Kitee-Kontiolahti-Joensuu-Joensuu” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 399,
+      "competitionId": "nbdg-ladies-series-powered-by-prodigy-2021-2021-06-29-2021-03-08-porvoo-lohja-mantsala-hyvinkaa-pornainen-tuusula-nbdg",
+      "name": "NBDG Ladies Series (Powered by Prodigy)",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 399,
+      "competitionId": "nbdg-ladies-series-powered-by-prodigy-2021-2021-06-29-2021-03-08-porvoo-lohja-mantsala-hyvinkaa-pornainen-tuusula-nbdg",
+      "name": "NBDG Ladies Series (Powered by Prodigy)",
+      "message": "Kuntaa ”Porvoo, Lohja, Mäntsälä, Hyvinkää, Pornainen, Tuusula” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 400,
+      "competitionId": "lansivayla-liiga-2021-2021-07-19-2021-08-23-espoo-kirkkonummi-nbdg",
+      "name": "Länsiväylä-liiga",
+      "message": "Kuntaa ”Espoo, Kirkkonummi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 401,
+      "competitionId": "aamuposti-liiga-2021-2021-07-28-2021-01-09-hyvinkaa-riihimaki-nbdg",
+      "name": "Aamuposti-liiga",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 401,
+      "competitionId": "aamuposti-liiga-2021-2021-07-28-2021-01-09-hyvinkaa-riihimaki-nbdg",
+      "name": "Aamuposti-liiga",
+      "message": "Kuntaa ”Hyvinkää, Riihimäki” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 402,
+      "competitionId": "keski-uusimaa-liiga-2021-2021-01-08-2021-05-09-kerava-tuusula-jarvenpaa-nbdg",
+      "name": "Keski-Uusimaa -liiga",
+      "message": "Kuntaa ”Kerava, Tuusula, Järvenpää” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 406,
+      "competitionId": "sibbe-liiga-2-powered-by-prodigy-2021-2021-11-07-2021-08-15-sipoo-nbdg",
+      "name": "Sibbe Liiga #2 (Powered by Prodigy)",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 411,
+      "competitionId": "keurusseutu-open-2021-2021-08-28-2021-08-29-keuruu-seka-muultia-frisbeegolfseura-mandon-kiertajat-ry-seka-yhteistyossa-multi-ace-dg",
+      "name": "Keurusseutu open",
+      "message": "Kuntaa ”Keuruu sekä Muultia” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 424,
+      "competitionId": "karjaa-open-2021-2021-08-28-2021-08-28-karjaa-raaseporin-korilla-ry",
+      "name": "Karjaa Open",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 425,
+      "competitionId": "karjaa-easy-2021-2021-08-29-2021-08-29-karjaa-raaseporin-korilla-ry",
+      "name": "Karjaa Easy",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 426,
+      "competitionId": "yla-kainuu-liiga-2021-2021-07-20-2021-08-24-puolanka-suomussalmi-sura-frisbee",
+      "name": "Ylä-Kainuu Liiga",
+      "message": "Kuntaa ”Puolanka, Suomussalmi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 455,
+      "competitionId": "paijat-hame-liiga-2021-2021-08-13-2021-09-17-lahti-heinola-hollola-orimattila-nbdg",
+      "name": "Päijät-Häme Liiga",
+      "message": "Kuntaa ”Lahti, Heinola, Hollola, Orimattila” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 470,
+      "competitionId": "2-lake-open-2021-2021-09-25-2021-09-26-rovaniemi-rovaniemen-rolffarit",
+      "name": "2 Lake Open",
+      "message": "Sonka sekä Ylitornio: rata puuttuu."
+    },
+    {
+      "sourceIndex": 470,
+      "competitionId": "2-lake-open-2021-2021-09-25-2021-09-26-rovaniemi-rovaniemen-rolffarit",
+      "name": "2 Lake Open",
+      "message": "Kuntaa ”Sonka sekä Ylitornio” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 472,
+      "competitionId": "juankoski-lapinlahti-open-2021-2021-09-25-2021-09-25-juankoski-vuorelan-veikot",
+      "name": "Juankoski-Lapinlahti Open",
+      "message": "Kuntaa ”Juankoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 472,
+      "competitionId": "juankoski-lapinlahti-open-2021-2021-09-25-2021-09-25-juankoski-vuorelan-veikot",
+      "name": "Juankoski-Lapinlahti Open",
+      "message": "Lapinlahti: rata puuttuu."
+    },
+    {
+      "sourceIndex": 492,
+      "competitionId": "masterstour-hameenlinna-2022-2022-12-06-2022-06-13-hameenlinna-hameenlinnan-discaajat-ry",
+      "name": "Masterstour Hämeenlinna",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 505,
+      "competitionId": "junnu-riutta-2022-2022-05-21-2022-05-22-riihimaki-riihimaen-frisbeegolf-ry",
+      "name": "Junnu-Riutta",
+      "message": "PDGA-taso ”XC (?) vai C” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 510,
+      "competitionId": "ept-x-latitude-64-tyyni-2022-2022-07-07-2022-09-07-sipoo-kerava-porvoo-tuusula-nbdg",
+      "name": "EPT-X Latitude 64 Tyyni",
+      "message": "Kuntaa ”Sipoo, Kerava, Porvoo, Tuusula” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 528,
+      "competitionId": "european-amateur-open-2022-2022-2022-07-15-2022-07-17-nokia-tampere-ylojarvi-spin18-oy",
+      "name": "European Amateur Open 2022",
+      "message": "Kuntaa ”Nokia, Tampere, Ylöjärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 549,
+      "competitionId": "euro-pro-tour-turku-2022-2022-2022-12-08-2022-08-14-turku-frisbeegolfseura-fore-turku",
+      "name": "Euro Pro Tour Turku 2022",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 575,
+      "competitionId": "powerputt-ladies-open-2022-2022-2022-09-24-2022-09-24-heinola-puskasoturit-ry",
+      "name": "PowerPutt Ladies Open 2022",
+      "message": "PDGA-taso ”PDGA X-tier event” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 587,
+      "competitionId": "hiittenharju-am-2022-2022-07-05-2022-05-14-harjavalta-harjavallan-discgolf-ry",
+      "name": "Hiittenharju AM",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 634,
+      "competitionId": "tahkovuori-open-2022-2022-07-16-2022-07-17-nilsia-vuorelan-veikot",
+      "name": "Tahkovuori Open",
+      "message": "Kuntaa ”Nilsiä” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 647,
+      "competitionId": "junioreiden-sm-2022-2022-2022-08-13-2022-08-14-jyvaskyla-jyvaskylan-liitokiekkoilijat-ry",
+      "name": "Junioreiden SM 2022",
+      "message": "PDGA-taso ”XC” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 653,
+      "competitionId": "jokiliiga-1-2022-2022-2022-11-05-2022-06-15-joensuu-joen-liitokiekko-ry",
+      "name": "JokiLiiga 1/2022",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 669,
+      "competitionId": "latitude-64-league-2022-2022-10-05-2022-06-14-hyvinkaa-riihimaki-natural-born-disc-golfer",
+      "name": "Latitude 64° League",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 669,
+      "competitionId": "latitude-64-league-2022-2022-10-05-2022-06-14-hyvinkaa-riihimaki-natural-born-disc-golfer",
+      "name": "Latitude 64° League",
+      "message": "Kuntaa ”Hyvinkää, Riihimäki” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 671,
+      "competitionId": "nbdg-ladies-series-powered-by-prodigy-2022-2022-06-28-2022-02-08-espoo-porvoo-mantsala-pornainen-hyvinkaa-natural-born-disc-golfer",
+      "name": "NBDG Ladies Series (Powered by Prodigy)",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 671,
+      "competitionId": "nbdg-ladies-series-powered-by-prodigy-2022-2022-06-28-2022-02-08-espoo-porvoo-mantsala-pornainen-hyvinkaa-natural-born-disc-golfer",
+      "name": "NBDG Ladies Series (Powered by Prodigy)",
+      "message": "Kuntaa ”Espoo, Porvoo, Mäntsälä, Pornainen, Hyvinkää” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 683,
+      "competitionId": "hop-liiga-2022-2022-01-06-2022-06-07-haapavesi-pulkkila-oulainen-hau-disc-golf-club-haapavesi",
+      "name": "HOP-liiga",
+      "message": "Kuntaa ”Haapavesi, Pulkkila, Oulainen” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 692,
+      "competitionId": "yllas-open-2022-2022-2022-08-27-2022-08-28-akaslompolo-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2022",
+      "message": "Kuntaa ”Äkäslompolo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 692,
+      "competitionId": "yllas-open-2022-2022-2022-08-27-2022-08-28-akaslompolo-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2022",
+      "message": "Ylläsjärvi: rata puuttuu."
+    },
+    {
+      "sourceIndex": 692,
+      "competitionId": "yllas-open-2022-2022-2022-08-27-2022-08-28-akaslompolo-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2022",
+      "message": "Kuntaa ”Ylläsjärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 694,
+      "competitionId": "kaakon-kingi-2022-2022-2022-08-14-2022-08-14-kotka-frisbeekotkat-ry",
+      "name": "Kaakon Kingi 2022",
+      "message": "Pyhtää: rata puuttuu."
+    },
+    {
+      "sourceIndex": 695,
+      "competitionId": "nbdg-fast-round-kastelholm-2022-2022-08-06-2022-08-06-kastelholm-aland-nbdg",
+      "name": "NBDG Fast Round Kastelholm",
+      "message": "Kuntaa ”Kastelholm, Åland” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 696,
+      "competitionId": "nbdg-one-round-aland-2022-2022-12-06-2022-12-06-ahvenanmaa-nbdg",
+      "name": "NBDG One Round Åland",
+      "message": "Kuntaa ”???, Ahvenanmaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 705,
+      "competitionId": "ykslammi-open-2022-2022-06-08-2022-06-08-ryttyla-hausjarvi-retee-ry",
+      "name": "Ykslammi OPEN",
+      "message": "Kuntaa ”Ryttylä, Hausjärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 708,
+      "competitionId": "jokiliiga-2-2022-2022-2022-07-13-2022-08-17-pohjois-karjala-joensuu-kontiolahti-outokumpu-lieksa-joen-liitokiekko-ry",
+      "name": "JokiLiiga 2/2022",
+      "message": "Kuntaa ”Pohjois-Karjala (Joensuu, Kontiolahti, Outokumpu, Lieksa)” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 711,
+      "competitionId": "nousten-frisbeegolf-ry-turku-tour-am-2022-2022-2022-06-30-2022-11-08-nousiainen-rusko-masku-mynamaki-laitila-nousten-frisbeegolf-ry",
+      "name": "Nousten Frisbeegolf ry TURKU TOUR AM 2022",
+      "message": "Kuntaa ”Nousiainen, Rusko, Masku, Mynämäki, Laitila” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 711,
+      "competitionId": "nousten-frisbeegolf-ry-turku-tour-am-2022-2022-2022-06-30-2022-11-08-nousiainen-rusko-masku-mynamaki-laitila-nousten-frisbeegolf-ry",
+      "name": "Nousten Frisbeegolf ry TURKU TOUR AM 2022",
+      "message": "Turku: rata puuttuu."
+    },
+    {
+      "sourceIndex": 714,
+      "competitionId": "karkkainen-open-2022-2022-2022-12-08-2022-08-14-ylivieska-ylivieskan-frisbeekarhut-nivalan-frisbeegolf",
+      "name": "Kärkkäinen Open 2022",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 714,
+      "competitionId": "karkkainen-open-2022-2022-2022-12-08-2022-08-14-ylivieska-ylivieskan-frisbeekarhut-nivalan-frisbeegolf",
+      "name": "Kärkkäinen Open 2022",
+      "message": "Nivala: rata puuttuu."
+    },
+    {
+      "sourceIndex": 716,
+      "competitionId": "sibbe-liiga-2-2022-2022-10-07-2022-08-21-sipoo-natural-born-disc-golfer",
+      "name": "Sibbe Liiga #2",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 717,
+      "competitionId": "sibben-aamuliiga-2-2022-2022-12-07-2022-08-16-sipoo-natural-born-disc-golfer",
+      "name": "Sibben Aamuliiga #2",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 721,
+      "competitionId": "partaharjun-liiga-2022-2022-12-07-2022-08-16-pieksamaki-pipa",
+      "name": "Partaharjun Liiga",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 722,
+      "competitionId": "inkere-amateur-open-2022-2022-08-13-2022-08-13-salo-inkereen-kaupunginosa-salon-frisbeegolf-ry",
+      "name": "INKERE AMATEUR OPEN",
+      "message": "Kuntaa ”Salo - Inkereen kaupunginosa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 746,
+      "competitionId": "latitude-64-friday-league-2022-2022-05-08-2022-09-09-lohja-kerava-mantsala-jarvenpaa-hyvinkaa-natural-born-disc-golfer",
+      "name": "Latitude 64° Friday League",
+      "message": "Kuntaa ”Lohja, Kerava, Mäntsälä, Järvenpää, Hyvinkää” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 754,
+      "competitionId": "lastun-amanas-2022-2022-2022-09-17-2022-09-17-turenki-retee-ry",
+      "name": "Lastun Amanas 2022",
+      "message": "Kuntaa ”Turenki” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 774,
+      "competitionId": "nousten-frisbeegolf-ry-pdga-liiga-powered-by-vivokauppa-fribastore-2022-2022-09-18-2022-10-23-nousiainen-marttila-turku-naantali-laitila-masku-nousten-frisbeegolf-ry",
+      "name": "Nousten Frisbeegolf ry - PDGA liiga (Powered by Vivokauppa&Fribastore)",
+      "message": "Kuntaa ”Nousiainen, Marttila, Turku, Naantali, Laitila, Masku” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 791,
+      "competitionId": "ept-tyyni-open-2023-2023-06-30-2023-02-07-sipoo-nbdg",
+      "name": "EPT Tyyni Open",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 792,
+      "competitionId": "tyyni-2023-nimi-muuttunee-paakumppanuuden-vahvistumisen-jalkeen-2023-2023-06-07-2023-08-07-sipoo-kerava-tuusula-nbdg",
+      "name": "Tyyni 2023 (nimi muuttunee pääkumppanuuden vahvistumisen jälkeen)",
+      "message": "Kuntaa ”Sipoo, Kerava, Tuusula” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 797,
+      "competitionId": "nbdg-winter-league-2022-2022-06-11-2022-11-12-hyvinkaa-porvoo-natural-born-disc-golfer",
+      "name": "NBDG Winter League",
+      "message": "Kuntaa ”Hyvinkää, Porvoo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 802,
+      "competitionId": "kangasalan-mestaruuskilpailut-nimi-saattaa-muuttua-mikali-sponsori-loytyy-2023-2023-11-08-2023-08-13-kangasala-kangasalan-voitto-disc-golf",
+      "name": "Kangasalan Mestaruuskilpailut (Nimi saattaa muuttua, mikäli Sponsori löytyy)",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 808,
+      "competitionId": "sdgat-5-aland-open-2023-2023-07-26-2023-07-28-soltuna-dgp-skag-dgp-heatland",
+      "name": "SDGAT #5 - Åland Open",
+      "message": "Kuntaa ”Soltuna DGP, Skag DGP” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 827,
+      "competitionId": "iso-viisari-2023-2023-05-13-2023-05-13-hameenlinna-hameenlinnan-discaajat-ry",
+      "name": "Iso Viisari",
+      "message": "Hattula: rata puuttuu."
+    },
+    {
+      "sourceIndex": 834,
+      "competitionId": "juniortour-lappeenranta-imatra-2023-2023-01-07-2023-02-07-lappeenranta-willimiehen-disc-golf-ry-wdg-vuoksen-disc-golf-ry-vdg",
+      "name": "Juniortour Lappeenranta & Imatra",
+      "message": "Imatra: rata puuttuu."
+    },
+    {
+      "sourceIndex": 835,
+      "competitionId": "destroyer-challenge-finland-2023-2023-2023-06-30-2023-02-07-saarijarvi-kyyjarvi-kivijarvi-kannonkoski-piispala-saarijarven-frisbaajat-ry-ja-sportstorebigfoot",
+      "name": "Destroyer Challenge Finland 2023",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 835,
+      "competitionId": "destroyer-challenge-finland-2023-2023-2023-06-30-2023-02-07-saarijarvi-kyyjarvi-kivijarvi-kannonkoski-piispala-saarijarven-frisbaajat-ry-ja-sportstorebigfoot",
+      "name": "Destroyer Challenge Finland 2023",
+      "message": "Kuntaa ”Saarijärvi, Kyyjärvi, Kivijärvi, Kannonkoski (Piispala).” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 860,
+      "competitionId": "siilinjarvi-open-2023-2023-12-08-2023-08-13-siilinjarvi-vuorelan-veikot",
+      "name": "Siilinjärvi Open",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 880,
+      "competitionId": "prodiscus-masters-tour-skogby-i-2023-2023-03-25-2023-03-22-raasepori-skogby-ik-discgolf",
+      "name": "Prodiscus Masters tour Skogby I",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 899,
+      "competitionId": "susiraja-open-2023-sponsored-by-clash-discs-2023-2023-07-29-2023-07-30-joensuu-joen-liitokiekko-ry",
+      "name": "Susiraja Open 2023 sponsored by Clash Discs",
+      "message": "Outokumpu: rata puuttuu."
+    },
+    {
+      "sourceIndex": 923,
+      "competitionId": "pohja-kevat-am-2023-2023-01-04-2023-01-04-pohja-raaseporin-korilla-ry",
+      "name": "Pohja Kevät AM",
+      "message": "Kuntaa ”Pohja” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 924,
+      "competitionId": "karjaan-kevatrieha-2023-2023-04-23-2023-04-23-karjaa-raaseporin-korilla",
+      "name": "Karjaan Kevätrieha",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 927,
+      "competitionId": "eif-discgolf-20v-juhlakisa-2023-2023-12-08-2023-08-13-tammisaari-eif-discgolf",
+      "name": "EIF Discgolf 20v Juhlakisa",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 927,
+      "competitionId": "eif-discgolf-20v-juhlakisa-2023-2023-12-08-2023-08-13-tammisaari-eif-discgolf",
+      "name": "EIF Discgolf 20v Juhlakisa",
+      "message": "Kuntaa ”Tammisaari” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 931,
+      "competitionId": "fullflight-open-2023-2023-10-06-2023-11-06-kokkola-west-coast-disc-golfers-ry",
+      "name": "FullFlight Open",
+      "message": "Luoto: rata puuttuu."
+    },
+    {
+      "sourceIndex": 936,
+      "competitionId": "european-amateur-open-2023-2023-2023-07-14-2023-07-16-nokia-ylojarvi-tampere-spin18-oy",
+      "name": "European Amateur Open 2023",
+      "message": "Kuntaa ”Nokia, Ylöjärvi, Tampere” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 937,
+      "competitionId": "nbdg-special-keski-uusimaa-2023-2023-10-06-2023-11-06-jarvenpaa-tuusula-natural-born-disc-golfer",
+      "name": "NBDG Special Keski-Uusimaa",
+      "message": "Kuntaa ”Järvenpää, Tuusula” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 938,
+      "competitionId": "nbdg-special-savo-2023-2023-07-15-2023-07-16-joroinen-varkaus-natural-born-disc-golfer",
+      "name": "NBDG Special Savo",
+      "message": "Kuntaa ”Joroinen, Varkaus” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 966,
+      "competitionId": "sibbe-liiga-1-2023-2023-10-05-2023-06-21-sipoo-natural-born-disc-golfer",
+      "name": "Sibbe Liiga #1",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 970,
+      "competitionId": "nousten-frisbeegolf-pdga-liiga-sponsored-by-innova-champion-discs-2023-2023-04-27-2023-08-06-masku-nousiainen-naantali-ylane-rusko-nousten-frisbeegolf-ry",
+      "name": "Nousten Frisbeegolf - PDGA Liiga Sponsored by Innova Champion Discs",
+      "message": "Kuntaa ”Masku, Nousiainen, Naantali, Yläne, Rusko” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 987,
+      "competitionId": "savoliiga-2023-2023-05-25-2023-06-29-6-eri-kenttaa-pohjois-savossa-vuorelan-veikot-ry",
+      "name": "Savoliiga",
+      "message": "Kuntaa ”6 eri kenttää Pohjois-Savossa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 998,
+      "competitionId": "frisbeedivari-liiga-2023-2023-05-18-2023-06-22-tuusula-lohja-vantaa-helsinki-espoo-natural-born-disc-golfer",
+      "name": "Frisbeedivari Liiga",
+      "message": "Kuntaa ”Tuusula, Lohja, Vantaa, Helsinki, Espoo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1008,
+      "competitionId": "karjaa-amateurs-2023-2023-03-06-2023-03-06-karjaa-raaseporin-korilla",
+      "name": "Karjaa Amateurs",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1009,
+      "competitionId": "karjaa-open-2023-2023-04-06-2023-04-06-karjaa-raaseporin-korilla",
+      "name": "Karjaa Open",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1019,
+      "competitionId": "oulu-open-2023-2023-2023-06-30-2023-02-07-oulu-bsc-disc-golf-team-ofs",
+      "name": "Oulu Open 2023",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1029,
+      "competitionId": "nbdg-league-espoo-2023-2023-10-07-2023-08-14-espoo-natural-born-disc-golfer",
+      "name": "NBDG League Espoo",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1030,
+      "competitionId": "nkk-open-am-2023-2023-05-27-2023-05-27-kylmakoski-jr-frisbee-service-oy",
+      "name": "NKK open AM",
+      "message": "Kuntaa ”Kylmäkoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1031,
+      "competitionId": "nkk-open-pro-2023-2023-05-28-2023-05-28-kylmakoski-woodpeckers-ry",
+      "name": "NKK open PRO",
+      "message": "Kuntaa ”Kylmäkoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1035,
+      "competitionId": "nbdg-ladies-series-powered-by-prodigy-2023-2023-06-06-2023-07-25-tuusula-helsinki-hyvinkaa-espoo-porvoo-pornainen-jarvenpaa-natural-born-disc-golfer",
+      "name": "NBDG Ladies Series (Powered by Prodigy)",
+      "message": "Kuntaa ”Tuusula, Helsinki, Hyvinkää, Espoo, Porvoo, Pornainen, Järvenpää” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1036,
+      "competitionId": "spincom-evening-throws-kymenlaakso-2023-2023-05-26-2023-07-07-kotka-hamina-kouvola-miehikkala-frisbeekotkat-ry-ankkapurha-dgc-kouvolan-lentavat-lautaset-ry",
+      "name": "Spincom Evening Throws | Kymenlaakso",
+      "message": "Kuntaa ”Kotka, Hamina, Kouvola, (Miehikkälä)” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1039,
+      "competitionId": "discats-goes-pdga-liiga-2023-2023-06-18-2023-07-30-poytya-aetsa-rauma-sastamala-marttila-eura-discats",
+      "name": "Discats goes PDGA-liiga",
+      "message": "Kuntaa ”Pöytyä, Äetsä, Rauma, Sastamala, Marttila, Eura” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1044,
+      "competitionId": "yllas-open-2023-2023-2023-08-26-2023-08-27-akaslompolo-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2023",
+      "message": "Kuntaa ”Äkäslompolo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1044,
+      "competitionId": "yllas-open-2023-2023-2023-08-26-2023-08-27-akaslompolo-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2023",
+      "message": "Ylläsjärvi: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1044,
+      "competitionId": "yllas-open-2023-2023-2023-08-26-2023-08-27-akaslompolo-rovaniemen-rolffarit-ry",
+      "name": "Ylläs Open 2023",
+      "message": "Kuntaa ”Ylläsjärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1047,
+      "competitionId": "aki-dg-n-kesaliiga-2023-2023-12-06-2023-07-17-aanekoski-suolahti-viitasaari-aki-dg",
+      "name": "Äki Dg:n kesäliiga",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1047,
+      "competitionId": "aki-dg-n-kesaliiga-2023-2023-12-06-2023-07-17-aanekoski-suolahti-viitasaari-aki-dg",
+      "name": "Äki Dg:n kesäliiga",
+      "message": "Kuntaa ”Äänekoski,Suolahti,Viitasaari” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1051,
+      "competitionId": "jokiliiga-2-2023-2023-2023-12-07-2023-08-16-joensuu-outokumpu-kontiolahti-polvijarvi-joen-liitokiekko-ry",
+      "name": "JokiLiiga 2/2023",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1051,
+      "competitionId": "jokiliiga-2-2023-2023-2023-12-07-2023-08-16-joensuu-outokumpu-kontiolahti-polvijarvi-joen-liitokiekko-ry",
+      "name": "JokiLiiga 2/2023",
+      "message": "Kuntaa ”Joensuu, Outokumpu, Kontiolahti, Polvijärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1054,
+      "competitionId": "sibbe-liiga-2-2023-2023-12-07-2023-08-23-sipoo-natural-born-disc-golfer",
+      "name": "Sibbe Liiga #2",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1055,
+      "competitionId": "sibben-aamuliiga-2-2023-2023-11-07-2023-08-15-sipoo-natural-born-disc-golfer",
+      "name": "Sibben Aamuliiga #2",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1056,
+      "competitionId": "lahti-open-one-round-nastola-2023-2023-07-20-2023-07-20-nastola-nastola-woodpeckers-ry",
+      "name": "Lahti Open | One Round Nastola",
+      "message": "Kuntaa ”Nastola” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1057,
+      "competitionId": "lahti-open-one-round-iitti-2023-2023-07-21-2023-07-21-kausala-dgc-birdie-hunters-iitti-yhteistyossa-spincom",
+      "name": "Lahti Open | One Round Iitti",
+      "message": "Kuntaa ”Kausala” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1070,
+      "competitionId": "sunstroke-open-2023-2023-07-19-2023-07-19-vesterkalmar-playcation",
+      "name": "SUNSTROKE OPEN",
+      "message": "Kuntaa ”Vesterkalmar” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1071,
+      "competitionId": "raaseporin-helmi-2023-2023-12-08-2023-08-13-karjaa-raaseporin-korilla",
+      "name": "Raaseporin Helmi",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1071,
+      "competitionId": "raaseporin-helmi-2023-2023-12-08-2023-08-13-karjaa-raaseporin-korilla",
+      "name": "Raaseporin Helmi",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1075,
+      "competitionId": "discats-goes-kemira-hantyri-am-pro-2023-2023-08-26-2023-08-26-keikya-sastamala-discats-oy",
+      "name": "Discats goes Kemira/Häntyri - AM/PRO",
+      "message": "Kuntaa ”Keikyä, Sastamala” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1078,
+      "competitionId": "nousten-frisbeegolf-kesaliiga-pdga-liiga-sponsored-by-innova-champion-discs-2023-2023-07-13-2023-08-17-masku-turku-ylane-mynamaki-nousten-frisbeegolf-ry",
+      "name": "Nousten Frisbeegolf - Kesäliiga (PDGA Liiga sponsored by Innova Champion Discs)",
+      "message": "Kuntaa ”Masku, Turku, Yläne, Mynämäki” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1084,
+      "competitionId": "lauste-open-2023-2023-2023-08-26-2023-08-26-suomen-turku-frisbeegolfseura-7k-ry",
+      "name": "Lauste Open 2023",
+      "message": "Kuntaa ”Suomen Turku” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1085,
+      "competitionId": "k-citymarket-porvoo-liiga-2023-2023-03-08-2023-07-09-loviisa-porvoo-natural-born-disc-golfer",
+      "name": "K-Citymarket Porvoo Liiga",
+      "message": "Kuntaa ”Loviisa, Porvoo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1087,
+      "competitionId": "puula-open-2023-2023-2023-09-30-2023-01-10-kangasniemi-kangasniemen-palloilijat-ry-kapadg",
+      "name": "Puula Open 2023",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1092,
+      "competitionId": "inkere-amateur-open-2023-2023-08-26-2023-08-26-salo-inkere-salon-frisbeegolf-ry",
+      "name": "Inkere amateur open",
+      "message": "Kuntaa ”Salo Inkere” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1096,
+      "competitionId": "discats-pdga-liiga-ii-2023-2023-08-13-2023-09-17-harjavalta-poytya-eura-sakyla-huittinen-discats",
+      "name": "Discats PDGA-liiga II",
+      "message": "Kuntaa ”Harjavalta, Pöytyä, Eura, Säkylä, Huittinen” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1099,
+      "competitionId": "sieravuori-amateur-challenge-one-round-sponsored-by-sieravuori-innova-champion-discs-2023-2023-05-08-2023-05-08-honkilahti-nousten-frisbeegolf-ry",
+      "name": "Sieravuori Amateur Challenge One Round (Sponsored by Sieravuori & Innova Champion Discs)",
+      "message": "Kuntaa ”Honkilahti” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1109,
+      "competitionId": "akidg-pp-n-syysliiga-2023-2023-08-15-2023-09-19-aanekoski-laukaa-akidg-yhteistyossa-puska-puttaajat",
+      "name": "ÄKIDG/PP:n syysliiga",
+      "message": "Kuntaa ”Äänekoski, Laukaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1136,
+      "competitionId": "virpiniemi-open-2023-2023-2023-09-30-2023-01-10-oulu-bsc-disc-golf-team",
+      "name": "Virpiniemi Open 2023",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1137,
+      "competitionId": "kaakon-kingi-2023-2023-2023-09-16-2023-09-16-kotka-frisbeekotkat-ry-ja-huutjarven-forettajat-yhteistyossa-lasku-frisbeekotkille",
+      "name": "Kaakon Kingi 2023",
+      "message": "pyhtää: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1140,
+      "competitionId": "masku-open-2023-sponsored-by-innova-champion-discs-2023-2023-09-30-2023-01-10-masku-nousten-frisbeegolf-ry",
+      "name": "Masku Open 2023 (Sponsored by Innova Champion Discs)",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1152,
+      "competitionId": "marynummi-syyskia-2023-2023-10-21-2023-10-21-salo-marynummi-salon-frisbeegolf-ry",
+      "name": "Märynummi Syyskia",
+      "message": "Kuntaa ”Salo Märynummi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1153,
+      "competitionId": "syystour-2023-mustavaris-2023-2023-10-21-2023-10-22-pomarkku-pori-liitokiekkoseura-mustavaris-ry",
+      "name": "Syystour 2023 Mustavaris",
+      "message": "Kuntaa ”Pomarkku Pori” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1163,
+      "competitionId": "mastereiden-sm-kilpailu-2025-2025-2025-05-30-2025-01-06-keuruu-frisbeegolfseura-mandon-kiertajat-ry",
+      "name": "Mastereiden SM-kilpailu 2025",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1165,
+      "competitionId": "amatoorien-sm-2024-2024-2024-06-14-2024-06-16-raasepori-mustion-vaylakiiturit-ry",
+      "name": "Amatöörien SM-2024",
+      "message": "PDGA-taso ”SM-amatöörien taso” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 1201,
+      "competitionId": "iso-viisari-2024-2024-05-18-2024-05-18-hameenlinna-hameenlinnan-discaajat-ry",
+      "name": "Iso Viisari",
+      "message": "Hattula: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1209,
+      "competitionId": "aland-sport-week-2024-2024-06-28-2024-06-29-vesterkalmar-discgolfpark-ax-discgolf",
+      "name": "Åland Sport Week",
+      "message": "Kuntaa ”Vesterkalmar DiscGolfPark” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1217,
+      "competitionId": "nbdg-easter-special-paijat-hame-2024-2024-03-29-2024-03-30-hollola-lahti-natural-born-disc-golfer",
+      "name": "NBDG Easter Special Päijät-Häme",
+      "message": "Kuntaa ”Hollola, Lahti” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1248,
+      "competitionId": "sieravuori-challenge-2024-2024-2024-12-07-2024-07-14-eura-team-griplock-ry",
+      "name": "Sieravuori Challenge 2024",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1272,
+      "competitionId": "ita-uudenmaan-femmaliiga-2024-2024-04-26-2024-05-31-sipoo-porvoo-loviisa-pernaja-liljendal-siphon-disctroyers-porvoon-frisbeegolfseura",
+      "name": "Itä-Uudenmaan Femmaliiga",
+      "message": "Kuntaa ”Sipoo, Porvoo, Loviisa, Pernaja, Liljendal” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1289,
+      "competitionId": "susiraja-open-2024-sponsored-by-clash-discs-2024-2024-07-27-2024-07-28-joensuu-joen-liitokiekko-ry",
+      "name": "Susiraja Open 2024 sponsored by Clash Discs",
+      "message": "Outokumpu: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1311,
+      "competitionId": "sibbe-liiga-2-2024-2024-10-07-2024-08-21-sipoo-natural-born-disc-golfer",
+      "name": "Sibbe Liiga #2",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1312,
+      "competitionId": "highflydiscs-open-2024-2024-2024-04-27-2024-04-28-tuusula-highflydiscs",
+      "name": "Highflydiscs Open 2024",
+      "message": "Kerava: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1315,
+      "competitionId": "kevatkylis-2024-2024-2024-04-21-2024-04-21-pori-liitokiekkoseura-mustavaris-ry",
+      "name": "Kevätkylis 2024",
+      "message": "Kyläsaari: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1315,
+      "competitionId": "kevatkylis-2024-2024-2024-04-21-2024-04-21-pori-liitokiekkoseura-mustavaris-ry",
+      "name": "Kevätkylis 2024",
+      "message": "Kuntaa ”Kyläsaari” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1348,
+      "competitionId": "european-amateur-open-2024-2024-2024-12-07-2024-07-14-nokia-tampere-spin18-oy",
+      "name": "European Amateur Open 2024",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1348,
+      "competitionId": "european-amateur-open-2024-2024-2024-12-07-2024-07-14-nokia-tampere-spin18-oy",
+      "name": "European Amateur Open 2024",
+      "message": "Kuntaa ”Nokia, Tampere” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1355,
+      "competitionId": "savo-tour-3-4-tarinalaakso-old-course-2024-2024-05-30-2024-05-30-siiilinjarvi-deep-in-the-forest-vuorelan-veikot",
+      "name": "Savo Tour 3/4 - Tarinalaakso Old Course",
+      "message": "Kuntaa ”Siiilinjärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1360,
+      "competitionId": "fullflight-open-2024-2024-2024-08-06-2024-09-06-luoto-wcdg-ry",
+      "name": "FullFlight Open 2024",
+      "message": "Kokkola: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1372,
+      "competitionId": "aland-discgolf-tour-axdg-3-special-2024-2024-06-07-2024-07-07-geta-eckero-ax-discgolf-rf",
+      "name": "Åland Discgolf Tour - AXDG - #3 SPECIAL",
+      "message": "Kuntaa ”Geta, Eckerö” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1377,
+      "competitionId": "jokiliiga-1-2024-2024-2024-08-05-2024-12-06-joensuu-joen-liitokiekko-ry",
+      "name": "JokiLiiga 1/2024",
+      "message": "Kontiolahti: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1400,
+      "competitionId": "karjaa-amateurs-2024-2024-2024-01-06-2024-01-06-karjaa-raaseporin-korilla",
+      "name": "Karjaa Amateurs 2024",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1401,
+      "competitionId": "karjaa-open-2024-2024-2024-02-06-2024-02-06-karjaa-raaseporin-korilla",
+      "name": "Karjaa Open 2024",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1402,
+      "competitionId": "raaseporin-helmi-2024-2024-2024-07-27-2024-07-28-karjaa-raaseporin-korilla",
+      "name": "Raaseporin Helmi 2024",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1406,
+      "competitionId": "nbdg-ladies-series-1-powered-by-fribastore-2024-2024-05-21-2024-06-25-espoo-helsinki-hyvinkaa-jarvenpaa-sipoo-natural-born-disc-golfer",
+      "name": "NBDG Ladies Series™ #1 Powered by Fribastore",
+      "message": "Kuntaa ”Espoo, Helsinki, Hyvinkää, Järvenpää, Sipoo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1407,
+      "competitionId": "nbdg-ladies-series-2-powered-by-fribastore-2024-2024-10-07-2024-08-14-heinola-hollola-natural-born-disc-golfer",
+      "name": "NBDG Ladies Series™ #2 Powered by Fribastore",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1407,
+      "competitionId": "nbdg-ladies-series-2-powered-by-fribastore-2024-2024-10-07-2024-08-14-heinola-hollola-natural-born-disc-golfer",
+      "name": "NBDG Ladies Series™ #2 Powered by Fribastore",
+      "message": "Kuntaa ”Heinola, Hollola” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1435,
+      "competitionId": "jokiliiga-2-2024-2024-2024-10-07-2024-08-14-joensuu-kontiolahti-outokumpu-joen-liitokiekko-ry",
+      "name": "JokiLiiga 2/2024",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1435,
+      "competitionId": "jokiliiga-2-2024-2024-2024-10-07-2024-08-14-joensuu-kontiolahti-outokumpu-joen-liitokiekko-ry",
+      "name": "JokiLiiga 2/2024",
+      "message": "Kuntaa ”Joensuu, Kontiolahti, Outokumpu” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1436,
+      "competitionId": "lansi-uusimaan-fribbe-tour-2024-2024-06-24-2024-08-19-hanko-koko-raasepori-raaseporin-korilla",
+      "name": "Länsi-Uusimaan Fribbe Tour",
+      "message": "Kuntaa ”Hanko,Koko Raasepori” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1452,
+      "competitionId": "savo-one-rounds-vuorela-2024-2024-01-08-2024-01-08-vuorela-deep-in-the-forest-vuorelan-veikot",
+      "name": "Savo One Rounds - Vuorela",
+      "message": "Kuntaa ”Vuorela” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1488,
+      "competitionId": "rakokivi-am-by-spincom-2024-2024-08-17-2024-08-17-nastola-spincom-oy",
+      "name": "Rakokivi Am By Spincom",
+      "message": "Kuntaa ”Nastola” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1497,
+      "competitionId": "kempele-open-2024-2024-2024-08-31-2024-01-09-kempele-kempeleen-frisbeeseura-ry",
+      "name": "Kempele Open 2024",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1509,
+      "competitionId": "nunna-pdga-one-round-sponsored-by-innova-champion-discs-2024-2024-08-15-2024-08-15-littoinen-nousten-frisbeegolf-ry",
+      "name": "Nunna PDGA One Round - Sponsored by Innova Champion Discs",
+      "message": "Kuntaa ”Littoinen” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1516,
+      "competitionId": "tammisaari-open-2024-2024-08-09-2024-08-09-tammisaari-eif-disc-golf",
+      "name": "Tammisaari Open",
+      "message": "Kuntaa ”Tammisaari” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1529,
+      "competitionId": "hevonlinna-am-by-prodigy-2024-2024-2024-05-10-2024-05-10-koski-tl-kosken-kaiku-frisbeegolf",
+      "name": "Hevonlinna Am by Prodigy 2024",
+      "message": "Kuntaa ”Koski tl*****-” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1569,
+      "competitionId": "junioreiden-sm-karsinta-karkkila-2025-2025-03-05-2024-04-05-karkkila-karkkilan-frisbeegolfkerho-ry",
+      "name": "Junioreiden SM- karsinta Karkkila.",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1606,
+      "competitionId": "kylman-am-kevatkisat-2025-2025-05-24-2025-05-24-kylmakoski-jr-frisbee-service-oy",
+      "name": "Kylmän Am-kevätkisat",
+      "message": "Kuntaa ”Kylmäkoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1616,
+      "competitionId": "nokia-masters-juniors-2025-2025-05-30-2025-01-06-nokia-prodiscus",
+      "name": "Nokia Masters & Juniors",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1624,
+      "competitionId": "european-amateur-open-2025-2025-2025-07-18-2025-07-20-nokia-tampere-ylojarvi-spin-18-oy",
+      "name": "European Amateur Open 2025",
+      "message": "Kuntaa ”Nokia, Tampere, Ylöjärvi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1634,
+      "competitionId": "yliskulma-am-2025-2025-05-24-2025-05-24-lieto-yliskulma-marttilan-murto",
+      "name": "Yliskulma AM",
+      "message": "Kuntaa ”Lieto, Yliskulma” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1640,
+      "competitionId": "nbdg-amateurs-kivikko-2025-2025-05-04-2025-05-04-kivikko-natural-born-disc-golfer",
+      "name": "NBDG Amateurs™ Kivikko",
+      "message": "Kuntaa ”Kivikko” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1644,
+      "competitionId": "tahkovuori-open-2025-2025-07-26-2025-07-27-nilsia-vuorelan-veikot",
+      "name": "Tahkovuori Open",
+      "message": "Kuntaa ”Nilsiä” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1648,
+      "competitionId": "keski-pohjanmaan-liiga-2025-2025-2025-04-28-2025-06-23-9-kpl-keski-pohjamaan-kuntaa-pjlfg-ja-wcdg",
+      "name": "Keski-Pohjanmaan liiga 2025",
+      "message": "Kuntaa ”9 kpl Keski-Pohjamaan kuntaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1653,
+      "competitionId": "amatoorien-sm-karsinnat-presented-by-powergrip-5-kokkola-2025-2025-12-07-2025-07-13-kokkola-natural-born-disc-golfer",
+      "name": "Amatöörien SM-karsinnat Presented by Powergrip - #5 Kokkola",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1670,
+      "competitionId": "jyvaskyla-open-2025-sponsored-by-sport-store-bigfoot-2025-2025-11-07-2025-07-13-jyvaskyla-discooter-finland-osk",
+      "name": "Jyväskylä Open 2025 - Sponsored by Sport Store Bigfoot",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1695,
+      "competitionId": "susiraja-open-2025-sponsored-by-clash-discs-2025-2025-07-26-2025-07-27-joensuu-joen-liitokiekko-ry",
+      "name": "Susiraja Open 2025 sponsored by Clash Discs",
+      "message": "Outokumpu: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1704,
+      "competitionId": "jokiliiga-1-2025-2025-2025-07-05-2025-11-06-joensuu-joen-liitokiekko-ry",
+      "name": "JokiLiiga 1/2025",
+      "message": "Kontiolahti: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1723,
+      "competitionId": "prodigy-disc-pro-tour-2025-2-rovaniemi-2025-2025-05-30-2025-01-06-rovaniemi-discooter-finland-osk",
+      "name": "Prodigy Disc Pro Tour 2025 - #2 Rovaniemi",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1726,
+      "competitionId": "prodigy-disc-pro-tour-2025-5-hameenlinna-2025-2025-12-09-2025-09-14-hameenlinna-hameenlinnan-discaajat-ry",
+      "name": "Prodigy Disc Pro Tour 2025 - #5 Hämeenlinna",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1731,
+      "competitionId": "tammer-open-2025-2025-12-04-2025-04-13-tampere-tampereen-frisbeeseura-ry",
+      "name": "Tammer Open",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1743,
+      "competitionId": "pohjan-paasiainen-2025-2025-04-19-2025-04-19-pohja-raaseporin-korilla-ry",
+      "name": "Pohjan Pääsiäinen",
+      "message": "Kuntaa ”Pohja” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1769,
+      "competitionId": "bosund-open-2025-2025-03-05-2025-03-05-bosund-wcdg-ry",
+      "name": "Bosund Open",
+      "message": "Kuntaa ”Bosund” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1772,
+      "competitionId": "fuzzy-eagle-league-1-2025-2025-12-05-2025-06-16-espoo-natural-born-disc-golfer",
+      "name": "Fuzzy Eagle League #1",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1792,
+      "competitionId": "karjaan-kevatrieha-2025-2025-2025-04-05-2025-04-05-karjaa-raaseporin-korilla-ry",
+      "name": "Karjaan kevätrieha 2025",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1793,
+      "competitionId": "lansi-uusimaan-fribbetour-2025-2025-2025-05-19-2025-07-21-lansi-uusimaa-raaseporin-korilla-ry",
+      "name": "Länsi-Uusimaan Fribbetour 2025",
+      "message": "Kuntaa ”Länsi-Uusimaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1794,
+      "competitionId": "karjaa-open-2025-2025-06-14-2025-06-14-karjaa-raaseporin-korilla-ry",
+      "name": "Karjaa Open",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1803,
+      "competitionId": "prodiscus-amateurs-kaupinkangas-2025-2025-05-24-2025-05-24-yliharma-lakeus-disc-golf-ry",
+      "name": "Prodiscus Amateurs Kaupinkangas",
+      "message": "Kuntaa ”Ylihärmä” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1830,
+      "competitionId": "nbdg-support-program-2025-2025-10-06-2025-12-08-jyvaskyla-espoo-sipoo-heinola-tuusula-paimio-nurmijarvi-lempaala-hyvinkaa-oulu-natural-born-disc-golfer",
+      "name": "NBDG Support Program™",
+      "message": "Kuntaa ”Jyväskylä, Espoo, Sipoo, Heinola, Tuusula, Paimio, Nurmijärvi, Lempäälä, Hyvinkää, Oulu” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1834,
+      "competitionId": "savo-one-rounds-2025-juankoski-2025-2025-03-07-2025-03-07-juankoski-vuorelan-veikot-ja-deep-in-the-forest",
+      "name": "Savo one rounds 2025 Juankoski",
+      "message": "Kuntaa ”Juankoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1842,
+      "competitionId": "west-coast-open-2025-2025-2025-08-16-2025-08-17-luoto-wcdg-ry",
+      "name": "West Coast Open 2025",
+      "message": "Kokkola: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1847,
+      "competitionId": "rollo-open-2025-2025-12-07-2025-07-13-rovaniemi-rovaniemen-rolffarit-ry",
+      "name": "Rollo Open",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1865,
+      "competitionId": "kapina-open-2025-2025-2025-12-07-2025-07-13-nivala-nivalan-frisbeegolf-ry",
+      "name": "Kapina Open 2025",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1866,
+      "competitionId": "raaseporin-helmi-sponsored-by-innova-champion-discs-2025-2025-07-26-2025-07-27-karjaa-raaseporin-korilla-ry",
+      "name": "Raaseporin Helmi sponsored by Innova champion discs",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1870,
+      "competitionId": "jokiliiga-2-2025-2025-2025-09-07-2025-08-13-joensuu-kontiolahti-outokumpu-joen-liitokiekko-ry",
+      "name": "JokiLiiga 2/2025",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1870,
+      "competitionId": "jokiliiga-2-2025-2025-2025-09-07-2025-08-13-joensuu-kontiolahti-outokumpu-joen-liitokiekko-ry",
+      "name": "JokiLiiga 2/2025",
+      "message": "Kuntaa ”Joensuu, Kontiolahti, Outokumpu” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1877,
+      "competitionId": "prodiscus-pdga-liiga-2025-2025-07-07-2025-08-18-jyvaskyla-laukaa-jamsankoski-prodiscsus",
+      "name": "Prodiscus PDGA Liiga",
+      "message": "Kuntaa ”Jyväskylä, Laukaa, jämsänkoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1878,
+      "competitionId": "prodiscus-pdga-liiga-2025-2025-07-07-2025-11-08-jyvaskyla-laukaa-jamsankoski-prodiscus",
+      "name": "Prodiscus PDGA Liiga",
+      "message": "Kuntaa ”Jyväskylä, Laukaa, jämsänkoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1880,
+      "competitionId": "prodiscus-league-pirkanmaa-2025-2025-06-19-2025-07-31-pirkanmaa-prodiscus",
+      "name": "Prodiscus League @Pirkanmaa",
+      "message": "Kuntaa ”Pirkanmaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1898,
+      "competitionId": "puska-puttaajien-pdga-liiga-2025-2025-2025-07-31-2025-04-09-laukaa-puska-puttaajat-ry",
+      "name": "Puska Puttaajien PDGA Liiga 2025",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1912,
+      "competitionId": "aland-open-2025-2025-08-08-2025-10-08-vesterkalmare-dgp-aland-playcation-ab",
+      "name": "Åland Open",
+      "message": "Kuntaa ”Vesterkalmare DGP, Åland” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1926,
+      "competitionId": "jurva-amateur-open-2025-2025-2025-09-21-2025-09-21-jurva-korsholm-mustasaari-disc-club-ry",
+      "name": "Jurva Amateur Open 2025",
+      "message": "Kuntaa ”Jurva” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1930,
+      "competitionId": "tammisaari-open-2025-2025-09-14-2025-09-14-raasepori-eif-discgolf",
+      "name": "Tammisaari Open",
+      "message": "Tammisaari: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1930,
+      "competitionId": "tammisaari-open-2025-2025-09-14-2025-09-14-raasepori-eif-discgolf",
+      "name": "Tammisaari Open",
+      "message": "Kuntaa ”Tammisaari” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 1966,
+      "competitionId": "wednesday-12-00-tour-2025-1-8-meilahti-skogby-2025-2025-10-15-2025-10-12-helsinki-team-hippo-ry-1-3-5-7-meilahti-ja-skogby-ik-2-4-6-8-skogby",
+      "name": "Wednesday 12:00 Tour 2025, 1-8 Meilahti / Skogby",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 1966,
+      "competitionId": "wednesday-12-00-tour-2025-1-8-meilahti-skogby-2025-2025-10-15-2025-10-12-helsinki-team-hippo-ry-1-3-5-7-meilahti-ja-skogby-ik-2-4-6-8-skogby",
+      "name": "Wednesday 12:00 Tour 2025, 1-8 Meilahti / Skogby",
+      "message": "Raasepori: rata puuttuu."
+    },
+    {
+      "sourceIndex": 1982,
+      "competitionId": "battle-of-the-three-forest-2026-2026-2026-05-23-2026-05-24-raasepori-inkoo-skogby-ik-disc-golf",
+      "name": "Battle of the three forest 2026",
+      "message": "Kuntaa ”Raasepori,Inkoo” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2010,
+      "competitionId": "varligan-2026-2026-2026-12-04-2026-05-17-jomala-ax-discgolf-rf",
+      "name": "Vårligan 2026",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 2019,
+      "competitionId": "aanekoski-open-2026-pgpt-status-2026-2026-12-06-2026-06-14-aanekoski-aki-dg",
+      "name": "Äänekoski Open 2026 + PGPT Status",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 2033,
+      "competitionId": "takaysi-vasterby-2026-2026-05-17-2026-05-17-tammisaari-takaysi",
+      "name": "Takaysi - Västerby",
+      "message": "Kuntaa ”Tammisaari” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2041,
+      "competitionId": "pohjois-karjalan-avoimet-2026-sponsored-by-powergrip-2026-2026-12-06-2026-06-14-joensuu-joen-liitokiekko-ry",
+      "name": "Pohjois-Karjalan avoimet 2026 sponsored by Powergrip",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 2042,
+      "competitionId": "aijanpellon-talvimestaruus-2026-2026-08-03-2026-08-02-espoo-puskasoturit-ry",
+      "name": "Äijänpellon talvimestaruus",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 2065,
+      "competitionId": "julkujarven-pdga-liiga-2026-2026-12-05-2026-06-16-ylojarvi-ylojarven-ryhti",
+      "name": "Julkujärven PDGA-liiga",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 2073,
+      "competitionId": "pk-seudun-kesaliiga-2026-2026-2026-01-06-2026-07-20-espoo-takaysi",
+      "name": "PK-seudun kesäliiga 2026",
+      "message": "Helsinki: rata puuttuu."
+    },
+    {
+      "sourceIndex": 2080,
+      "competitionId": "karjaan-kevatrieha-2026-2026-04-26-2026-04-26-karjaa-raaseporin-korilla",
+      "name": "Karjaan kevätrieha",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2081,
+      "competitionId": "lansi-uusimaan-fribbetour-2026-2026-04-27-2026-06-29-lansi-uusimaa-raaseporin-korilla",
+      "name": "Länsi-Uusimaan FribbeTour",
+      "message": "Kuntaa ”Länsi-Uusimaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2082,
+      "competitionId": "pohjan-kevatrieha-2026-2026-10-05-2026-10-05-pohja-raaseporin-korilla",
+      "name": "Pohjan Kevätrieha",
+      "message": "Kuntaa ”Pohja” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2083,
+      "competitionId": "karjaa-open-2026-2026-2026-06-13-2026-06-13-karjaa-raaseporin-korilla",
+      "name": "Karjaa Open 2026",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2089,
+      "competitionId": "sfg-oneround-marynummi-2026-2026-05-04-2026-05-04-salo-marynummi-salon-frisbeegolf-ry",
+      "name": "SFG OneRound Märynummi",
+      "message": "Kuntaa ”Salo Märynummi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2106,
+      "competitionId": "pro-ford-by-fribakisat-fi-2026-2026-07-25-2026-07-25-tuutla-fribakisat-fi",
+      "name": "Pro Ford By Fribakisat.fi",
+      "message": "Kuntaa ”Tuutla” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2116,
+      "competitionId": "paasiaispappis-one-round-2026-2026-04-04-2026-04-04-valkeakoski-pirkanmaa-vlkdg-ry",
+      "name": "PääsiäisPappis One round",
+      "message": "Kuntaa ”Valkeakoski Pirkanmaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2134,
+      "competitionId": "jokiliiga-1-2026-2026-2026-06-05-2026-10-06-joensuu-joen-liitokiekko-ry",
+      "name": "JokiLiiga 1/2026",
+      "message": "Kontiolahti: rata puuttuu."
+    },
+    {
+      "sourceIndex": 2138,
+      "competitionId": "perameri-open-2026-2026-2026-12-06-2026-06-14-oulu-bsc-discgolfteam",
+      "name": "Perämeri Open 2026",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 2148,
+      "competitionId": "raaseporin-helmi-sponsored-by-innova-champion-discs-2026-2026-07-25-2026-07-26-karjaa-raaseporin-korilla",
+      "name": "Raaseporin Helmi sponsored by Innova champion discs",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2154,
+      "competitionId": "aakonvuori-open-2026-2026-2026-07-25-2026-04-25-haapavesi-discgolfclub-haapavesi",
+      "name": "Aakonvuori Open 2026",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 2193,
+      "competitionId": "puula-open-2026-2026-2026-12-09-2026-09-13-kangasniemi-kangasniemen-palloilijat-ry-kapadg",
+      "name": "Puula Open 2026",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 2197,
+      "competitionId": "savo-one-round-juankoski-2026-2026-07-16-2026-07-16-juankoski-veikot-ja-deep-in-the-forest",
+      "name": "Savo one round Juankoski",
+      "message": "Kuntaa ”Juankoski” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2201,
+      "competitionId": "raaseporin-helmi-flex-start-1-2026-2026-07-20-2026-07-20-karjaa-raaseporin-korilla",
+      "name": "Raaseporin Helmi Flex Start 1",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2202,
+      "competitionId": "raaseporin-helmi-flex-start-2-2026-2026-07-22-2026-07-22-karjaa-raaseporin-korilla",
+      "name": "Raaseporin Helmi Flex Start 2",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2208,
+      "competitionId": "nousten-frisbeegolf-turku-tour-2026-pdga-liiga-sponsored-by-innova-europe-2026-2026-06-25-2026-07-30-turku-lieto-masku-nousten-frisbeegolf-ry",
+      "name": "Nousten Frisbeegolf - Turku Tour 2026 PDGA Liiga (Sponsored by Innova Europe)",
+      "message": "Kuntaa ”Turku, Lieto, Masku” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2224,
+      "competitionId": "lapland-pdga-league-2026-2026-2026-07-18-2026-10-10-lappi-discooter-finland-osk",
+      "name": "Lapland PDGA-league-2026",
+      "message": "Kuntaa ”Lappi” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2242,
+      "competitionId": "kaakon-syksy-2026-2026-2026-09-26-2026-09-27-lappeenranta-imatra-willimiehen-disc-golf-ry-yhteistyossa-vuoksen-disc-gof-ry-laskutus-wdg-lta",
+      "name": "Kaakon Syksy 2026",
+      "message": "Kuntaa ”Lappeenranta, Imatra” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2244,
+      "competitionId": "tammisaari-open-2026-2026-2026-05-09-2026-05-09-tammisaari-eif-discgolf",
+      "name": "Tammisaari Open 2026",
+      "message": "Kuntaa ”TAMMISAARI” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2258,
+      "competitionId": "barents-games-2026-discgolf-2026-2026-08-22-2026-08-23-oulu-bsc-discgolf-ry",
+      "name": "Barents Games 2026 Discgolf",
+      "message": "PDGA-taso ”CX-tier” poikkeaa tavallisista tasomerkinnöistä."
+    },
+    {
+      "sourceIndex": 2298,
+      "competitionId": "kirkkonummen-marraskuu-by-fribakisat-fi-2026-2026-11-22-2026-10-22-kirkkonummi-fribakisat-fi",
+      "name": "Kirkkonummen marraskuu By Fribakisat.fi",
+      "message": "Päivämääräväli on käänteinen; alkuperäisiä päivämääriä ei korjattu."
+    },
+    {
+      "sourceIndex": 2300,
+      "competitionId": "karjaan-marraskuu-2026-2026-11-15-2026-11-15-karjaa-raaseporin-korilla",
+      "name": "Karjaan Marraskuu",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    },
+    {
+      "sourceIndex": 2302,
+      "competitionId": "circle-challenge-karjaa-3-2026-2026-11-11-2026-11-11-karjaa-raaseporin-korilla",
+      "name": "Circle Challenge Karjaa 3",
+      "message": "Kuntaa ”Karjaa” ei voitu yhdistää kuntatietoihin."
+    }
+  ]
+}

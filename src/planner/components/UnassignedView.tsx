@@ -4,15 +4,18 @@ import type { Region } from '../../models/region';
 import { formatArea, type ScenarioAnalysis } from '../../services/regionAnalytics';
 import { StatCard, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
+import type { CompetitionContext } from '../../state/useCompetitions';
+import { CompetitionScope } from '../../components/CompetitionScope';
 
 interface UnassignedViewProps {
   analysis: ScenarioAnalysis;
   regions: Region[];
   onShowOnMap: () => void;
   onAssign: (regionId: string, codes: string[]) => void;
+  competitions: CompetitionContext;
 }
 
-export function UnassignedView({ analysis, regions, onShowOnMap, onAssign }: UnassignedViewProps) {
+export function UnassignedView({ analysis, regions, onShowOnMap, onAssign, competitions }: UnassignedViewProps) {
   const [target, setTarget] = useState('');
   const [onlyWithClubs, setOnlyWithClubs] = useState(false);
   const rows = analysis.unassigned.filter((row) => !onlyWithClubs || row.clubs.length > 0);
@@ -32,6 +35,7 @@ export function UnassignedView({ analysis, regions, onShowOnMap, onAssign }: Una
         <StatCard label="Kohdistamaton äänimäärä" value={integerFormat.format(totals.votes)} />
         <StatCard label="Kohdistamaton pinta-ala" value={formatArea(totals.area)} />
       </div>
+      <CompetitionScope context={competitions} codes={analysis.unassigned.map((row) => row.municipality.code)} title="Kohdistamattomat kunnat" />
       {analysis.totals.unplacedClubs.length > 0 && <p className="notice">{analysis.totals.unplacedClubs.length} seuraa ei voitu kohdistaa mihinkään kuntaan: {analysis.totals.unplacedClubs.map((club) => club.seura).join(', ')}.</p>}
       <section className="planner-card table-card">
         <div className="table-toolbar">
@@ -47,7 +51,7 @@ export function UnassignedView({ analysis, regions, onShowOnMap, onAssign }: Una
           )}
         </div>
         <table className="data-table">
-          <thead><tr><th scope="col">Kunta</th><th scope="col">Maakunta</th><th scope="col">Väestö 2025</th><th scope="col" className="numeric">Seuroja</th><th scope="col" className="numeric">Jäseniä</th><th scope="col" className="numeric">Äänimäärä</th><th scope="col" className="numeric">Pinta-ala</th>{enabled.length > 0 && <th scope="col"><span className="sr-only">Toiminnot</span></th>}</tr></thead>
+          <thead><tr><th scope="col">Kunta</th><th scope="col">Maakunta</th><th scope="col">Väestö 2025</th><th scope="col" className="numeric">Seuroja</th><th scope="col" className="numeric">Jäseniä</th><th scope="col" className="numeric">Äänimäärä</th><th scope="col" className="numeric">Pinta-ala</th><th scope="col">Ensisijaiset kilpailut · suodatettu</th>{enabled.length > 0 && <th scope="col"><span className="sr-only">Toiminnot</span></th>}</tr></thead>
           <tbody>
             {rows.map((row) => (
               <tr key={row.municipality.code}>
@@ -58,10 +62,11 @@ export function UnassignedView({ analysis, regions, onShowOnMap, onAssign }: Una
                 <td className="numeric">{integerFormat.format(row.members)}</td>
                 <td className="numeric">{row.votes}</td>
                 <td className="numeric">{formatArea(row.municipality.areaKm2)}</td>
+                <td>{competitions.filters.visibility === 'hidden' ? 'Piilotettu' : competitions.analysis?.primaryCounts.get(row.municipality.code) ?? 0}</td>
                 {enabled.length > 0 && <td><button type="button" className="text-button" disabled={!target} onClick={() => onAssign(target, [row.municipality.code])} aria-label={`Lisää ${row.municipality.name} valittuun alueeseen`}>Lisää</button></td>}
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={enabled.length > 0 ? 8 : 7} className="empty-text">Kaikki kunnat on kohdistettu alueisiin.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={enabled.length > 0 ? 9 : 8} className="empty-text">Kaikki kunnat on kohdistettu alueisiin.</td></tr>}
           </tbody>
         </table>
       </section>

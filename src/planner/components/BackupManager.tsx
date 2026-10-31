@@ -5,6 +5,8 @@ import { BACKUP_LIMIT, compareDocuments } from '../../services/backupService';
 import { getCoveragePopulation } from '../../services/populationService';
 import { activeScenario } from '../../services/plannerDocument';
 import { formatCount } from '../../services/mapService';
+import type { CompetitionContext } from '../../state/useCompetitions';
+import { CompetitionScope } from '../../components/CompetitionScope';
 
 interface BackupManagerProps {
   backups: Snapshot[];
@@ -13,11 +15,12 @@ interface BackupManagerProps {
   onCreate: () => void;
   onRestore: (snapshot: Snapshot) => void;
   readOnly?: boolean;
+  competitions: CompetitionContext;
 }
 
 const CURRENT = 'current';
 
-export function BackupManager({ backups, current, dataset, onCreate, onRestore, readOnly = false }: BackupManagerProps) {
+export function BackupManager({ backups, current, dataset, onCreate, onRestore, readOnly = false, competitions }: BackupManagerProps) {
   const [left, setLeft] = useState<string>(backups[0]?.id ?? '');
   const [right, setRight] = useState<string>(CURRENT);
   const resolve = (id: string) => id === CURRENT ? current : backups.find((backup) => backup.id === id)?.document;
@@ -55,6 +58,9 @@ export function BackupManager({ backups, current, dataset, onCreate, onRestore, 
             <label className="field grow">Verrattava<select value={right} onChange={(event) => setRight(event.target.value)}>{options.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
           </div>
           <p className="hint">Aktiivisen skenaarion väestökattavuus vuoden 2025 aineistolla: {formatCount(beforePopulation)} → {formatCount(afterPopulation)} asukasta. Muutos: {beforePopulation !== null && afterPopulation !== null ? formatCount(afterPopulation - beforePopulation) : 'Ei tietoa'}. Päällekkäiset kunnat lasketaan kerran; tämä ei kuvaa historiallista väestömuutosta.</p>
+          <p className="hint">Kilpailukattavuus käyttää nykyistä kilpailuaineistoa ja yhteisiä suodattimia; se ei kuvaa varmuuskopion ajankohdan kilpailutilannetta.</p>
+          {before && <CompetitionScope context={competitions} codes={activeScenario(before).regions.filter((region) => region.enabled).flatMap((region) => region.municipalityCodes)} title="Lähtötilanne" />}
+          {after && <CompetitionScope context={competitions} codes={activeScenario(after).regions.filter((region) => region.enabled).flatMap((region) => region.municipalityCodes)} title="Verrattava tilanne" />}
           {comparison && (empty ? <p className="validation-ok">Tilannekuvat ovat sisällöltään samat.</p> : (
             <ul className="diff-list">
               {comparison.addedScenarios.map((name) => <li key={`as-${name}`} className="added">+ Skenaario {name}</li>)}
