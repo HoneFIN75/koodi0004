@@ -17,7 +17,7 @@ export function RankingCard({ title, description, rows, valueLabel, limit = 10 }
       </div>
       <div className="ranking-list">
         {rows.slice(0, limit).map((row, index) => (
-          <div className="ranking-row" key={row.name}>
+          <div className="ranking-row" key={`${row.name}-${index}`}>
             <span className={`rank-number ${index < 3 ? 'rank-highlight' : ''}`}>{String(index + 1).padStart(2, '0')}</span>
             <div className="rank-name"><strong>{row.name}</strong><span>{row.clubs} seuraa</span></div>
             <strong className="rank-value">{row.members.toLocaleString('fi-FI')} <small>{valueLabel}</small></strong>

@@ -4,56 +4,83 @@ const DATABASE_URL = '/jsondb/seurat.json';
 let databaseRequest: Promise<Database> | undefined;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function parseCount(value: unknown, field: string, index: number): number {
+function parseNumber(value: unknown): number | null {
   const parsed = typeof value === 'number'
     ? value
-    : typeof value === 'string'
-      ? Number(value.replace(/\u00a0/g, ' ').trim())
+    : typeof value === 'string' && value.trim() !== ''
+      ? Number(value.replace(/\s/g, ''))
       : Number.NaN;
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    throw new Error(`Virheellinen ${field} seuran ${index + 1} tiedoissa.`);
-  }
-  return parsed;
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
-function parseDatabase(value: unknown): Database {
-  if (!isRecord(value) || !isRecord(value.metadata) || !Array.isArray(value.data)) {
+function parseCount(value: unknown): number | null {
+  const count = parseNumber(value);
+  return count !== null && Number.isSafeInteger(count) && count >= 0 ? count : null;
+}
+
+function text(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+const coreFields = new Set(['seura', 'paikkakunta', 'latitude', 'longitude', 'jasenmaara', 'aanimaara']);
+
+export function parseDatabase(value: unknown): Database {
+  if (!isRecord(value) || !Array.isArray(value.data)) {
     throw new Error('JSON-tietokannan rakenne ei vastaa odotettua muotoa.');
   }
-  const { generatedAt, recordCount, source } = value.metadata;
-  if (typeof generatedAt !== 'string' || typeof recordCount !== 'number' || typeof source !== 'string') {
-    throw new Error('JSON-tietokannan metadata on virheellinen.');
+  const warnings: string[] = [];
+  const metadata = isRecord(value.metadata) ? value.metadata : {};
+  const date = text(metadata.generatedAt);
+  const generatedAt = date && Number.isFinite(Date.parse(date)) ? date : null;
+  const recordCount = parseCount(metadata.recordCount);
+  const source = text(metadata.source);
+  if (generatedAt === null || recordCount === null || source === null) {
+    warnings.push('Metadata on puutteellinen. Tilastot lasketaan data-taulukon tietueista.');
   }
 
-  const data = value.data.map((item, index): Club => {
-    if (!isRecord(item)
-      || typeof item.seura !== 'string'
-      || typeof item.paikkakunta !== 'string'
-      || typeof item.latitude !== 'number'
-      || typeof item.longitude !== 'number'
-      || !Number.isFinite(item.latitude)
-      || !Number.isFinite(item.longitude)
-      || item.latitude < -90 || item.latitude > 90
-      || item.longitude < -180 || item.longitude > 180) {
-      throw new Error(`Seuran ${index + 1} tiedot ovat virheelliset.`);
+  const data: Club[] = [];
+  let skipped = 0;
+  let incomplete = 0;
+  for (const [index, item] of value.data.entries()) {
+    if (!isRecord(item)) {
+      skipped += 1;
+      continue;
     }
-    return {
-      seura: item.seura,
-      paikkakunta: item.paikkakunta,
-      latitude: item.latitude,
-      longitude: item.longitude,
-      jasenmaara: parseCount(item.jasenmaara, 'jäsenmäärä', index),
-      aanimaara: parseCount(item.aanimaara, 'äänimäärä', index),
-    };
-  });
-
-  if (recordCount !== data.length) {
-    throw new Error(`Tietokannan ilmoitettu tietuemäärä (${recordCount}) ei vastaa aineistoa (${data.length}).`);
+    const seura = text(item.seura);
+    const paikkakunta = text(item.paikkakunta);
+    const lat = parseNumber(item.latitude);
+    const lng = parseNumber(item.longitude);
+    const latitude = lat !== null && lat >= -90 && lat <= 90 ? lat : null;
+    const longitude = lng !== null && lng >= -180 && lng <= 180 ? lng : null;
+    const jasenmaara = parseCount(item.jasenmaara);
+    const aanimaara = parseCount(item.aanimaara);
+    if (!seura || !paikkakunta || latitude === null || longitude === null || jasenmaara === null || aanimaara === null) {
+      incomplete += 1;
+    }
+    const entries: [string, string | number][] = [];
+    for (const [key, field] of Object.entries(item)) {
+      if (!coreFields.has(key) && ((typeof field === 'string' && field.trim()) || (typeof field === 'number' && Number.isFinite(field)))) {
+        entries.push([key, field]);
+      }
+    }
+    data.push({
+      seura: seura ?? `Nimetön seura (tietue ${index + 1})`,
+      paikkakunta: paikkakunta ?? 'Paikkakunta puuttuu',
+      latitude, longitude, jasenmaara, aanimaara, details: Object.fromEntries(entries),
+    });
   }
-  return { metadata: { generatedAt, recordCount, source }, data };
+
+  if (recordCount !== null && recordCount !== value.data.length) {
+    warnings.push(`Metadata ilmoittaa ${recordCount} tietuetta, mutta data-taulukossa on ${value.data.length}. Kaikki taulukon seurat käsitellään.`);
+  }
+  if (skipped) warnings.push(`${skipped} virheellistä tietuetta ohitettiin, koska ne eivät ole JSON-objekteja.`);
+  if (incomplete) {
+    warnings.push(`${incomplete} seuran tiedot ovat puutteelliset. Tuntemattomia lukumääriä ei lasketa nolliksi; ilman koordinaatteja olevat seurat näkyvät vain luettelossa ja tilastoissa.`);
+  }
+  return { metadata: { generatedAt, recordCount, source }, data, warnings };
 }
 
 async function loadDatabase(): Promise<Database> {
