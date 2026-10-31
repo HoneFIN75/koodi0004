@@ -107,7 +107,7 @@ export default function App() {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="Seurakartta etusivu">
+        <a className="brand" href={import.meta.env.BASE_URL} aria-label="Seurakartta etusivu">
           <span className="brand-mark"><span /></span>
           <span>SEURA<span className="brand-light">KARTTA</span><small>SUOMEN FRISBEEGOLFSEURAT</small></span>
         </a>

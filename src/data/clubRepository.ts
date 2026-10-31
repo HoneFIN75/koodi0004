@@ -1,6 +1,6 @@
 import type { Club, Database } from '../models/club';
 
-const DATABASE_URL = '/jsondb/seurat.json';
+const DATABASE_URL = './jsondb/seurat.json';
 let databaseRequest: Promise<Database> | undefined;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
