@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "version": 1,
+    "source": "Maakuntajako derived from the municipality province attributes in public/geo/kunnat.geojson",
+    "license": "See public/geo/kunnat.geojson metadata"
+  },
+  "regions": [
+    { "id": "uusimaa", "name": "Uusimaa", "municipalityProvince": "Uusimaa", "color": "#2563EB" },
+    { "id": "kanta-hame", "name": "Kanta-Häme", "municipalityProvince": "Kanta-Häme", "color": "#DB2777" },
+    { "id": "paijat-hame", "name": "Päijät-Häme", "municipalityProvince": "Päijät-Häme", "color": "#7C3AED" },
+    { "id": "kymenlaakso", "name": "Kymenlaakso", "municipalityProvince": "Kymenlaakso", "color": "#0891B2" },
+    { "id": "etela-karjala", "name": "Etelä-Karjala", "municipalityProvince": "Etelä-Karjala", "color": "#EA580C" },
+    { "id": "varsinais-suomi", "name": "Varsinais-Suomi", "municipalityProvince": "Varsinais-Suomi", "color": "#16A34A" },
+    { "id": "satakunta", "name": "Satakunta", "municipalityProvince": "Satakunta", "color": "#CA8A04" },
+    { "id": "pirkanmaa", "name": "Pirkanmaa", "municipalityProvince": "Pirkanmaa", "color": "#DC2626" },
+    { "id": "keski-suomi", "name": "Keski-Suomi", "municipalityProvince": "Keski-Suomi", "color": "#4F46E5" },
+    { "id": "etela-pohjanmaa", "name": "Etelä-Pohjanmaa", "municipalityProvince": "Etelä-Pohjanmaa", "color": "#059669" },
+    { "id": "pohjanmaa", "name": "Pohjanmaa", "municipalityProvince": "Pohjanmaa", "color": "#9333EA" },
+    { "id": "keski-pohjanmaa", "name": "Keski-Pohjanmaa", "municipalityProvince": "Keski-Pohjanmaa", "color": "#C026D3" },
+    { "id": "etela-savo", "name": "Etelä-Savo", "municipalityProvince": "Etelä-Savo", "color": "#0284C7" },
+    { "id": "pohjois-savo", "name": "Pohjois-Savo", "municipalityProvince": "Pohjois-Savo", "color": "#65A30D" },
+    { "id": "pohjois-karjala", "name": "Pohjois-Karjala", "municipalityProvince": "Pohjois-Karjala", "color": "#E11D48" },
+    { "id": "pohjois-pohjanmaa", "name": "Pohjois-Pohjanmaa", "municipalityProvince": "Pohjois-Pohjanmaa", "color": "#0F766E" },
+    { "id": "kainuu", "name": "Kainuu", "municipalityProvince": "Kainuu", "color": "#A16207" },
+    { "id": "lappi", "name": "Lappi", "municipalityProvince": "Lappi", "color": "#475569" },
+    { "id": "ahvenanmaa", "name": "Ahvenanmaa", "municipalityProvince": "Ahvenanmaa", "color": "#B45309" }
+  ]
+}

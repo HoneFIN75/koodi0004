@@ -53,6 +53,21 @@ async function addMunicipality(page: Page, name: string) {
   await page.getByRole('list', { name: 'Kuntaluettelo' }).getByRole('checkbox', { name: new RegExp(`^${name}`) }).check();
 }
 
+test('province overlay is independent from planner regions and restores saved map settings', async ({ page }) => {
+  await open(page);
+  await expect(page.locator('.province-fill').first()).toBeVisible();
+  await expect(page.locator('.province-color-key')).toContainText('Uusimaa');
+  await page.getByLabel('Maakuntatason peittävyys').fill('64');
+  await page.getByLabel('Näytä maakuntarajat').uncheck();
+  await page.getByLabel('Näytä maakunnat').uncheck();
+  await page.reload();
+  await open(page);
+  await expect(page.getByLabel('Maakuntatason peittävyys')).toHaveValue('64');
+  await expect(page.getByLabel('Näytä maakuntarajat')).not.toBeChecked();
+  await expect(page.getByLabel('Näytä maakunnat')).not.toBeChecked();
+  await expect(page.getByRole('button', { name: 'Uusi alue' })).toBeVisible();
+});
+
 test('population appears in planner maps, region details, dashboards, comparisons and exports', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();

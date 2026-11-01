@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { MunicipalityDataset, Position, Region } from '../../models/region';
+import type { ProvinceDataset, ProvinceOverlaySettings } from '../../models/province.ts';
 import { outlineSegments } from '../../services/geoService';
+import { createProvinceOverlay } from '../../services/provinceOverlay.ts';
 import { formatCount, markerColor, markerRadius } from '../../services/mapService';
 import { getMunicipalityRank, getPopulationCategory, populationCategories, summarizePopulation } from '../../services/populationService';
 import type { ClubPlacement, MunicipalityAggregate } from '../../services/regionAnalytics';
@@ -26,6 +28,8 @@ interface RegionMapProps {
   showBaseMap: boolean;
   populationLayer: boolean;
   dark: boolean;
+  provinces: ProvinceDataset | null;
+  provinceSettings: ProvinceOverlaySettings;
   onMunicipalityClick: (code: string) => void;
   onRegionSelect: (id: string) => void;
 }
@@ -81,7 +85,7 @@ export function RegionMap(props: RegionMapProps) {
   const latest = useRef(props);
   latest.current = props;
   const layers = useRef<{
-    map: L.Map; tiles: L.TileLayer; municipalities: L.GeoJSON; fills: L.LayerGroup; outlines: L.LayerGroup; labels: L.LayerGroup; clubs: L.LayerGroup;
+    map: L.Map; tiles: L.TileLayer; municipalities: L.GeoJSON; fills: L.LayerGroup; outlines: L.LayerGroup; labels: L.LayerGroup; clubs: L.LayerGroup; provinceOverlay: ReturnType<typeof createProvinceOverlay> | null;
     renderers: Record<'fill' | 'municipality' | 'outline' | 'clubs', L.Canvas>;
   } | null>(null);
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -91,7 +95,7 @@ export function RegionMap(props: RegionMapProps) {
     if (!element.current) return undefined;
     const map = L.map(element.current, { zoomSnap: 0.25, minZoom: 4, maxBounds: [[54, 8], [74, 42]], zoomAnimation: !reducedMotion, fadeAnimation: !reducedMotion, attributionControl: true });
     map.fitBounds(FINLAND_BOUNDS);
-    const panes = [['regionFill', 410], ['municipality', 420], ['regionOutline', 430], ['clubs', 440]] as const;
+    const panes = [['provinceOverlay', 405], ['regionFill', 410], ['municipality', 420], ['regionOutline', 430], ['clubs', 440]] as const;
     for (const [name, zIndex] of panes) map.createPane(name).style.zIndex = String(zIndex);
     const renderers = {
       fill: L.canvas({ pane: 'regionFill', padding: 0.4 }),
@@ -128,11 +132,23 @@ export function RegionMap(props: RegionMapProps) {
     const outlines = L.layerGroup().addTo(map);
     const labels = L.layerGroup().addTo(map);
     const clubs = L.layerGroup().addTo(map);
-    layers.current = { map, tiles, municipalities, fills, outlines, labels, clubs, renderers };
+    const provinceOverlay = props.provinces
+      ? createProvinceOverlay(dataset, props.provinces, props.provinceSettings, 'provinceOverlay')
+      : null;
+    if (provinceOverlay && props.provinceSettings.showRegions) provinceOverlay.addTo(map);
+    layers.current = { map, tiles, municipalities, fills, outlines, labels, clubs, provinceOverlay, renderers };
     const observer = new ResizeObserver(() => map.invalidateSize());
     observer.observe(element.current);
     return () => { observer.disconnect(); map.remove(); layers.current = null; };
-  }, [dataset, reducedMotion]);
+  }, [dataset, props.provinces, reducedMotion]);
+
+  useEffect(() => {
+    const current = layers.current;
+    if (!current?.provinceOverlay) return;
+    current.provinceOverlay.updateSettings(props.provinceSettings);
+    if (props.provinceSettings.showRegions) current.provinceOverlay.addTo(current.map);
+    else current.provinceOverlay.remove();
+  }, [props.provinceSettings, props.provinces]);
 
   useEffect(() => {
     const current = layers.current;

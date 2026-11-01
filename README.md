@@ -12,6 +12,16 @@ Missing or invalid counts remain unknown, not zero. Average, median, extrema, an
 
 The Vite development server exposes the repository JSON directly, and the production build copies that same file to `dist/jsondb/seurat.json`. No duplicate fixture or manually synchronized database is required.
 
+## Province regions and comparison
+
+`jsondb/regions.json` is the source of truth for province IDs, display names, colors, and corresponding municipality `province` values. It contains no boundary geometry: the club map and planner overlay reuse municipality polygons from `public/geo/kunnat.geojson`. Province membership for clubs, population, area, and competitions is derived from that shared municipality dataset; province aggregates are not stored in planner documents. If the region list and municipality properties do not cover one another, the UI reports the mismatch rather than silently assigning municipalities.
+
+The public dashboard's province comparison and the planner comparison tab support club, member, vote, competition, population, municipality, area, and density metrics; ascending or descending sort; province search; and Top 5, Top 10, or all provinces. Competition metrics follow the shared selected-year filter. Unknown population or competition data remain unknown.
+
+The map overlay controls are available on both the public club map and planner map. Visibility, fill opacity (0–100%, default 35%), and province borders are independently adjustable. Settings are stored under `seurakartta-province-overlay-v1` in localStorage and shared between both map views in the same browser. These reference-geography settings do not alter or migrate editable planner regions, scenarios, backups, or exports.
+
+To add or revise regions, update `jsondb/regions.json` with a unique ID, unique municipality province value, display name, and unique six-digit hex color. Municipality values must match the `province` field in the boundary dataset. The app loads the file as JSON at runtime; Vite serves it during development and includes the unchanged file in `dist/jsondb/regions.json` for production.
+
 ## Competition statistics
 
 The first-class competition source is `jsondb/SFL-Kilpailut-2019-2026.json`, the corrected dataset supplied by the user (renamed from `SFL-Kilpailut_korjattu_v6-kunnat-lopullinen.json`). It is consumed unchanged as an array of `{ "Kilpailun nimi": string, "Vuosi": integer, "Kunta": string }`. Each row counts once, including repeated names. Years are taken from `Vuosi`, never inferred from names. Future years and municipalities appear automatically.
@@ -74,7 +84,7 @@ The `Validate dashboard` workflow runs service tests and production browser chec
 - The map starts fitted to Finland and all valid locations; filtering preserves the current view. “Näytä Suomi” restores the Finland extent.
 - Responsive light/dark cards, visible keyboard focus, named controls, live result announcements and loading/empty/error states are provided.
 
-Additional scalar JSON fields are retained and automatically rendered in the detail panel. `district`, `region`, `website`, `email`, and `foundedYear` have Finnish display labels. Only valid HTTP(S) websites and email addresses become links; other values remain safe text. Add display labels in `ClubDetail.tsx` without changing data loading. Regional analytics prefer the supplied `region` or `district` before falling back to coordinate grouping.
+Additional scalar JSON fields are retained and automatically rendered in the detail panel. `district`, `region`, `website`, `email`, and `foundedYear` have Finnish display labels. Only valid HTTP(S) websites and email addresses become links; other values remain safe text. Add display labels in `ClubDetail.tsx` without changing data loading.
 
 ## Region planner (`#/alueet`)
 
@@ -106,8 +116,10 @@ Clubs are matched to municipalities by Finnish or Swedish name; clubs whose `pai
 
 - `src/models/club.ts` — typed JSON database, nullable measurements, extensible details and analytics models.
 - `src/data/clubRepository.ts` — validates and caches the one-time database request; clears a failed request so it can be retried.
+- `src/data/provinceRepository.ts` / `src/services/provinceAnalytics.ts` — validate the runtime province registry, report coverage gaps, and derive province-level statistics from municipality data.
+- `src/services/provinceOverlay.ts` / `src/services/provinceSettings.ts` — render the shared province map layer and persist validated local overlay settings.
 - `src/services/searchService.ts` — instant, accent-insensitive search and composed membership/voting filters.
-- `src/services/statisticsService.ts` — totals, municipal rankings, membership/voting distributions, and approximate location-based regional grouping.
+- `src/services/statisticsService.ts` — totals, municipal rankings, and membership/voting distributions.
 - `src/services/mapService.ts` — membership-scaled markers, voting-power colors, and safe popup content.
 - `src/services/{regionAnalytics,validationService,plannerDocument,historyService,persistenceService,backupService,exportService}.ts` — framework-free region planner logic and shared-storage client, covered by `tests/planner.test.mjs`.
 - `server/planner.php` — public read, session-authenticated shared planner writes, Admin password API and optimistic concurrency checks.
@@ -116,7 +128,7 @@ Clubs are matched to municipalities by Finnish or Swedish name; clubs whose `pai
 - `src/planner/` — region planner UI (map, editor, dashboard, comparison, scenario, backup and data views).
 - `src/components/` — clustered map, legend, filters, accessible club details, incrementally rendered results and reusable dashboard charts/rankings.
 
-Regional comparison is derived from coordinates because the source data has no official region field: latitude at or north of 64° is grouped as North Finland; other locations east of 27° longitude as East Finland; remaining locations as South and West Finland. This is a visualization aid, not an official regional classification.
+Administrative province comparison is derived from municipality province metadata and the configurable `jsondb/regions.json` registry; the former three-group coordinate heuristic has been removed.
 
 The map uses public OpenStreetMap tiles with attribution and displays a warning on tile failures. Production deployments with high traffic should use an appropriately provisioned tile service in accordance with the provider's usage policy. No club dataset is sent to a geocoding service. Analytics summarize the currently filtered data without changing the source. Dark/light preference is saved locally in the browser.
 

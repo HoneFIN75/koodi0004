@@ -84,6 +84,7 @@
 .region-label.selected { box-shadow: 0 0 0 3px #ffffffcc, 0 4px 14px #0f172a55; }
 .leaflet-marker-icon:focus-visible .region-label { outline: 3px solid #0ea5e9; outline-offset: 2px; }
 .map-legend-bar { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 8px 14px; color: var(--muted); font-size: 11px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.planner-map-column > .province-overlay-controls { position: static; width: auto; margin: 8px 0; background: var(--surface); box-shadow: none; }
 .map-legend-bar span { display: inline-flex; align-items: center; gap: 5px; }
 .legend-swatch { display: inline-block; width: 22px; height: 12px; border-radius: 3px; }
 .legend-swatch.outline { border: 2.5px solid var(--accent-strong); background: color-mix(in srgb, var(--accent) 35%, transparent); }

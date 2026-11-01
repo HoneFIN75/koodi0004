@@ -6,7 +6,14 @@ import { CompetitionFilters } from '../components/CompetitionFilters';
 import { CompetitionAnalytics } from '../components/CompetitionAnalytics';
 import { useCompetitionData } from '../state/useCompetitions';
 import { municipalityRepository } from '../data/municipalityRepository';
+import { provinceRepository } from '../data/provinceRepository.ts';
+import { getProvinceCoverageIssues, getProvinceStatistics } from '../services/provinceAnalytics.ts';
+import { getCompetitionStatistics } from '../services/competitionService.ts';
+import { ProvinceComparison } from '../components/ProvinceComparison.tsx';
+import { useProvinceSettings } from '../hooks/useProvinceSettings.ts';
+import { ProvinceOverlayControls } from '../components/ProvinceOverlayControls.tsx';
 import type { Database } from '../models/club';
+import type { ProvinceDataset } from '../models/province.ts';
 import type { MunicipalityDataset, Region, RegionDraft, Snapshot } from '../models/region';
 import { exportCsv, exportFileName, exportJson, exportXlsx, type ExportContext } from '../services/exportService';
 import { authService, type AuthRole, type AuthSession } from '../services/authService';
@@ -52,6 +59,9 @@ export default function PlannerApp() {
   const competitionContext = useMemo(() => ({ index: competitionIndex, yearFilter }), [competitionIndex, yearFilter]);
   const [clubs, setClubs] = useState<Database | null>(null);
   const [dataset, setDataset] = useState<MunicipalityDataset | null>(null);
+  const [provinces, setProvinces] = useState<ProvinceDataset | null>(null);
+  const [provinceError, setProvinceError] = useState('');
+  const [provinceSettings, setProvinceSettings] = useProvinceSettings();
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [view, setView] = useState<View>('map');
@@ -128,6 +138,9 @@ export default function PlannerApp() {
     Promise.all([clubRepository.getDatabase(), municipalityRepository.getMunicipalities()])
       .then(([clubData, municipalityData]) => { if (active) { setClubs(clubData); setDataset(municipalityData); } })
       .catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : 'Aineiston lataus epäonnistui.'); });
+    provinceRepository.getProvinces()
+      .then((result) => { if (active) { setProvinces(result); setProvinceError(''); } })
+      .catch((cause: unknown) => { if (active) setProvinceError(cause instanceof Error ? cause.message : 'Maakuntatietojen lataus epäonnistui.'); });
     return () => { active = false; };
   }, [attempt]);
   useEffect(() => {
@@ -158,6 +171,13 @@ export default function PlannerApp() {
   const filtered = useMemo(() => dataset ? filterPlacements(placements, filters, dataset, regions) : [], [placements, filters, dataset, regions]);
   const filtersActive = JSON.stringify(filters) !== JSON.stringify(emptyFilters);
   const analysis = useMemo(() => dataset ? analyzeScenario(regions, dataset, filtered, competitionContext) : null, [regions, dataset, filtered, competitionContext]);
+  const provinceStatistics = useMemo(() => dataset && provinces
+    ? getProvinceStatistics(provinces, dataset, filtered.map(({ club }) => club),
+      new Map(filtered.map(({ club, municipalityCode }) => [club, municipalityCode])),
+      competitionIndex ? getCompetitionStatistics(competitionIndex, yearFilter, {}, dataset.municipalities) : null)
+    : [], [dataset, provinces, filtered, competitionIndex, yearFilter]);
+  const provinceCoverageIssues = useMemo(() => dataset && provinces
+    ? getProvinceCoverageIssues(provinces, dataset) : [], [dataset, provinces]);
   const fullAggregates = useMemo(() => dataset ? aggregateByMunicipality(placements, dataset) : new Map(), [placements, dataset]);
   const warnings = useMemo(() => dataset && analysis ? validateScenario(regions, dataset, analysis) : [], [regions, dataset, analysis]);
   const membership = useMemo(() => {
@@ -450,6 +470,7 @@ export default function PlannerApp() {
       {writeActionError && !migrationAvailable && !authRequired && !writeConflict && <p className="notice" role="alert">{writeActionError}</p>}
       {saveStatus === 'error' && !authRequired && !writeConflict && !writeActionError && <p className="notice" role="alert">{saveError ?? 'Tallennus epäonnistui.'}</p>}
       {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}
+      {provinceError && <p className="notice" role="alert">Maakuntatietojen lataus epäonnistui: {provinceError} <button type="button" className="text-button" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
       {loadError && remoteMode && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Yhteistä suunnitelmaa ei voitu ladata</strong><span>{loadError}</span><button className="clear-filters" onClick={() => void plannerStore.getState().retryInit()}>Yritä uudelleen</button></div></div>}
       {loadError && !remoteMode && <p className="notice" role="alert">Selaimen tallennustilaa ei voitu avata ({loadError}). Muutokset säilyvät vain tämän istunnon ajan.</p>}
       {loading && <div className="loading-state" role="status"><span className="loading-spinner" />{migrationAvailable ? 'Valitse, siirretäänkö selaimen suunnitelma palvelimelle vai aloitetaanko tyhjällä…' : 'Ladataan kuntarajoja, seuroja ja tallennettuja suunnitelmia…'}</div>}
@@ -457,6 +478,7 @@ export default function PlannerApp() {
       {!loading && dataset && analysis && clubs && (
         <main className="planner-main">
           {clubs.warnings.length > 0 && <p className="notice">{clubs.warnings.join(' ')}</p>}
+          {provinceCoverageIssues.length > 0 && <p className="notice" role="status">{provinceCoverageIssues.join(' ')}</p>}
           {view === 'map' && (
             <div className="planner-map-layout">
               <aside className="planner-sidebar" aria-label="Alueet ja suodattimet">
@@ -473,8 +495,10 @@ export default function PlannerApp() {
                   <label className="checkbox"><input type="checkbox" checked={populationLayer} onChange={(event) => setPopulationLayer(event.target.checked)} /> Väestökartta 2025</label>
                   <span className="map-status" role="status" aria-live="polite">{filtered.length} / {placements.length} seuraa{filtersActive ? ' (suodatettu)' : ''}</span>
                 </div>
+                <ProvinceOverlayControls settings={provinceSettings} provinces={provinces} onChange={setProvinceSettings} />
+                {provinceError && <p className="notice" role="alert">Maakuntataso ei ole käytettävissä: {provinceError}</p>}
                 {editingRegion && <p className="edit-banner" role="status"><ColorDot color={editingRegion.color} /><span>Valintatila: napsauta kuntia lisätäksesi tai poistaaksesi ne alueesta <strong>{editingRegion.name}</strong>.</span></p>}
-                <RegionMap dataset={dataset} regions={mapRegions} membership={membership} editingRegion={editingRegion} selectedRegionId={selectedRegionId} selectedMunicipalityCode={selectedMunicipality}
+                <RegionMap dataset={dataset} provinces={provinces} provinceSettings={provinceSettings} regions={mapRegions} membership={membership} editingRegion={editingRegion} selectedRegionId={selectedRegionId} selectedMunicipalityCode={selectedMunicipality}
                   highlightCodes={unassignedCodes} matchCodes={matchCodes} aggregates={fullAggregates} placements={filtered} showClubs={showClubs} showBaseMap={showBaseMap} dark={dark}
                   populationLayer={populationLayer} onMunicipalityClick={onMunicipalityClick} onRegionSelect={selectRegion} />
                 <div className="map-legend-bar" aria-label="Selite">
@@ -508,7 +532,7 @@ export default function PlannerApp() {
             </div>
           )}
           {view === 'dashboard' && <><DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} /><CompetitionAnalytics geography={dataset.municipalities} title="Johdon kilpailuanalyysi" /></>}
-          {view === 'compare' && <><ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} /><CompetitionAnalytics geography={dataset.municipalities} title="Kilpailujen vuosivertailu" /></>}
+          {view === 'compare' && <><ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} /><ProvinceComparison rows={provinceStatistics} /><CompetitionAnalytics geography={dataset.municipalities} title="Kilpailujen vuosivertailu" /></>}
           {view === 'unassigned' && <UnassignedView analysis={analysis} regions={regions} onShowOnMap={() => { setHighlightUnassigned(true); setSelectedRegionId(null); setEditing(false); setView('map'); }}
             onAssign={(regionId, codes) => setMunicipalities(regionId, codes, 'add', `Kohdistettu ${codes.length} kuntaa`)} />}
           {view === 'scenarios' && <ScenarioManager document={displayedDocument} dataset={dataset} readOnly={!canWrite}

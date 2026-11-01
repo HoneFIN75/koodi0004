@@ -2,11 +2,13 @@
 
 ## Scope and architecture
 
+The dashboard and planner can aggregate 2025 population by province using `jsondb/regions.json` and the province values in the municipality boundary dataset. This is a derived view: province colors and labels come from the registry, while municipality membership, population, and area come from the shared municipality records. It does not duplicate population rows, alter planner documents, or imply historical province population series. Missing municipal population makes a province population total and population density unknown.
+
 The supplied `municipalities-population-2025.json` is copied unchanged into `src/data/` as a permanent, read-only reference source. A static JSON module import feeds the centralized `populationService`. Module initialization processes it once; both application routes share the same records, name index, national total and population rankings. No population API, separate repeated population requests, external service or server credential is required.
 
 The existing municipality repository continues caching one boundary-fetch promise, now enriching its municipalities with the authoritative population reference instead of relying on optional boundary properties. A generated compact bilingual name index allows population-service lookups to work before boundaries have loaded. React memoization handles club placement, filtered results, coverage, municipality summaries and backup comparisons. Dataset-wide population summaries are cached by dataset identity in a WeakMap. Updates must create a new dataset rather than mutate a cached dataset.
 
-The codebase was inspected for club and municipality data, geographic placement, municipality editing, region/scenario definitions, maps, filtering, statistics, dashboards, comparisons, backups and all existing exports. There are no competition/tournament models, routes, storage or views in the current application. Competition metrics were therefore not invented. Authentication, account administration, theme preferences and planner persistence formats are not population features and remain unchanged.
+The codebase was inspected for club and municipality data, geographic placement, municipality editing, region/scenario definitions, maps, filtering, statistics, dashboards, comparisons, backups and exports. Province-level competition totals reuse the existing municipality-based competition index and active year filter; province-level population totals reuse the shared population source. Authentication, account administration, theme preferences and planner persistence formats are not population features and remain unchanged.
 
 ## Data audit and matching
 

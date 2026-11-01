@@ -6,6 +6,7 @@ import { COMPETITION_FILE } from './src/models/competition.ts';
 
 const databaseUrl = new URL('./jsondb/seurat.json', import.meta.url);
 const competitionUrl = new URL(`./${COMPETITION_FILE}`, import.meta.url);
+const regionsUrl = new URL('./jsondb/regions.json', import.meta.url);
 const plannerApiUrl = new URL('./server/planner.php', import.meta.url);
 
 function serveDatabase(): Plugin {
@@ -14,7 +15,9 @@ function serveDatabase(): Plugin {
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
         const path = request.url?.split('?')[0];
-        const source = path === '/jsondb/seurat.json' ? databaseUrl : path === `/${COMPETITION_FILE}` ? competitionUrl : null;
+        const source = path === '/jsondb/seurat.json' ? databaseUrl
+          : path === `/${COMPETITION_FILE}` ? competitionUrl
+            : path === '/jsondb/regions.json' ? regionsUrl : null;
         if (!source) {
           next();
           return;
@@ -44,6 +47,7 @@ function serveDatabase(): Plugin {
         source: database,
       });
       this.emitFile({ type: 'asset', fileName: COMPETITION_FILE, source: await readFile(competitionUrl) });
+      this.emitFile({ type: 'asset', fileName: 'jsondb/regions.json', source: await readFile(regionsUrl) });
       this.emitFile({
         type: 'asset',
         fileName: 'api/planner.php',

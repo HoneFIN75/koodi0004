@@ -5,8 +5,12 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import type { Club } from '../models/club';
+import type { MunicipalityDataset } from '../models/region';
+import type { ProvinceDataset, ProvinceOverlaySettings } from '../models/province.ts';
 import { formatCount, hasLocation, makePopup, markerColor, markerRadius } from '../services/mapService';
+import { createProvinceOverlay } from '../services/provinceOverlay.ts';
 import { MapLegend } from './MapLegend';
+import { ProvinceOverlayControls } from './ProvinceOverlayControls';
 
 interface MapViewProps {
   clubs: Club[];
@@ -14,14 +18,19 @@ interface MapViewProps {
   selectedClub: Club | null;
   onSelect: (club: Club) => void;
   populationFor: (club: Club) => number | null;
+  municipalities: MunicipalityDataset | null;
+  provinces: ProvinceDataset | null;
+  provinceSettings: ProvinceOverlaySettings;
+  onProvinceSettingsChange: (settings: ProvinceOverlaySettings) => void;
 }
 
 const finlandBounds: L.LatLngTuple[] = [[59.6, 19], [70.2, 32]];
 
-export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor }: MapViewProps) {
+export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor, municipalities, provinces, provinceSettings, onProvinceSettingsChange }: MapViewProps) {
   const element = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const cluster = useRef<L.MarkerClusterGroup | null>(null);
+  const provinceOverlay = useRef<ReturnType<typeof createProvinceOverlay> | null>(null);
   const markers = useRef(new Map<Club, L.Marker>());
   const [tileError, setTileError] = useState(false);
   const reducedMotion = useRef(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -76,6 +85,28 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
       markers.current.clear();
     };
   }, []);
+
+  useEffect(() => {
+    const instance = map.current;
+    if (!instance || !municipalities || !provinces) return;
+    provinceOverlay.current?.remove();
+    const overlay = createProvinceOverlay(municipalities, provinces, provinceSettings);
+    provinceOverlay.current = overlay;
+    if (provinceSettings.showRegions) overlay.addTo(instance);
+    return () => {
+      overlay.remove();
+      if (provinceOverlay.current === overlay) provinceOverlay.current = null;
+    };
+  }, [municipalities, provinces]);
+
+  useEffect(() => {
+    const instance = map.current;
+    const overlay = provinceOverlay.current;
+    if (!instance || !overlay) return;
+    overlay.updateSettings(provinceSettings);
+    if (provinceSettings.showRegions) overlay.addTo(instance);
+    else overlay.remove();
+  }, [provinceSettings]);
 
   useEffect(() => {
     const instance = map.current;
@@ -143,6 +174,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
 
   return (
     <div className="map-frame">
+      <ProvinceOverlayControls settings={provinceSettings} provinces={provinces} onChange={onProvinceSettingsChange} />
       <div className="map-canvas" ref={element} aria-label="Suomen seurojen kartta. Liiku nuolinäppäimillä ja zoomaa plus- ja miinusnäppäimillä."
         onKeyDown={(event) => {
           if (event.key === 'Escape') for (const marker of markers.current.values()) marker.closeTooltip();
