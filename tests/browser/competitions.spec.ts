@@ -53,17 +53,41 @@ test('region statistics, coverage and trends update when years, municipality ass
   await expect(page.getByRole('table', { name: 'Aluevertailu', exact: true })).toContainText('Kilpailuja · valitut vuodet');
 });
 
+test('homepage groups metrics and shows competitions and active municipalities by year', async ({ page }) => {
+  await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: [
+    competition('Duplicate', 2020, 'Espoo'), competition('Duplicate', 2020, 'Espoo'),
+    competition('Helsinki Open', 2021, 'Helsinki'), competition('Espoo Open', 2021, 'Espoo'),
+  ] }));
+  await page.goto('./');
+  await expect(page.getByRole('region', { name: 'Seurat' }).locator('.metric-card')).toHaveCount(3);
+  await expect(page.getByRole('region', { name: 'Jäsenmäärät' }).locator('.metric-card')).toHaveCount(3);
+  await expect(page.getByRole('region', { name: 'Seurojen kotikunnat' }).locator('.metric-card')).toHaveCount(3);
+  const summary = page.getByRole('region', { name: 'Kilpailujen vuosiyhteenveto' });
+  const rows = summary.locator('tbody tr');
+  await expect(rows.nth(0).locator('th')).toHaveText('2020');
+  await expect(rows.nth(0).locator('td').nth(0)).toHaveText('2');
+  await expect(rows.nth(0).locator('td').nth(1)).toHaveText('1');
+  await expect(rows.nth(1).locator('th')).toHaveText('2021');
+  await expect(rows.nth(1).locator('td').nth(0)).toHaveText('2');
+  await expect(rows.nth(1).locator('td').nth(1)).toHaveText('2');
+  await expect(summary).toContainText('Aineisto ei yksilöi järjestäjiä');
+});
+
 test('year selection is shared across views, scopes and exports, without competition map controls', async ({ page }) => {
   await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: records }));
   await page.goto('./');
   const total = page.getByTestId('competition-total');
   await expect(total).toHaveText('5');
-  await expect(page.locator('.competition-filters + .competition-analytics')).toHaveCount(1);
+  await expect(page.getByRole('region', { name: 'Kilpailujen vuosiyhteenveto' }).getByLabel('Kilpailujen vuodet')).toBeVisible();
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('selected');
   const years = page.getByRole('group', { name: 'Valitse kilpailuvuodet' });
   await years.getByLabel('2020', { exact: true }).check();
   await expect(total).toHaveText('3');
-  await expect(page.locator('.metric-value').first()).toContainText('1 seuraa');
+  const yearRows = page.getByRole('region', { name: 'Kilpailujen vuosiyhteenveto' }).locator('tbody tr');
+  await expect(yearRows).toHaveCount(2);
+  await expect(yearRows.nth(0)).toContainText('2020');
+  await expect(yearRows.nth(1)).toContainText('2024');
+  await expect(page.getByRole('region', { name: 'Seurat' }).locator('.metric-value').first()).toContainText('1 seuraa');
   const analytics = page.getByRole('region', { name: 'Suomen kilpailutoiminta', exact: true });
   await analytics.getByRole('combobox', { name: 'Kunnan osallistumistrendi' }).selectOption('Espoo');
   await expect(analytics.getByRole('heading', { name: 'Kilpailuaktiivisuus · Espoo' })).toBeVisible();

@@ -62,16 +62,17 @@ test('population is shared across routes, supports municipality comparisons and 
 
 test('all filters update markers, totals, distributions and empty state', async ({ page }) => {
   await load(page);
-  await expect(page.locator('.metric-value').nth(1)).toContainText('1 125');
-  await expect(page.locator('.metric-value').nth(3)).toContainText('62,5');
+  const memberMetrics = page.getByRole('region', { name: 'Jäsenmäärät' }).locator('.metric-value');
+  await expect(memberMetrics.nth(0)).toContainText('1 125');
+  await expect(memberMetrics.nth(2)).toContainText('62,5');
   await expect(page.locator('#vote-filter option')).toHaveCount(6);
   await page.getByRole('textbox', { name: 'Hae seuraa tai kuntaa' }).fill('jyvaskyla');
   await expect(page.locator('.map-title p')).toContainText('2 / 4');
-  await expect(page.locator('.metric-value').nth(1)).toContainText('100 jäsentä');
+  await expect(memberMetrics.nth(0)).toContainText('100 jäsentä');
   await page.getByLabel('Äänivalta', { exact: true }).selectOption('15');
   await expect(page.locator('.map-title p')).toContainText('1 / 4');
   await expect(page.locator('.chart-card').nth(1).locator('.bar-row').filter({ hasText: '15 ääntä' }).locator('.bar-value')).toHaveText('1');
-  await page.getByLabel('Jäsenmäärä', { exact: false }).fill('25');
+  await page.getByRole('slider', { name: /Jäsenmäärä/ }).fill('25');
   await expect(page.locator('.map-title p')).toContainText('0 / 4');
   await expect(page.locator('.club-results')).toContainText('Ei suodattimia vastaavia seuroja');
   await expect(page.locator('.club-marker')).toHaveCount(0);
@@ -171,8 +172,8 @@ test('600 clubs and stale metadata adapt while voting power stays within the def
   const start = Date.now();
   await load(page, data);
   await expect(page.locator('.data-warning')).toContainText('600');
-  await expect(page.locator('.metric-value').first()).toContainText('600 seuraa');
-  await expect(page.locator('.metric-value').nth(1)).toContainText('179 700');
+  await expect(page.getByRole('region', { name: 'Seurat' }).locator('.metric-value').first()).toContainText('600 seuraa');
+  await expect(page.getByRole('region', { name: 'Jäsenmäärät' }).locator('.metric-value').first()).toContainText('179 700');
   await expect(page.locator('.club-result')).toHaveCount(12);
   await page.getByRole('button', { name: 'Näytä lisää seuroja' }).click();
   await expect(page.locator('.club-result')).toHaveCount(24);
@@ -191,7 +192,7 @@ test('partial data, safe text and empty datasets remain usable', async ({ page }
     seura: '<img src=x onerror=alert(1)>', website: 'javascript:alert(1)', constructor: 'custom field',
   })]));
   await expect(page.locator('.map-title p')).toContainText('0 kartalla');
-  await expect(page.locator('.metric-value').nth(2)).toContainText('Ei tietoa');
+  await expect(page.getByRole('region', { name: 'Jäsenmäärät' }).locator('.metric-value').nth(1)).toContainText('Ei tietoa');
   await page.locator('.club-result').click();
   await expect(page.locator('#club-detail-title')).toHaveText('<img src=x onerror=alert(1)>');
   await expect(page.locator('.club-detail img')).toHaveCount(0);
@@ -201,7 +202,7 @@ test('partial data, safe text and empty datasets remain usable', async ({ page }
   await page.reload();
   await expect(page.locator('.map-title p')).toContainText('0 /');
   await expect(page.locator('.data-warning')).toContainText('ei ole vielä seuroja');
-  await expect(page.locator('.metric-value').first()).toContainText('0 seuraa');
+  await expect(page.getByRole('region', { name: 'Seurat' }).locator('.metric-value').first()).toContainText('0 seuraa');
 });
 
 test('failed data load can be retried; tile failures are explicit', async ({ page }) => {
