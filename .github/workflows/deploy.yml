@@ -69,25 +69,46 @@ jobs:
         run: |
           set -euo pipefail
           printf -v remote_path '%q' "$DEPLOY_PATH"
-          ssh \
-            -i ~/.ssh/id_rsa \
-            -o BatchMode=yes \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=yes \
-            "$SSH_USER@$SSH_HOST" \
-            "mkdir -p -- $remote_path"
+          for attempt in 1 2 3; do
+            if ssh \
+              -i ~/.ssh/id_rsa \
+              -o BatchMode=yes \
+              -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes \
+              -o ConnectTimeout=30 \
+              "$SSH_USER@$SSH_HOST" \
+              "mkdir -p -- $remote_path"; then
+              break
+            fi
+            if [[ "$attempt" -eq 3 ]]; then
+              echo "::error::Unable to connect to the deployment host after 3 attempts."
+              exit 1
+            fi
+            echo "::warning::SSH connection failed; retrying in $((attempt * 5)) seconds."
+            sleep "$((attempt * 5))"
+          done
 
       - name: Deploy application
         shell: bash
         run: |
           set -euo pipefail
-          rsync \
-            -az \
-            --protect-args \
-            --delete \
-            -e "ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
-            dist/ \
-            "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+          for attempt in 1 2 3; do
+            if rsync \
+              -az \
+              --protect-args \
+              --delete \
+              -e "ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=30" \
+              dist/ \
+              "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"; then
+              break
+            fi
+            if [[ "$attempt" -eq 3 ]]; then
+              echo "::error::Deployment transfer failed after 3 attempts."
+              exit 1
+            fi
+            echo "::warning::Deployment transfer failed; retrying in $((attempt * 5)) seconds."
+            sleep "$((attempt * 5))"
+          done
 
       - name: Deployment completed
         run: echo "Production deployment completed successfully."
