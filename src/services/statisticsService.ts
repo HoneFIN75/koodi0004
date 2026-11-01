@@ -1,5 +1,5 @@
 import type { Club, DistributionStat, MunicipalityStat } from '../models/club';
-import { getMembershipBand, getVotingPower, MEMBERSHIP_BANDS } from './membershipRules.ts';
+import { getMembershipBand, MEMBERSHIP_BANDS } from './membershipRules.ts';
 
 export function getMunicipalityStats(clubs: readonly Club[]): MunicipalityStat[] {
   const groups = new Map<string, MunicipalityStat>();
@@ -19,10 +19,10 @@ export function getMembershipDistribution(clubs: readonly Club[]): DistributionS
   }));
 }
 
-export function getVotingDistribution(clubs: readonly Club[]): DistributionStat[] {
-  return MEMBERSHIP_BANDS.map(({ votes }) => ({
-    label: `${votes} ääntä`,
-    count: clubs.filter((club) => getVotingPower(club.jasenmaara) === votes).length,
+export function getVotesByMembershipBand(clubs: readonly Club[]): DistributionStat[] {
+  return MEMBERSHIP_BANDS.map((band) => ({
+    label: band.label,
+    count: clubs.reduce((total, club) => total + (getMembershipBand(club.jasenmaara) === band ? band.votes : 0), 0),
   }));
 }
 
