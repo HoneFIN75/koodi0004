@@ -92,6 +92,28 @@ test('population appears in planner maps, region details, dashboards, comparison
   await expect(page.getByRole('region', { name: 'Kuntien väestöanalyysi' })).toContainText('308 kuntaa');
 });
 
+test('clustered clubs can be separated on the planner map', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route('**/api/clubs.php', (route) => route.fulfill({
+    json: {
+      metadata: { generatedAt: '2026-01-01T00:00:00Z', recordCount: 2, source: 'test' },
+      data: [
+        { id: 'hippo', seura: 'Team Hippo ry', paikkakunta: 'Espoo', latitude: 60.20549, longitude: 24.6559, jasenmaara: 25, aanimaara: 10 },
+        { id: 'puskasoturit', seura: 'Puskasoturit ry', paikkakunta: 'Espoo', latitude: 60.20549, longitude: 24.6559, jasenmaara: 373, aanimaara: 20 },
+      ],
+    },
+  }));
+  await open(page);
+  const map = page.locator('.planner-map');
+  const cluster = map.locator('.club-cluster').first();
+  await expect(cluster).toBeVisible();
+  await cluster.click();
+  const remainingCluster = map.locator('.club-cluster');
+  if (await remainingCluster.count()) await remainingCluster.first().click();
+  await expect(map.locator('.club-marker[title^="Team Hippo ry"]')).toBeVisible();
+  await expect(map.locator('.club-marker[title^="Puskasoturit ry"]')).toBeVisible();
+});
+
 test('creates a region, analyses it, undoes, redoes and restores after reload', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();
