@@ -186,6 +186,20 @@ for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await load(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width <= 650) {
+      const legend = page.locator('.map-key');
+      const summary = legend.locator('summary');
+      for (const open of [false, true]) {
+        await summary.focus();
+        await summary.press('Enter');
+        await expect(legend).toHaveJSProperty('open', open);
+        expect(await page.evaluate(() => {
+          const canvasBounds = document.querySelector('.map-canvas')!.getBoundingClientRect();
+          const legendBounds = document.querySelector('.map-key')!.getBoundingClientRect();
+          return legendBounds.top >= canvasBounds.bottom;
+        })).toBe(true);
+      }
+    }
     for (const theme of ['dark', 'light']) {
       if (theme === 'light') await page.getByRole('button', { name: 'Vaihda vaaleaan tilaan' }).click();
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
