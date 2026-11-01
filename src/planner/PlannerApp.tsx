@@ -25,6 +25,7 @@ import { markerColor } from '../services/mapService';
 import { plannerStore } from '../state/plannerStore';
 import { usePlanner } from '../state/usePlanner';
 import { BackupManager } from './components/BackupManager';
+import { ClubsAdmin } from './ClubsAdmin';
 import { ComparisonView } from './components/ComparisonView';
 import { DashboardView } from './components/DashboardView';
 import { DataManager } from './components/DataManager';
@@ -39,7 +40,8 @@ import { UnassignedView } from './components/UnassignedView';
 import { ColorDot, SaveIndicator, WarningList } from './components/ui';
 import './planner.css';
 
-type View = 'map' | 'dashboard' | 'compare' | 'unassigned' | 'scenarios' | 'backups' | 'data';
+type View = 'map' | 'dashboard' | 'compare' | 'unassigned' | 'scenarios' | 'backups' | 'data' | 'clubs';
+const CLUBS_ADMIN_ROUTE = '#/alueet/seurahallinta';
 const VIEWS: { id: View; label: string }[] = [
   { id: 'map', label: 'Kartta' }, { id: 'dashboard', label: 'Kojelauta' }, { id: 'compare', label: 'Vertailu' },
   { id: 'unassigned', label: 'Kohdistamattomat' }, { id: 'scenarios', label: 'Skenaariot' }, { id: 'backups', label: 'Varmuuskopiot' }, { id: 'data', label: 'Tuonti ja vienti' },
@@ -64,7 +66,7 @@ export default function PlannerApp() {
   const [provinceSettings, setProvinceSettings] = useProvinceSettings();
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
-  const [view, setView] = useState<View>('map');
+  const [view, setView] = useState<View>(() => window.location.hash === CLUBS_ADMIN_ROUTE ? 'clubs' : 'map');
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -120,6 +122,11 @@ export default function PlannerApp() {
     }).catch((cause: unknown) => {
       setAuthError(cause instanceof Error ? cause.message : 'Kirjautumistietoja ei voitu ladata.');
     }).finally(() => setAuthLoading(false));
+  }, []);
+  useEffect(() => {
+    const syncRoute = () => setView(window.location.hash === CLUBS_ADMIN_ROUTE ? 'clubs' : 'map');
+    window.addEventListener('hashchange', syncRoute);
+    return () => window.removeEventListener('hashchange', syncRoute);
   }, []);
   useEffect(() => {
     if (!authRequired) return;
@@ -298,6 +305,11 @@ export default function PlannerApp() {
     plannerStore.getState().setCsrfToken(session.csrfToken);
     setAuthSession(session);
   };
+  const selectView = (next: View) => {
+    setView(next);
+    const route = next === 'clubs' ? CLUBS_ADMIN_ROUTE : '#/alueet';
+    if (window.location.hash !== route) window.location.hash = route;
+  };
   const login = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setAuthError('');
@@ -436,10 +448,11 @@ export default function PlannerApp() {
       )}
       <nav className="planner-tabs" aria-label="Aluesuunnittelun näkymät">
         {VIEWS.map((item) => (
-          <button key={item.id} type="button" className={view === item.id ? 'active' : ''} aria-current={view === item.id ? 'page' : undefined} onClick={() => setView(item.id)}>
+          <button key={item.id} type="button" className={view === item.id ? 'active' : ''} aria-current={view === item.id ? 'page' : undefined} onClick={() => selectView(item.id)}>
             {item.label}{item.id === 'unassigned' && analysis && analysis.unassigned.length > 0 && <span className="tab-badge">{analysis.unassigned.length}</span>}
           </button>
         ))}
+        {authSession.role === 'admin' && <button type="button" className={view === 'clubs' ? 'active' : ''} aria-current={view === 'clubs' ? 'page' : undefined} onClick={() => selectView('clubs')}>Seurahallinta</button>}
       </nav>
       <CompetitionFilters />
       {adminOpen && <CompetitionAnalytics geography={dataset?.municipalities} title="Ylläpidon kilpailutilastot" />}
@@ -475,7 +488,14 @@ export default function PlannerApp() {
       {loadError && !remoteMode && <p className="notice" role="alert">Selaimen tallennustilaa ei voitu avata ({loadError}). Muutokset säilyvät vain tämän istunnon ajan.</p>}
       {loading && <div className="loading-state" role="status"><span className="loading-spinner" />{migrationAvailable ? 'Valitse, siirretäänkö selaimen suunnitelma palvelimelle vai aloitetaanko tyhjällä…' : 'Ladataan kuntarajoja, seuroja ja tallennettuja suunnitelmia…'}</div>}
 
-      {!loading && dataset && analysis && clubs && (
+      {view === 'clubs' && (authSession.role === 'admin'
+        ? <ClubsAdmin csrfToken={authSession.csrfToken} />
+        : <section className="planner-card clubs-admin-denied" role="alert">
+          <h2 className="card-title">Seurahallinta on vain Adminille</h2>
+          <p>Kirjaudu Admin-tunnuksella käyttääksesi seurojen hallintaa.</p>
+        </section>)}
+
+      {view !== 'clubs' && !loading && dataset && analysis && clubs && (
         <main className="planner-main">
           {clubs.warnings.length > 0 && <p className="notice">{clubs.warnings.join(' ')}</p>}
           {provinceCoverageIssues.length > 0 && <p className="notice" role="status">{provinceCoverageIssues.join(' ')}</p>}

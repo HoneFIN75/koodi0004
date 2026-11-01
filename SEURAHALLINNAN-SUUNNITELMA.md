@@ -164,15 +164,15 @@ PR 1:n tarkoitus on luoda turvallinen, testattava tallennus- ja rajapintaperusta
 
 ### PR 2 — Yhteinen seuratietolähde
 
-**Tila: toteutetaan tässä PR:ssä.** Dashboard ja aluesuunnittelu lukevat saman palvelimen julkisen seurarajapinnan kautta. API suodattaa arkistoidut ja ei-julkiset yhteystiedot ennen vastauksen lähettämistä; asiakas validoi ja säilyttää julkiset yhteystiedot ja näyttää ne seuran tietopaneelissa. Julkinen tietolähde käyttää `no-store`-pyyntöä, säilyttää latausvirheiden uudelleenyrityksen ja tarjoaa tietolähteen pakotetun päivityksen jatkokäyttöä varten. Vite-kehityspalvelin käyttää vain paikallista read-only-fixturea; tuotanto ei koskaan varaa staattiseen vanhaan JSONiin.
+**Tila: valmis PR:ssä #49.** Dashboard ja aluesuunnittelu lukevat saman palvelimen julkisen seurarajapinnan kautta. API suodattaa arkistoidut ja ei-julkiset yhteystiedot ennen vastauksen lähettämistä; asiakas validoi ja säilyttää julkiset yhteystiedot ja näyttää ne seuran tietopaneelissa. Julkinen tietolähde käyttää `no-store`-pyyntöä, säilyttää latausvirheiden uudelleenyrityksen ja tarjoaa tietolähteen pakotetun päivityksen jatkokäyttöä varten. Vite-kehityspalvelin käyttää vain paikallista read-only-fixturea; tuotanto ei koskaan varaa staattiseen vanhaan JSONiin.
 
 **Hyväksyntä:** kartta, listat, tilastot, kilpailu-/kunta-analyysien seuraluvut ja aluesuunnittelu käyttävät samaa aktiivisten seurojen aineistoa. Arkistointi ja palautus vaikuttavat johdonmukaisesti eikä aiempia käyttäjän suunnitteludokumentteja muuteta.
 
 ### PR 3 — Adminin Seurahallinta
 
-Lisää Adminille näkyvä oma valikko ja reitti, seuraluettelo hakuineen, lisäys- ja muokkauslomake, arkistointi ja palautus. Toteuta lomakevalidointi, tallennustilat, vahvistukset ja saavutettava virhe-/onnistumispalaute. Lisää yhteystieto-osio julkiseen seuran tietopaneeliin, turvalliset `mailto:`, `tel:` ja HTTP(S)-linkit sekä julkisuusasetuksen mukainen näyttö.
+**Tila: toteutetaan tässä PR:ssä.** Lisää Adminille näkyvä oma valikko ja suojattu reitti, seuraluettelo hakuineen, lisäys- ja muokkauslomake, arkistointi ja palautus. Lomake hallitsee seuran nimeä, paikkakuntaa, koordinaatteja, jäsenmäärää, yhteyshenkilöä, sähköpostia, puhelinta, WWW-sivua sekä Instagram- ja TikTok-linkkejä. Äänivalta lasketaan jäsenmäärästä palvelun yhteisellä säännöllä. Muutokset tallennetaan nykyisellä Admin-suojatulla rajapinnalla CSRF- ja revision-tarkistuksin; arkistointi säilyttää tietueen ja poistaa sen julkisista näkymistä. Yhteystiedot julkaistaan vain erillisellä valinnalla.
 
-**Hyväksyntä:** Admin pystyy hallitsemaan kaikkia määriteltyjä kenttiä; Writer ei näe valikkoa eikä voi avata reittiä tai käyttää rajapintaa; julkiset yhteystiedot näkyvät vain julkisuusasetuksen ollessa päällä.
+**Hyväksyntä:** Admin pystyy hallitsemaan kaikkia määriteltyjä kenttiä; Writer ei näe valikkoa eikä voi avata käyttöliittymää tai käyttää rajapintaa; julkiset yhteystiedot näkyvät vain julkisuusasetuksen ollessa päällä. Seuraa ei poisteta pysyvästi tässä vaiheessa: arkistointi on palautettava ja säilyttää tunnisteen sekä aiemmat yhteydet suunnitteluaineistoon.
 
 ### PR 4 — JSON-tuonti ja -vienti
 

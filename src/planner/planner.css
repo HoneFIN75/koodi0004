@@ -235,6 +235,31 @@
 .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 .planner-footer { margin-top: 24px; padding: 16px 0; color: var(--muted); font: 10px/1.6 'DM Mono', monospace; border-top: 1px solid var(--border); }
 .planner-shell .map-reset { top: 12px; right: 12px; min-height: 36px; }
+.clubs-admin { display: grid; gap: 14px; }
+.clubs-admin-header { align-items: center; }
+.clubs-admin-header p { max-width: 760px; }
+.clubs-admin-layout { display: grid; grid-template-columns: minmax(260px, .75fr) minmax(0, 1.6fr); gap: 16px; align-items: start; }
+.clubs-admin-list, .clubs-admin-form { display: grid; gap: 12px; min-width: 0; padding: 14px; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 12px; }
+.clubs-admin-search { position: relative; display: flex; align-items: center; }
+.clubs-admin-search svg { position: absolute; left: 10px; color: var(--muted); pointer-events: none; }
+.clubs-admin-search input { padding-left: 34px !important; }
+.clubs-admin-list > .hint { margin: 0; }
+.clubs-admin-items { display: grid; gap: 4px; max-height: 620px; overflow: auto; margin: 0; padding: 0; list-style: none; }
+.clubs-admin-items > li { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px; border: 1px solid transparent; border-radius: 9px; }
+.clubs-admin-items > li:hover { background: var(--surface); border-color: var(--border); }
+.clubs-admin-items > li.archived { opacity: .7; }
+.clubs-admin-item-name { display: grid; flex: 1; min-width: 0; gap: 3px; }
+.clubs-admin-item-name strong, .clubs-admin-item-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clubs-admin-item-name strong { font-size: 13px; }
+.clubs-admin-item-name span { color: var(--muted); font-size: 11px; }
+.clubs-admin-actions { display: flex; gap: 2px; }
+.clubs-admin-actions .icon-button { min-width: 36px; min-height: 36px; }
+.clubs-admin-form-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.clubs-admin-form-title h3 { margin: 0; color: var(--text); font: 700 16px Manrope, sans-serif; text-transform: none; letter-spacing: 0; }
+.clubs-admin-form .form-grid { gap: 12px; }
+.clubs-admin-form .field small { font-weight: 400; }
+.clubs-admin-public { padding-top: 10px; border-top: 1px solid var(--border); }
+.clubs-admin-denied { max-width: 720px; margin: 0 auto; }
 
 @media (max-width: 1280px) {
   .planner-map-layout { grid-template-columns: 300px minmax(0, 1fr); }
@@ -255,6 +280,8 @@
   .view-header h2 { font-size: 21px; }
   .map-status { margin-left: 0; width: 100%; }
   .swatches { grid-template-columns: repeat(8, minmax(28px, 1fr)); }
+  .clubs-admin-layout { grid-template-columns: 1fr; }
+  .clubs-admin-list { max-height: none; }
 }
 @media (max-width: 480px) {
   .save-indicator { padding: 0 8px; font-size: 11px; }
