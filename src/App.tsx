@@ -23,7 +23,7 @@ import { ClubDetail } from './components/ClubDetail';
 import { ClubResults } from './components/ClubResults';
 import { filterClubs, type ClubFilters as Filters } from './services/searchService';
 import { formatCount, hasLocation } from './services/mapService';
-import { getMembershipDistribution, getMunicipalityStats, getTotals, getVotingDistribution } from './services/statisticsService';
+import { getMembershipDistribution, getMunicipalityStats, getTotals, getVotesByMembershipBand } from './services/statisticsService';
 import { VOTING_POWERS } from './services/membershipRules.ts';
 import { useCompetitionData, useCompetitionStatistics } from './state/useCompetitions.ts';
 
@@ -157,7 +157,7 @@ export default function App() {
   const provinceCoverageIssues = useMemo(() => provinces && municipalities
     ? getProvinceCoverageIssues(provinces, municipalities) : [], [provinces, municipalities]);
   const membershipDistribution = useMemo(() => getMembershipDistribution(filteredClubs), [filteredClubs]);
-  const votingDistribution = useMemo(() => getVotingDistribution(filteredClubs), [filteredClubs]);
+  const votesByMembershipBand = useMemo(() => getVotesByMembershipBand(filteredClubs), [filteredClubs]);
   const onFilterChange = (next: Filters) => { setFilters(next); setSelectedClub(null); };
   const closeDetail = useCallback(() => setSelectedClub(null), []);
 
@@ -256,7 +256,7 @@ export default function App() {
           <RankingCard title="Suurimmat seurat" description="Tunnetun jäsenmäärän mukaan" rows={sortedClubs.flatMap((club) => club.jasenmaara === null ? [] : [{ name: club.seura, clubs: 1, members: club.jasenmaara }])} valueLabel="jäsentä" showClubCount={false} />
           <RankingCard title="Suurimmat kunnat" description="Jäseniä kunnittain" rows={municipalityStats} valueLabel="jäsentä" />
           <ChartCard title="Jäsenmäärän jakauma" description="Jäsenmäärä äänivaltaluokittain" rows={membershipDistribution} />
-          <ChartCard title="Äänimäärän jakauma" description="Äänivalta määräytyy jäsenmäärän mukaan" rows={votingDistribution} color="var(--gold)" />
+          <ChartCard title="Äänimäärä jäsenmääräluokittain" description="Äänet yhteensä kunkin jäsenmääräluokan seuroilta" rows={votesByMembershipBand} color="var(--gold)" />
           <OverviewBars rows={municipalityStats} />
           <ProvinceComparison rows={provinceStatistics} />
         </div>

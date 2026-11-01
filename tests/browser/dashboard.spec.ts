@@ -71,7 +71,8 @@ test('all filters update markers, totals, distributions and empty state', async 
   await expect(memberMetrics.nth(0)).toContainText('100 jäsentä');
   await page.getByLabel('Äänivalta', { exact: true }).selectOption('15');
   await expect(page.locator('.map-title p')).toContainText('1 / 4');
-  await expect(page.locator('.chart-card').nth(1).locator('.bar-row').filter({ hasText: '15 ääntä' }).locator('.bar-value')).toHaveText('1');
+  await expect(page.locator('.chart-card').filter({ has: page.getByRole('heading', { name: 'Äänimäärä jäsenmääräluokittain' }) })
+    .locator('.bar-row').filter({ hasText: 'Jäseniä 100–299' }).locator('.bar-value')).toHaveText('15');
   await page.getByRole('slider', { name: /Jäsenmäärä/ }).fill('25');
   await expect(page.locator('.map-title p')).toContainText('0 / 4');
   await expect(page.locator('.club-results')).toContainText('Ei suodattimia vastaavia seuroja');
@@ -79,6 +80,15 @@ test('all filters update markers, totals, distributions and empty state', async 
   await expect(page.locator('.club-cluster')).toHaveCount(0);
   await page.getByRole('button', { name: 'Tyhjennä suodattimet' }).click();
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
+});
+
+test('vote totals are shown by membership band, including zero votes for zero members', async ({ page }) => {
+  await load(page);
+  const chart = page.locator('.chart-card').filter({ has: page.getByRole('heading', { name: 'Äänimäärä jäsenmääräluokittain' }) });
+  await expect(chart.locator('.bar-label')).toHaveText([
+    'Ei jäseniä', 'Jäseniä 1–99', 'Jäseniä 100–299', 'Jäseniä 300–499', 'Jäseniä 500+',
+  ]);
+  await expect(chart.locator('.bar-value')).toHaveText(['0', '10', '15', '0', '25']);
 });
 
 test('province comparison and map overlay settings are data-driven and persist', async ({ page }) => {

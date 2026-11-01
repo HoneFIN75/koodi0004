@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { parseDatabase, clubRepository } from '../src/data/clubRepository.ts';
 import { filterClubs, searchClubs } from '../src/services/searchService.ts';
-import { getTotals, getVotingDistribution, getMembershipDistribution } from '../src/services/statisticsService.ts';
+import { getTotals, getVotesByMembershipBand, getMembershipDistribution } from '../src/services/statisticsService.ts';
 import { markerColor, markerRadius, hasLocation } from '../src/services/mapService.ts';
 
 const record = (overrides = {}) => ({
@@ -43,7 +43,7 @@ test('missing values remain unknown, valid records are not discarded', () => {
   assert.equal(database.data.filter(hasLocation).length, 1);
   assert.equal(getTotals(database.data).average, 25);
   assert.equal(getTotals(database.data).knownMembers, 1);
-  assert.equal(getVotingDistribution(database.data)[1].count, 1);
+  assert.equal(getVotesByMembershipBand(database.data)[1].count, 10);
 });
 
 test('normalizes numeric strings, rejects non-finite, fractional and blank counts', () => {
@@ -95,10 +95,26 @@ test('membership and voting bands use the defined inclusive boundaries', () => {
     { label: 'Jäseniä 500+', count: 2 },
   ]);
   assert.deepEqual(data.map((club) => club.aanimaara), [0, 10, 10, 15, 15, 20, 20, 25, 25]);
-  assert.deepEqual(getVotingDistribution(data), [
-    { label: '0 ääntä', count: 1 }, { label: '10 ääntä', count: 2 },
-    { label: '15 ääntä', count: 2 }, { label: '20 ääntä', count: 2 },
-    { label: '25 ääntä', count: 2 },
+  assert.deepEqual(getVotesByMembershipBand(data), [
+    { label: 'Ei jäseniä', count: 0 }, { label: 'Jäseniä 1–99', count: 20 },
+    { label: 'Jäseniä 100–299', count: 30 }, { label: 'Jäseniä 300–499', count: 40 },
+    { label: 'Jäseniä 500+', count: 50 },
+  ]);
+});
+
+test('vote totals by membership band count zero-member clubs as zero and omit unknown membership', () => {
+  const data = clubs([
+    record({ jasenmaara: 0 }),
+    record({ jasenmaara: 0 }),
+    record({ jasenmaara: 50 }),
+    record({ jasenmaara: null }),
+  ]);
+  assert.deepEqual(getVotesByMembershipBand(data), [
+    { label: 'Ei jäseniä', count: 0 },
+    { label: 'Jäseniä 1–99', count: 10 },
+    { label: 'Jäseniä 100–299', count: 0 },
+    { label: 'Jäseniä 300–499', count: 0 },
+    { label: 'Jäseniä 500+', count: 0 },
   ]);
 });
 
