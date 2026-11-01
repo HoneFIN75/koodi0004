@@ -8,6 +8,8 @@ const databaseUrl = new URL('./jsondb/seurat.json', import.meta.url);
 const competitionUrl = new URL(`./${COMPETITION_FILE}`, import.meta.url);
 const regionsUrl = new URL('./jsondb/regions.json', import.meta.url);
 const plannerApiUrl = new URL('./server/planner.php', import.meta.url);
+const clubsApiUrl = new URL('./server/clubs.php', import.meta.url);
+const clubsServiceUrl = new URL('./server/clubs-api.php', import.meta.url);
 
 function serveDatabase(): Plugin {
   return {
@@ -52,6 +54,16 @@ function serveDatabase(): Plugin {
         type: 'asset',
         fileName: 'api/planner.php',
         source: await readFile(plannerApiUrl),
+      });
+      this.emitFile({
+        type: 'asset',
+        fileName: 'api/clubs.php',
+        source: await readFile(clubsApiUrl),
+      });
+      this.emitFile({
+        type: 'asset',
+        fileName: 'api/clubs-api.php',
+        source: await readFile(clubsServiceUrl),
       });
     },
   };

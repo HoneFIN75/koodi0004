@@ -19,6 +19,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: php -l server/planner.php
+      - run: php -l server/clubs.php
+      - run: php -l server/clubs-api.php
+      - run: php -l server/migrate-clubs.php
       - run: php -l server/setup-auth.php
       - run: npm test
       - run: npx playwright install --with-deps chromium
