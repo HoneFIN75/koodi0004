@@ -134,6 +134,34 @@ Lisää pysyvät ID:t, yhteystiedot, julkisuus- ja arkistointitiedot, migraatio 
 
 **Hyväksyntä:** migraatio säilyttää kaikki nykyiset seurat ja lisäkentät; julkinen lukupolku ei paljasta yksityisiä yhteystietoja; vain Admin voi muuttaa aineistoa; tallennus on atominen ja versiotarkistettu; Writerin ja kirjautumattoman käyttäjän muutosyritykset hylätään palvelimella.
 
+#### Tekninen toteutusrajaus
+
+PR 1:n tarkoitus on luoda turvallinen, testattava tallennus- ja rajapintaperusta muuttamatta vielä dashboardin tai aluesuunnittelun lukupolkua. Vanha `jsondb/seurat.json` jää tämän PR:n jälkeen nykyisten näkymien lähteeksi, kunnes PR 2 vaihtaa asiakkaat uuteen julkiseen rajapintaan. Tämä estää puolivalmiin siirtymän, jossa kirjoitukset tallentuvat uuteen paikkaan mutta sovellus näyttää yhä vanhaa aineistoa.
+
+**Tietueen v1-malli:** jokaisella seuralla on muuttumaton merkkijono-ID, nykyiset kentät `seura`, `paikkakunta`, `latitude`, `longitude`, `jasenmaara` ja johdettu `aanimaara`, `contact`-objekti (`name`, `email`, `phone`, `website`, `instagram`, `tiktok`, `public`), `details`-objekti sekä `archived`-boolean. Mitta-arvot voivat olla `null`; äänivalta lasketaan aina jäsenmäärästä. Vanhan aineiston tuntemattomat skalaari-lisäkentät siirretään `details`-objektiin. Yhteystietojen puuttuvat arvot alustetaan tyhjiksi ja `contact.public` sekä `archived` arvoon `false`.
+
+**Tallennus:** pidä seurojen aineisto erillisenä aluesuunnittelun `planner.json`-dokumentista, mutta sijoita se nykyisen kirjautumis- ja yksityistallennuksen web-juuren ulkopuoliseen tietohakemistoon erilliseksi `clubs.json`-tiedostoksi. Jaa polkujen, yksityishakemiston ja autentikoidun session tarkistus yhteisen palvelinpuolen apukoodin kautta; älä kopioi kirjautumisen tai roolin tarkistusta itsenäiseksi toteutukseksi uuteen endpointiin. Säilytä `planner.php`-rajapinnan nykyinen toiminta ja testaa regressiot. Tiedostokirjoitus lukitaan, kirjoitetaan samassa yksityishakemistossa väliaikaistiedostoon ja julkaistaan atomisella nimeämisellä. Tietueen ID:t ja versiohash mahdollistavat myöhemmän ristiriitojen tunnistamisen.
+
+**Rajapintavastuut:**
+
+- `GET /api/clubs.php` on julkinen, vain luku -toiminto. Se palauttaa aktiiviset seurat nykyisen dashboardin tietorakennetta vastaavassa muodossa sekä vain ne yhteystiedot, joiden `contact.public` on `true`. Aseta `Cache-Control: no-store` ja JSON-/nosniff-otsakkeet olemassa olevan API-käytännön mukaisesti.
+- `GET /api/clubs.php?view=admin` vaatii voimassa olevan Admin-session ja palauttaa myös arkistoidut seurat sekä kaikki yhteystiedot. Writer ja kirjautumaton käyttäjä saavat käyttöoikeusvirheen.
+- `PUT /api/clubs.php` vaatii Admin-session, HTTPS:n, CSRF-tokenin ja nykyiseen aineiston versioon sidotun `X-Expected-Revision`-otsakkeen. Koko v1-dokumentti validoidaan ennen kirjoitusta; vanhentunut versio palauttaa `409`, puuttuva tai väärä oikeus hylätään, ja virhe ei muuta tiedostoa.
+- Rajapinta ei sisällä osittaista päivitystä, tuontitiedoston käsittelyä, pysyvää poistamista eikä asiakkaan puolella tehtävää valtuutusta tässä vaiheessa. JSON-tuonti ja -vienti toteutetaan myöhemmässä PR 4:ssä.
+
+**Migraatio:** lisää toistettavissa oleva CLI-migraatio nykyisestä repositoryn `jsondb/seurat.json`-tiedostosta. Migraatio tarkistaa koko lähteen ennen tulostiedoston luontia, säilyttää seurojen lukumäärän ja tuntemattomat lisätiedot, laskee äänivallan sovelluksen säännöllä sekä raportoi puuttuvat/virheelliset arvot. Luo ID:t deterministisesti normalisoidun seuran nimen ja paikkakunnan pohjalta, jotta saman lähteen migraatio tuottaa saman tuloksen; jos avain ei ole yksikäsitteinen, keskeytä ja raportoi törmäys sen sijaan, että yhdistäisit seuroja. Älä ylikirjoita olemassa olevaa kohdetta ilman erillistä eksplisiittistä valitsinta. Tuotantoon siirrettävän tiedoston käyttöoikeudet ovat vain palvelimen käyttäjälle; migraatio ei tulosta henkilötietoja lokeihin. Tuotantoon siirto tehdään ensin varmuuskopiosta ja erikseen varmistettuna, ei HTTP-endpointin kautta.
+
+#### Toteutus- ja tarkistuslista
+
+1. Lisää mallityypit sekä palvelinpuolen validointi; määritä sallitut kentät, pituusrajat, koordinaattirajat, ei-negatiivinen kokonaislukumäärä tai `null`, turvallinen URL-protokolla ja tuntemattomien `details`-arvojen säännöt.
+2. Irrota nykyisestä planner-rajapinnasta uudelleenkäytettävät yksityistallennuspolun ja kirjautumis/session tarkistuksen osat muuttamatta plannerin ulkoista sopimusta.
+3. Toteuta versioitu ja lukittu seuratallennus, julkinen suodatettu GET, Adminin täydet tiedot palauttava GET sekä Adminin CSRF-/revision-suojattu PUT.
+4. Toteuta offline-CLI-migraatio, joka tuottaa `clubs.json`-aineiston turvallisesti ja deterministisesti.
+5. Lisää PHP:n API-integraatiotestit ja migraatiotestit. Testaa erikseen anonyymi, Writer ja Admin; julkisen vastauksen yksityisyys; CSRF; HTTPS; puuttuva ja väärä revision; väärän rakenteen hylkäys; atominen epäonnistuminen; linkkien protokollat; ID-törmäykset; migraation tietuemäärä ja lisäkenttien round-trip; vanhan planner-API:n regressiot.
+6. Päivitä README:hen paikallisen migraatiotestin ja palvelimelle siirron käyttöohjeet. Älä vielä vaihda sovelluksen julkista tietolähdettä.
+
+**PR 1:n rajauksen ulkopuolella:** hallintavalikko ja lomakkeet, asiakkaan uusi seuratietorepository, nykyisten näkymien siirtymä, yhteystietojen julkinen esitystapa sekä JSON-tiedostojen Admin-tuonti/vienti. Nämä riippuvat rajapinnan sopimuksesta ja kuuluvat myöhempiin PR-vaiheisiin.
+
 ### PR 2 — Yhteinen seuratietolähde
 
 Vaihda dashboard ja aluesuunnittelu lukemaan samaa palvelimen julkaisemaa aineistoa. Päivitä arkistoitujen seurojen suodatus kaikissa seuralaskentaa käyttävissä näkymissä. Lisää latausvirheiden näkyvä käsittely, uudelleenyritys ja aineiston päivitys tallennuksen jälkeen.
