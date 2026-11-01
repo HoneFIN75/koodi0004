@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Archive, Pencil, Plus, RotateCcw, Search, X } from 'lucide-react';
+import { Archive, Download, FileUp, Pencil, Plus, RotateCcw, Search, X } from 'lucide-react';
 import { clubRepository } from '../data/clubRepository';
 import { getVotingPower } from '../services/membershipRules.ts';
+import { exportClubFile, parseClubFile, planClubImport, type ClubFileRecord, type ClubImportMode } from '../services/clubImportExport.ts';
 
 interface AdminClub {
   id: string;
@@ -62,6 +63,22 @@ function toDraft(club: AdminClub): ClubDraft {
   };
 }
 
+function downloadJson(value: unknown, name: string) {
+  const blob = new Blob([`${JSON.stringify(value, null, 2)}\n`], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function importSummary(summary: ReturnType<typeof planClubImport>['summary']): string {
+  return `Lisätty ${summary.added}, päivitetty ${summary.updated}, ennallaan ${summary.unchanged}, ohitettu ${summary.skipped}, arkistoitu ${summary.archived}, palautettu ${summary.restored}${summary.removed ? `, poistuu korvauksessa ${summary.removed}` : ''}.`;
+}
+
 async function responseJson(response: Response): Promise<Record<string, unknown>> {
   const result = await response.json().catch(() => null) as unknown;
   if (!result || typeof result !== 'object' || Array.isArray(result)) {
@@ -80,6 +97,14 @@ export function ClubsAdmin({ csrfToken }: { csrfToken: string }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [includeArchived, setIncludeArchived] = useState(false);
+  const [exportConfirmed, setExportConfirmed] = useState(false);
+  const [importedClubs, setImportedClubs] = useState<ClubFileRecord[] | null>(null);
+  const [importWarnings, setImportWarnings] = useState<string[]>([]);
+  const [importFileName, setImportFileName] = useState('');
+  const [importMode, setImportMode] = useState<ClubImportMode>('merge');
+  const [backupDownloaded, setBackupDownloaded] = useState(false);
+  const [replaceConfirmed, setReplaceConfirmed] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -109,6 +134,14 @@ export function ClubsAdmin({ csrfToken }: { csrfToken: string }) {
     .filter((club) => showArchived || !club.archived)
     .filter((club) => `${club.seura} ${club.paikkakunta} ${club.contact.name} ${club.contact.email}`.toLocaleLowerCase('fi').includes(query.trim().toLocaleLowerCase('fi')))
     .sort((a, b) => a.seura.localeCompare(b.seura, 'fi')), [store, showArchived, query]);
+  const importPlan = useMemo(() => {
+    if (!store || !importedClubs) return null;
+    try {
+      return { plan: planClubImport(store.data, importedClubs, importMode), error: '' };
+    } catch (cause) {
+      return { plan: null, error: cause instanceof Error ? cause.message : 'Tuonnin esikatselua ei voitu muodostaa.' };
+    }
+  }, [store, importedClubs, importMode]);
 
   const startNew = () => {
     setEditingId(null);
@@ -150,6 +183,7 @@ export function ClubsAdmin({ csrfToken }: { csrfToken: string }) {
       setMessage(success);
       try {
         await clubRepository.refresh();
+        window.dispatchEvent(new Event('clubs-updated'));
       } catch {
         setMessage(`${success} Julkisen näkymän päivitys ei onnistunut; lataa sivu uudelleen.`);
       }
@@ -210,6 +244,54 @@ export function ClubsAdmin({ csrfToken }: { csrfToken: string }) {
       club.archived ? 'Seura palautettiin.' : 'Seura arkistoitiin.');
   };
 
+  const handleImportFile = async (file: File | undefined) => {
+    setImportedClubs(null);
+    setImportWarnings([]);
+    setImportFileName('');
+    setBackupDownloaded(false);
+    setReplaceConfirmed(false);
+    setError('');
+    setMessage('');
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setError('JSON-tiedosto ylittää sallitun 10 Mt rajan.');
+      return;
+    }
+    try {
+      const parsed = parseClubFile(JSON.parse(await file.text()) as unknown);
+      setImportedClubs(parsed.clubs);
+      setImportWarnings(parsed.warnings);
+      setImportFileName(file.name);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'JSON-tuontitiedostoa ei voitu käsitellä.');
+    }
+  };
+
+  const exportCurrent = (asBackup = false) => {
+    if (!store) return;
+    const file = exportClubFile(store.data, asBackup || includeArchived);
+    const date = new Date().toISOString().slice(0, 10);
+    downloadJson(file, `seurakartta-seurat-${date}${asBackup ? '-varmuuskopio' : ''}.json`);
+    if (asBackup) setBackupDownloaded(true);
+    setError('');
+    setMessage(asBackup
+      ? 'Yksityisen seuratietoaineiston varmuuskopio ladattiin. Säilytä tiedosto turvallisessa paikassa.'
+      : `JSON-vienti ladattiin (${file.clubs.length} seuraa, sisältää myös yksityisiksi merkityt yhteystiedot).`);
+  };
+
+  const performImport = () => {
+    if (!store || !importPlan?.plan) return;
+    if (importMode === 'replace' && (!backupDownloaded || !replaceConfirmed)) return;
+    const plan = importPlan.plan;
+    const success = `JSON-tuonti valmis: ${importSummary(plan.summary)}`;
+    setImportedClubs(null);
+    setImportWarnings([]);
+    setImportFileName('');
+    setBackupDownloaded(false);
+    setReplaceConfirmed(false);
+    void saveStore(plan.data, success);
+  };
+
   return (
     <section className="planner-card clubs-admin" aria-labelledby="clubs-admin-title">
       <header className="card-header clubs-admin-header">
@@ -226,6 +308,54 @@ export function ClubsAdmin({ csrfToken }: { csrfToken: string }) {
       {!loading && !store && !error && <p className="notice">Seuratietoja ei ole saatavilla.</p>}
 
       {store && (
+        <>
+        <section className="clubs-json-tools" aria-labelledby="clubs-json-title">
+          <div className="clubs-json-heading">
+            <div><h3 id="clubs-json-title">JSON-varmuuskopio ja tiedonsiirto</h3><p>Versionoitu tiedostomuoto säilyttää seura-ID:t, arkistointitilan ja lisätiedot.</p></div>
+          </div>
+          <fieldset className="clubs-json-options">
+            <legend>Vienti</legend>
+            <label className="checkbox"><input type="checkbox" checked={includeArchived} onChange={(event) => setIncludeArchived(event.target.checked)} /> Sisällytä arkistoidut seurat</label>
+            <p className="notice">Viety JSON sisältää kaikki yhteystiedot, myös yksityisiksi merkityt henkilötiedot. Käsittele ja säilytä tiedostoa turvallisesti.</p>
+            <label className="checkbox"><input type="checkbox" checked={exportConfirmed} onChange={(event) => setExportConfirmed(event.target.checked)} /> Ymmärrän, että vientitiedosto sisältää myös yksityisiä yhteystietoja</label>
+            <button type="button" className="secondary-button" disabled={!exportConfirmed} onClick={() => exportCurrent()}><Download size={15} /> Vie seurat JSON-tiedostona</button>
+          </fieldset>
+
+          <fieldset className="clubs-json-options">
+            <legend>Tuonti ja esikatselu</legend>
+            <label className="field">Valitse Seurakartta JSON -tiedosto
+              <input type="file" accept=".json,application/json" onChange={(event) => void handleImportFile(event.target.files?.[0])} />
+            </label>
+            {importFileName && <p className="hint">Valittu tiedosto: {importFileName} · {importedClubs?.length ?? 0} tietuetta</p>}
+            {importedClubs && (
+              <>
+                <fieldset className="clubs-json-modes">
+                  <legend>Tuontitapa</legend>
+                  <label className="checkbox"><input type="radio" name="club-import-mode" value="merge" checked={importMode === 'merge'} onChange={() => setImportMode('merge')} /> Yhdistä ja päivitä ID:n perusteella</label>
+                  <label className="checkbox"><input type="radio" name="club-import-mode" value="new" checked={importMode === 'new'} onChange={() => setImportMode('new')} /> Lisää vain uudet, ohita nykyiset</label>
+                  <label className="checkbox"><input type="radio" name="club-import-mode" value="replace" checked={importMode === 'replace'} onChange={() => setImportMode('replace')} /> Korvaa koko aineisto</label>
+                </fieldset>
+                {importWarnings.map((warning) => <p className="notice" role="status" key={warning}>{warning}</p>)}
+                {importPlan?.error && <p className="field-error" role="alert">{importPlan.error}</p>}
+                {importPlan?.plan && (
+                  <div className="clubs-import-preview" aria-live="polite">
+                    <strong>Esikatselun tulos</strong>
+                    <p>{importSummary(importPlan.plan.summary)}</p>
+                    {importMode === 'replace' && <>
+                      <p className="notice">Korvaaminen poistaa nykyisestä aineistosta {importPlan.plan.summary.removed} tiedostosta puuttuvaa seuraa ja voi muuttaa yhteystietojen julkisuusasetuksia.</p>
+                      <p className="notice">Ennen korvaamista lataa nykyisestä aineistosta yksityinen JSON-varmuuskopio. Varmuuskopio sisältää myös salassa pidettävät yhteystiedot.</p>
+                      <button type="button" className="secondary-button" onClick={() => exportCurrent(true)}><Download size={15} /> Lataa nykyisen aineiston varmuuskopio</button>
+                      <label className="checkbox"><input type="checkbox" checked={replaceConfirmed} onChange={(event) => setReplaceConfirmed(event.target.checked)} disabled={!backupDownloaded} /> Vahvistan nykyisen koko aineiston korvaamisen tuontitiedoston sisällöllä</label>
+                    </>}
+                    <button type="button" className={importMode === 'replace' ? 'secondary-button danger' : 'primary-button'} onClick={performImport} disabled={saving || (importMode === 'replace' && (!backupDownloaded || !replaceConfirmed))}>
+                      <FileUp size={15} /> {saving ? 'Tallennetaan…' : importMode === 'replace' ? 'Korvaa koko aineisto' : 'Tuo esikatseltu aineisto'}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </fieldset>
+        </section>
         <div className="clubs-admin-layout">
           <aside className="clubs-admin-list" aria-label="Seuraluettelo">
             <label className="field">Hae seuraa
@@ -277,6 +407,7 @@ export function ClubsAdmin({ csrfToken }: { csrfToken: string }) {
             </form>
           )}
         </div>
+        </>
       )}
     </section>
   );
