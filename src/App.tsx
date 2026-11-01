@@ -14,6 +14,7 @@ import { ProvinceComparison } from './components/ProvinceComparison.tsx';
 import { CompetitionFilters } from './components/CompetitionFilters';
 import { CompetitionAnalytics } from './components/CompetitionAnalytics';
 import type { Club, Database, MunicipalityStat } from './models/club';
+import type { CompetitionStatistics } from './models/competition';
 import { ChartCard } from './components/ChartCard';
 import { MapView } from './components/MapView';
 import { RankingCard } from './components/RankingCard';
@@ -79,6 +80,23 @@ function OverviewBars({ rows }: { rows: MunicipalityStat[] }) {
       </div>
     </section>
   );
+}
+
+function CompetitionYearSummary({ statistics }: { statistics: CompetitionStatistics | null }) {
+  if (!statistics) return <p role="status">Ladataan kilpailutilastoja…</p>;
+  if (statistics.byYear.length === 0) return <p className="empty-note">Valitussa rajauksessa ei ole kilpailuja.</p>;
+
+  return <>
+    <div className="competition-table competition-year-table" role="region" aria-label="Kilpailujen vuositaulukko" tabIndex={0}>
+      <table>
+        <thead><tr><th scope="col">Vuosi</th><th scope="col">Kilpailuja</th><th scope="col">Kilpailukuntia</th></tr></thead>
+        <tbody>{statistics.byYear.map(({ year, count, municipalityCount }) => (
+          <tr key={year}><th scope="row">{year}</th><td>{formatCount(count)}</td><td>{formatCount(municipalityCount)}</td></tr>
+        ))}</tbody>
+      </table>
+    </div>
+    <p className="hint">Aineisto ei yksilöi järjestäjiä. Kilpailukunnat kertoo, kuinka monessa kunnassa järjestettiin kilpailuja kyseisenä vuonna.</p>
+  </>;
 }
 
 export default function App() {
@@ -175,21 +193,41 @@ export default function App() {
       {provinceError && <p className="data-warning" role="alert">Maakuntatietoja ei voitu ladata: {provinceError} <button onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
       {provinceCoverageIssues.length > 0 && <p className="data-warning" role="status">{provinceCoverageIssues.join(' ')}</p>}
       {!database && !error && <div className="loading-state" role="status"><span className="loading-spinner" />Ladataan seuroja ja rakennetaan tilannekuvaa…</div>}
+      <section className="dashboard-competition-overview panel" aria-label="Kilpailujen vuosiyhteenveto">
+        <h2>Kilpailut vuosittain</h2>
+        <CompetitionFilters />
+        <CompetitionYearSummary statistics={competitionStatistics} />
+      </section>
       {database && <>
       {database.warnings.length > 0 && <div className="data-warning" role="status"><AlertCircle size={20} /><div><strong>Aineiston huomautukset</strong>{database.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div></div>}
       {clubs.length === 0 && <p className="data-warning" role="status">Tietokannassa ei ole vielä seuroja. Kartta ja tilastot päivittyvät aineiston mukana.</p>}
 
-      <section className="metrics-grid" aria-label="Yhteenveto">
-        <MetricCard icon={MapPin} label="SEUROJA" value={totals.clubs} suffix="seuraa" />
-        <MetricCard icon={Users} label="JÄSENIÄ YHTEENSÄ" value={totals.members} suffix="jäsentä" />
-        <MetricCard icon={Users} label="KESKIMÄÄRIN" value={totals.average} suffix="jäsentä / seura" />
-        <MetricCard icon={Vote} label="MEDIAANI" value={totals.median} suffix="jäsentä / seura" />
-        <ExtremeCard label="SUURIN SEURA" club={totals.largest} onSelect={setSelectedClub} />
-        <ExtremeCard label="PIENIN SEURA" club={totals.smallest} onSelect={setSelectedClub} />
-        <MetricCard icon={Users} label="SEURAKUNTIEN VÄESTÖ 2025" value={municipalities ? coveredPopulation.total : null} suffix="asukasta · kunnat kerran" />
-        <MetricCard icon={Users} label="JÄSENIÄ / 10 000 ASUKASTA" value={municipalities ? per10000Residents(coveredMembers, coveredPopulation.total) : null} suffix="seurojen kotikunnissa" />
-        <MetricCard icon={Users} label="SEUROJA / 10 000 ASUKASTA" value={municipalities ? per10000Residents(coveredClubs, coveredPopulation.total) : null} suffix="seurojen kotikunnissa" />
-      </section>
+      <div className="dashboard-metric-sections">
+        <section className="dashboard-metric-section panel" aria-label="Seurat">
+          <h2>Seurat</h2>
+          <div className="dashboard-metrics-grid">
+            <MetricCard icon={MapPin} label="SEUROJA" value={totals.clubs} suffix="seuraa" />
+            <ExtremeCard label="SUURIN SEURA" club={totals.largest} onSelect={setSelectedClub} />
+            <ExtremeCard label="PIENIN SEURA" club={totals.smallest} onSelect={setSelectedClub} />
+          </div>
+        </section>
+        <section className="dashboard-metric-section panel" aria-label="Jäsenmäärät">
+          <h2>Jäsenmäärät</h2>
+          <div className="dashboard-metrics-grid">
+            <MetricCard icon={Users} label="JÄSENIÄ YHTEENSÄ" value={totals.members} suffix="jäsentä" />
+            <MetricCard icon={Users} label="KESKIMÄÄRIN" value={totals.average} suffix="jäsentä / seura" />
+            <MetricCard icon={Vote} label="MEDIAANI" value={totals.median} suffix="jäsentä / seura" />
+          </div>
+        </section>
+        <section className="dashboard-metric-section panel" aria-label="Seurojen kotikunnat">
+          <h2>Seurojen kotikunnat</h2>
+          <div className="dashboard-metrics-grid">
+            <MetricCard icon={Users} label="SEURAKUNTIEN VÄESTÖ 2025" value={municipalities ? coveredPopulation.total : null} suffix="asukasta · kunnat kerran" />
+            <MetricCard icon={Users} label="JÄSENIÄ / 10 000 ASUKASTA" value={municipalities ? per10000Residents(coveredMembers, coveredPopulation.total) : null} suffix="seurojen kotikunnissa" />
+            <MetricCard icon={Users} label="SEUROJA / 10 000 ASUKASTA" value={municipalities ? per10000Residents(coveredClubs, coveredPopulation.total) : null} suffix="seurojen kotikunnissa" />
+          </div>
+        </section>
+      </div>
 
       <section className="map-section panel" id="kartta">
         <div className="map-toolbar">
@@ -222,7 +260,6 @@ export default function App() {
         {municipalities && <PopulationExplorer municipalities={municipalities.municipalities} />}
       </section>
       </>}
-      <CompetitionFilters />
       <CompetitionAnalytics geography={municipalities?.municipalities} title="Suomen kilpailutoiminta" />
 
       <footer className="footer"><div className="brand-mark small"><span /></div><span>SEURAKARTTA</span><span className="footer-source">Tietolähde: seuratietokanta{database ? ` · ${database.data.length} seuraa · metadata: ${database.metadata.recordCount ?? 'ei tietoa'}` : ''}</span><a href="https://www.openstreetmap.org/copyright">Kartta © OpenStreetMap</a></footer>
