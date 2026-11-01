@@ -19,7 +19,7 @@ const smallData = fixture([
 ]);
 
 async function load(page: Page, data = smallData) {
-  await page.route('**/jsondb/seurat.json', (route) => route.fulfill({ json: data }));
+  await page.route('**/api/clubs.php', (route) => route.fulfill({ json: data }));
   await page.goto('/koodi0004/');
   await expect(page.locator('.map-title p')).toContainText(`${data.data.length} /`);
 }
@@ -126,6 +126,34 @@ test('keyboard marker and list selection, extensible details and focus restorati
   await expect(page.locator('#club-detail-title')).toHaveText('Testiseura 3');
 });
 
+test('public contact fields have a dedicated panel and archived clubs are excluded', async ({ page }) => {
+  const data = fixture([
+    club(1, {
+      seura: 'Yhteystietoseura ry',
+      contact: {
+        name: 'Yhteyshenkilö',
+        email: 'seura@example.fi',
+        phone: '+358 40 123 4567',
+        website: 'https://example.fi',
+        instagram: 'https://www.instagram.com/esimerkkiseura/',
+        tiktok: '',
+        public: true,
+      },
+    }),
+    club(2, { seura: 'Arkistoitu seura', archived: true }),
+  ]);
+  await page.route('**/api/clubs.php', (route) => route.fulfill({ json: data }));
+  await page.goto('/koodi0004/');
+  await expect(page.locator('.map-title p')).toContainText('1 / 1');
+  await expect(page.locator('.club-results')).not.toContainText('Arkistoitu seura');
+  await page.locator('.club-result').first().click();
+  const contacts = page.getByRole('region', { name: 'Yhteystiedot' });
+  await expect(contacts).toContainText('Yhteyshenkilö');
+  await expect(contacts.getByRole('link', { name: 'seura@example.fi' })).toHaveAttribute('href', 'mailto:seura%40example.fi');
+  await expect(contacts.getByRole('link', { name: '+358 40 123 4567' })).toHaveAttribute('href', 'tel:+358401234567');
+  await expect(contacts.getByRole('link', { name: 'https://www.instagram.com/esimerkkiseura/' })).toHaveAttribute('href', 'https://www.instagram.com/esimerkkiseura/');
+});
+
 test('coincident clubs cluster and expand with keyboard navigation', async ({ page }) => {
   await load(page, fixture(smallData.data.slice(0, 3)));
   const cluster = page.locator('.club-cluster').first();
@@ -169,20 +197,22 @@ test('partial data, safe text and empty datasets remain usable', async ({ page }
   await expect(page.locator('.club-detail img')).toHaveCount(0);
   await expect(page.locator('.club-detail a')).toHaveCount(0);
   await expect(page.locator('.detail-fields')).toContainText('custom field');
-  await load(page, fixture([]));
+  await page.route('**/api/clubs.php', (route) => route.fulfill({ json: fixture([]) }));
+  await page.reload();
+  await expect(page.locator('.map-title p')).toContainText('0 /');
   await expect(page.locator('.data-warning')).toContainText('ei ole vielä seuroja');
   await expect(page.locator('.metric-value').first()).toContainText('0 seuraa');
 });
 
 test('failed data load can be retried; tile failures are explicit', async ({ page }) => {
   let attempts = 0;
-  await page.route('**/jsondb/seurat.json', (route) => {
+  await page.route('**/api/clubs.php', (route) => {
     attempts++;
     return attempts === 1 ? route.fulfill({ status: 503, body: '' }) : route.fulfill({ json: smallData });
   });
   await page.route('https://*.tile.openstreetmap.org/**', (route) => route.abort());
   await page.goto('/koodi0004/');
-  await expect(page.getByRole('alert')).toContainText('503');
+  await expect(page.locator('.error-banner')).toContainText('503');
   await page.getByRole('button', { name: 'Yritä uudelleen' }).click();
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
   await expect(page.locator('.tile-error')).toBeVisible();
@@ -192,7 +222,7 @@ test('loading is announced and reduced-motion preferences are respected', async 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   let release: () => void = () => {};
   const pending = new Promise<void>((resolve) => { release = resolve; });
-  await page.route('**/jsondb/seurat.json', async (route) => {
+  await page.route('**/api/clubs.php', async (route) => {
     await pending;
     await route.fulfill({ json: smallData });
   });

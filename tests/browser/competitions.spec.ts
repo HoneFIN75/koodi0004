@@ -23,7 +23,7 @@ test.beforeEach(async ({ page }) => {
     return route.fulfill({ json: { revision } });
   });
   await page.route('https://*.tile.openstreetmap.org/**', (route) => route.fulfill({ status: 204 }));
-  await page.route('**/jsondb/seurat.json', (route) => route.fulfill({ json: { data: [
+  await page.route('**/api/clubs.php', (route) => route.fulfill({ json: { data: [
     { seura: 'Testiseura', paikkakunta: 'Espoo', jasenmaara: 10, aanimaara: 10, latitude: 60.2, longitude: 24.6 },
   ] } }));
 });

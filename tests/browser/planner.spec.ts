@@ -1,7 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFile } from 'node:fs/promises';
 
 test.beforeEach(async ({ page }) => {
+  const clubs = JSON.parse(await readFile(new URL('../../jsondb/seurat.json', import.meta.url), 'utf8'));
   let sharedState = { document: null, backups: [], revision: null as string | null };
   let revision = 0;
   let role: 'writer' | 'admin' | null = 'writer';
@@ -40,6 +42,7 @@ test.beforeEach(async ({ page }) => {
     contentType: 'image/png',
     body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zl1sAAAAASUVORK5CYII=', 'base64'),
   }));
+  await page.route('**/api/clubs.php', (route) => route.fulfill({ json: clubs }));
 });
 
 async function open(page: Page) {

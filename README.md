@@ -1,20 +1,20 @@
 # Seurakartta
 
-Responsive analytics dashboard for Finnish disc golf clubs. The JSON database is the sole source of truth; the application does not import, parse, or depend on spreadsheets.
+Responsive analytics dashboard for Finnish disc golf clubs. The private server-side club store is the source of truth; the application does not import or depend on spreadsheets.
 
 ## Data source
 
-The separately maintained database is `jsondb/seurat.json` in the repository and is served relative to the application base path. The payload contains a `data` array and optional `metadata` (`generatedAt`, `recordCount`, `source`). Club fields are `seura`, `paikkakunta`, `latitude`, `longitude`, `jasenmaara`, and `aanimaara`. Numbers may be JSON numbers or numeric strings (including non-breaking spaces). Every object in `data[]` is processed; a stale `metadata.recordCount` produces a visible warning, never truncates the dataset or blocks rendering.
+The production dashboard and region planner load active clubs from the public `GET /api/clubs.php` endpoint. The private server-side `clubs.json` store is authoritative; `jsondb/seurat.json` is retained in the repository as the initial migration source and a read-only Vite development fixture. The API payload contains `data` and `metadata`; club fields include `seura`, `paikkakunta`, `latitude`, `longitude`, `jasenmaara`, and `aanimaara`. Numeric values may be JSON numbers or numeric strings (including non-breaking spaces). The client processes every returned record; stale metadata produces a visible warning and never truncates the dataset or blocks rendering. Archived clubs are excluded server-side. Public contacts are included only when explicitly marked public.
 
 Membership bands and voting power follow one shared rule: 0 members means 0 votes; 1–99 means 10; 100–299 means 15; 300–499 means 20; and 500 or more means 25. `aanimaara` is derived from the validated member count when the database is loaded. A conflicting source value is replaced by the rule-based value and reported as a visible data warning. If the member count is missing or invalid, voting power remains unknown rather than being inferred from the source vote value.
 
 Missing or invalid counts remain unknown, not zero. Average, median, extrema, and membership distributions use only known member counts; totals sum known counts and the dashboard states how many records have membership data. Records without valid coordinates remain searchable and included in analytics, but are not placed at invented locations. Invalid non-object records are skipped with a visible warning. Malformed payloads and failed requests display an error with a retry button.
 
-The Vite development server exposes the repository JSON directly, and the production build copies that same file to `dist/jsondb/seurat.json`. No duplicate fixture or manually synchronized database is required.
+In development, Vite serves the legacy JSON fixture at the API route so dashboard work remains possible without a local PHP server; this fixture does not simulate Admin access or private server state. Production builds include the PHP API files and require PHP execution plus a provisioned private `clubs.json` store. If the private store has not been migrated, the API reports a visible service error rather than falling back to stale static data.
 
 ## Club data API (phase 1)
 
-The first club-administration backend phase adds a versioned private store at `clubs.json`, a public read endpoint, an Admin-only read/write endpoint, and a one-time CLI migration. This phase deliberately does not switch the dashboard or region planner to the new endpoint; those clients continue to read `jsondb/seurat.json` until the shared-reader phase is implemented.
+The first club-administration backend phase adds a versioned private store at `clubs.json`, a public read endpoint, an Admin-only read/write endpoint, and a one-time CLI migration. The dashboard and region planner now use the public endpoint. The Admin interface is still planned and is not included in this phase.
 
 The production build includes `api/planner.php`, `api/clubs.php`, and `api/clubs-api.php`; deploy the complete `dist/` output. `clubs.php` delegates to the planner endpoint so both APIs use the same private data-directory, session, role, HTTPS, and CSRF checks. Keep the existing private `planner-data` directory outside the web root with permissions `700`; the JSON files and lock files must have permissions `600`. The public endpoint is `GET /api/clubs.php`. Admin access is `GET /api/clubs.php?view=admin`; a full replacement requires `PUT /api/clubs.php`, a valid Admin session, `X-CSRF-Token`, and the current `X-Expected-Revision`. Do not expose the private store as a static file.
 

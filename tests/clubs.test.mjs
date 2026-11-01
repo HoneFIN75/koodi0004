@@ -146,11 +146,12 @@ test('voting colors match exact anchors and interpolate future values', () => {
   assert.ok(/^#[0-9a-f]{6}$/.test(markerColor(0)));
 });
 
-test('repository caches successful requests and retries failures', async () => {
+test('repository reads the shared club API without caching and retries failures', async () => {
   const originalFetch = globalThis.fetch;
   let requests = 0;
-  globalThis.fetch = async (url) => {
-    assert.equal(url, './jsondb/seurat.json');
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, './api/clubs.php');
+    assert.deepEqual(options, { cache: 'no-store' });
     requests++;
     return requests === 1 ? new Response('', { status: 503 }) : Response.json(payload([record()]));
   };
@@ -160,7 +161,43 @@ test('repository caches successful requests and retries failures', async () => {
     assert.equal(first, second);
     assert.equal(first.data.length, 1);
     assert.equal(requests, 2);
+    await clubRepository.refresh();
+    assert.equal(requests, 3);
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test('public club contacts are retained, archived records are excluded and private contacts are ignored', () => {
+  const database = parseDatabase(payload([
+    record({
+      id: 'public-club',
+      contact: { name: 'Yhteyshenkilö', email: 'club@example.fi', phone: '+358 40 123 4567', website: '', instagram: '', tiktok: '', public: true },
+    }),
+    record({
+      id: 'private-club',
+      contact: { name: 'Private', email: 'private@example.fi', phone: '', website: '', instagram: '', tiktok: '', public: false },
+    }),
+    record({ id: 'archived-club', archived: true }),
+  ]));
+  assert.equal(database.data.length, 2);
+  assert.deepEqual(database.data[0].contact, {
+    name: 'Yhteyshenkilö',
+    email: 'club@example.fi',
+    phone: '+358 40 123 4567',
+    website: '',
+    instagram: '',
+    tiktok: '',
+    public: true,
+  });
+  assert.equal(database.data[0].id, 'public-club');
+  assert.equal(database.data[1].contact, undefined);
+  assert.equal(database.data.some((club) => club.id === 'archived-club'), false);
+  assert.equal(database.warnings.length, 0);
+});
+
+test('malformed public contact data is omitted with a visible warning', () => {
+  const database = parseDatabase(payload([record({ contact: { public: true, email: 12 } })]));
+  assert.equal(database.data[0].contact, undefined);
+  assert.ok(database.warnings.some((warning) => warning.includes('julkisia yhteystietoja')));
 });

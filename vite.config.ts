@@ -17,8 +17,19 @@ function serveDatabase(): Plugin {
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
         const path = request.url?.split('?')[0];
-        const source = path === '/jsondb/seurat.json' ? databaseUrl
-          : path === `/${COMPETITION_FILE}` ? competitionUrl
+        if (path === '/api/clubs.php') {
+          try {
+            const database = await readFile(databaseUrl);
+            response.statusCode = 200;
+            response.setHeader('Content-Type', 'application/json; charset=utf-8');
+            response.setHeader('Cache-Control', 'no-store');
+            response.end(database);
+          } catch (error) {
+            next(error);
+          }
+          return;
+        }
+        const source = path === `/${COMPETITION_FILE}` ? competitionUrl
             : path === '/jsondb/regions.json' ? regionsUrl : null;
         if (!source) {
           next();
@@ -42,12 +53,6 @@ function serveDatabase(): Plugin {
       });
     },
     async generateBundle() {
-      const database = await readFile(databaseUrl);
-      this.emitFile({
-        type: 'asset',
-        fileName: 'jsondb/seurat.json',
-        source: database,
-      });
       this.emitFile({ type: 'asset', fileName: COMPETITION_FILE, source: await readFile(competitionUrl) });
       this.emitFile({ type: 'asset', fileName: 'jsondb/regions.json', source: await readFile(regionsUrl) });
       this.emitFile({

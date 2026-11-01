@@ -201,6 +201,13 @@ a { color: inherit; text-decoration: none; }
 .detail-stats dt, .detail-fields dt { font-size: 11px; color: var(--muted); }
 .detail-stats dd { margin: 8px 0 0; font-size: 23px; font-weight: 700; overflow-wrap: anywhere; }
 .detail-stats small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); }
+.detail-contact { margin: 0 0 18px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.detail-contact h4 { margin: 0 0 10px; color: var(--text); font: 700 12px/1.4 'Segoe UI', sans-serif; }
+.detail-contact dl { display: grid; gap: 9px; margin: 0; }
+.detail-contact dl > div { min-width: 0; }
+.detail-contact dt { color: var(--muted); font-size: 10px; }
+.detail-contact dd { margin: 3px 0 0; overflow-wrap: anywhere; font-size: 12px; line-height: 1.5; }
+.detail-contact a { color: var(--accent-strong); text-decoration: underline; }
 .detail-fields > div { padding: 13px 0; border-top: 1px solid var(--border); }
 .detail-fields dd { font-size: 12px; margin: 6px 0 0; overflow-wrap: anywhere; line-height: 1.6; }
 .detail-fields a { color: var(--accent-strong); text-decoration: underline; }
