@@ -5,6 +5,8 @@ import { BACKUP_LIMIT, compareDocuments } from '../../services/backupService';
 import { getCoveragePopulation } from '../../services/populationService';
 import { activeScenario } from '../../services/plannerDocument';
 import { formatCount } from '../../services/mapService';
+import { useCompetitionData } from '../../state/useCompetitions';
+import { competitionCountForMunicipalities } from '../../services/competitionService';
 
 interface BackupManagerProps {
   backups: Snapshot[];
@@ -18,6 +20,7 @@ interface BackupManagerProps {
 const CURRENT = 'current';
 
 export function BackupManager({ backups, current, dataset, onCreate, onRestore, readOnly = false }: BackupManagerProps) {
+  const { index, yearFilter } = useCompetitionData();
   const [left, setLeft] = useState<string>(backups[0]?.id ?? '');
   const [right, setRight] = useState<string>(CURRENT);
   const resolve = (id: string) => id === CURRENT ? current : backups.find((backup) => backup.id === id)?.document;
@@ -27,6 +30,8 @@ export function BackupManager({ backups, current, dataset, onCreate, onRestore, 
   const empty = comparison && Object.values(comparison).every((list) => list.length === 0);
   const beforePopulation = useMemo(() => before ? getCoveragePopulation(activeScenario(before).regions, dataset) : null, [before, dataset]);
   const afterPopulation = useMemo(() => after ? getCoveragePopulation(activeScenario(after).regions, dataset) : null, [after, dataset]);
+  const coveredCompetitions = (document: PlannerDocument | undefined) => document ? competitionCountForMunicipalities(index, yearFilter,
+    activeScenario(document).regions.filter((region) => region.enabled).flatMap((region) => region.municipalityCodes.flatMap((code) => dataset.byCode.get(code)?.name ?? []))) : null;
   const options = [{ id: CURRENT, label: 'Nykytila' }, ...backups.map((backup) => ({ id: backup.id, label: `${new Date(backup.createdAt).toLocaleString('fi-FI')} – ${backup.reason}` }))];
 
   return (
@@ -55,6 +60,7 @@ export function BackupManager({ backups, current, dataset, onCreate, onRestore, 
             <label className="field grow">Verrattava<select value={right} onChange={(event) => setRight(event.target.value)}>{options.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label>
           </div>
           <p className="hint">Aktiivisen skenaarion väestökattavuus vuoden 2025 aineistolla: {formatCount(beforePopulation)} → {formatCount(afterPopulation)} asukasta. Muutos: {beforePopulation !== null && afterPopulation !== null ? formatCount(afterPopulation - beforePopulation) : 'Ei tietoa'}. Päällekkäiset kunnat lasketaan kerran; tämä ei kuvaa historiallista väestömuutosta.</p>
+          <p className="hint">Kilpailukattavuus valittuina kilpailuvuosina: {formatCount(coveredCompetitions(before))} → {formatCount(coveredCompetitions(after))} kilpailua. Molemmat tilannekuvat käyttävät nykyistä kilpailuaineistoa, eivät varmuuskopioitua kilpailuhistoriaa.</p>
           {comparison && (empty ? <p className="validation-ok">Tilannekuvat ovat sisällöltään samat.</p> : (
             <ul className="diff-list">
               {comparison.addedScenarios.map((name) => <li key={`as-${name}`} className="added">+ Skenaario {name}</li>)}

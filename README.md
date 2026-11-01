@@ -10,6 +10,22 @@ Missing or invalid counts remain unknown, not zero. Average, median, extrema, an
 
 The Vite development server exposes the repository JSON directly, and the production build copies that same file to `dist/jsondb/seurat.json`. No duplicate fixture or manually synchronized database is required.
 
+## Competition statistics
+
+The first-class competition source is `jsondb/SFL-Kilpailut-2019-2026.json`, the corrected dataset supplied by the user (renamed from `SFL-Kilpailut_korjattu_v6-kunnat-lopullinen.json`). It is consumed unchanged as an array of `{ "Kilpailun nimi": string, "Vuosi": integer, "Kunta": string }`. Each row counts once, including repeated names. Years are taken from `Vuosi`, never inferred from names. Future years and municipalities appear automatically.
+
+The file is read dynamically relative to the application base path, with `cache: 'no-store'`. One shared refresh lifecycle checks it every 60 seconds while the application is visible, on window focus/visibility return, and on demand. Successful reloads replace the shared index and recalculate every view. HTTP, JSON and row-validation failures are visible with retry; a failed refresh retains the previous successful dataset with an explicit stale-data warning and disables competition exports. No competition data is imported into a map, geocoded, or used to create markers, layers or map colours.
+
+The shared **Kilpailujen vuodet** control supports all years, one or several selected years (including non-consecutive years), an inclusive year range, and an empty selection. It persists between the dashboard and region planner for the current session. It affects every competition total, ranking, distribution, trend and export, but not timeless club data or the fixed 2025 population dataset. Club-specific filters do not claim to identify competition organizers: the competition source contains no organizer field.
+
+`competitionService.ts` owns parsing, pre-indexed year/municipality groups and first-appearance years, filtering, totals, rankings, distributions, participation trends, historical comparisons and year-over-year changes. `competitionStore.ts` / `useCompetitions.ts` provide the single runtime dataset and active year filter. The national overview, club municipality details, population explorer, planner dashboard, regional comparison/detail/list, unassigned municipalities, scenarios, backup coverage comparisons and administrative/report views all use this source. Regional totals use municipality names, count overlapping regions independently, and deduplicate municipalities in scenario coverage totals. Unknown municipality names remain in national statistics and are reported as unmatched in the planner rather than guessed or placed on a map.
+
+New municipalities are identified using their first year in the **entire dataset**, even when earlier years are excluded by the filter. Year-over-year changes are shown only when both adjacent calendar years are selected; non-consecutive selections use the separate historical comparison. A zero baseline has no percentage growth rate. Municipal participation means competition activity, not player attendance. Density is competitions per 10,000 residents (fixed population reference: 2025) or per 1,000 km²; missing denominators remain unknown. The source has no dates or completion status, so partial/future years must not be interpreted as completed seasons.
+
+The analytics panels export their current scope to CSV. Planner JSON adds filtered competition analytics without modifying the round-trip planning document; CSV/XLSX region and municipality reports add competition totals/densities and the year selection. XLSX also contains national year, municipality and distribution sheets. Formula escaping uses the existing spreadsheet-safe exporter. Backup comparisons apply the **current** competition dataset and year filter to both planning snapshots; they do not pretend to restore historical competition data.
+
+Development serves the repository file directly. Production copies the unchanged file to `dist/jsondb/SFL-Kilpailut-2019-2026.json`; deploy it alongside the bundle. For live data-only updates, replace that served JSON file (not a bundled JavaScript asset). Updating the repository file becomes visible after the normal build/deployment. The name is configured once by `COMPETITION_FILE` in `src/models/competition.ts`; both Vite and the browser repository use it.
+
 ## Development
 
 ```sh

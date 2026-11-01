@@ -3,6 +3,8 @@ import { Check, Copy, FolderOpen, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { MunicipalityDataset, PlannerDocument } from '../../models/region';
 import { getCoveragePopulation } from '../../services/populationService';
 import { formatCount } from '../../services/mapService';
+import { useCompetitionData } from '../../state/useCompetitions';
+import { competitionCountForMunicipalities } from '../../services/competitionService';
 
 interface ScenarioManagerProps {
   document: PlannerDocument;
@@ -16,6 +18,7 @@ interface ScenarioManagerProps {
 }
 
 export function ScenarioManager({ document, dataset, onCreate, onRename, onDuplicate, onDelete, onSwitch, readOnly = false }: ScenarioManagerProps) {
+  const { index, yearFilter } = useCompetitionData();
   const [name, setName] = useState('');
   const [editing, setEditing] = useState<{ id: string; name: string } | null>(null);
   return (
@@ -41,6 +44,8 @@ export function ScenarioManager({ document, dataset, onCreate, onRename, onDupli
               )}
               <p className="hint">{scenario.regions.length} aluetta · {municipalities} kuntaa · muokattu {new Date(scenario.updatedAt).toLocaleString('fi-FI')}</p>
               <p className="hint">Käytössä olevien alueiden kattama väestö 2025: {formatCount(getCoveragePopulation(scenario.regions, dataset))} asukasta · päällekkäiset kunnat kerran.</p>
+              <p className="hint">Kilpailuja käytössä olevien alueiden kunnissa valittuina vuosina: {formatCount(competitionCountForMunicipalities(index, yearFilter,
+                scenario.regions.filter((region) => region.enabled).flatMap((region) => region.municipalityCodes.flatMap((code) => dataset.byCode.get(code)?.name ?? []))))} · päällekkäiset kunnat kerran.</p>
               <ul className="swatch-row" aria-hidden="true">{scenario.regions.slice(0, 24).map((region) => <li key={region.id} style={{ background: region.color }} />)}</ul>
               <div className="button-row">
                 {!active && <button type="button" className="primary-button" onClick={() => onSwitch(scenario.id)}><FolderOpen size={15} /> Avaa</button>}

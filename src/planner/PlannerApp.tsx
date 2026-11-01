@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { AlertCircle, ArrowLeft, LogIn, LogOut, Moon, Redo2, Shield, Sun, Undo2 } from 'lucide-react';
 import { clubRepository } from '../data/clubRepository';
 import { PopulationExplorer } from '../components/PopulationExplorer';
+import { CompetitionFilters } from '../components/CompetitionFilters';
+import { CompetitionAnalytics } from '../components/CompetitionAnalytics';
+import { useCompetitionData } from '../state/useCompetitions';
 import { municipalityRepository } from '../data/municipalityRepository';
 import type { Database } from '../models/club';
 import type { MunicipalityDataset, Region, RegionDraft, Snapshot } from '../models/region';
@@ -43,6 +46,8 @@ function download(content: BlobPart, type: string, name: string) {
 }
 
 export default function PlannerApp() {
+  const { index: competitionIndex, yearFilter, error: competitionError } = useCompetitionData();
+  const competitionContext = useMemo(() => ({ index: competitionIndex, yearFilter }), [competitionIndex, yearFilter]);
   const [clubs, setClubs] = useState<Database | null>(null);
   const [dataset, setDataset] = useState<MunicipalityDataset | null>(null);
   const [error, setError] = useState('');
@@ -150,7 +155,7 @@ export default function PlannerApp() {
   const placements = useMemo(() => clubs && dataset ? assignClubs(clubs.data, dataset) : [], [clubs, dataset]);
   const filtered = useMemo(() => dataset ? filterPlacements(placements, filters, dataset, regions) : [], [placements, filters, dataset, regions]);
   const filtersActive = JSON.stringify(filters) !== JSON.stringify(emptyFilters);
-  const analysis = useMemo(() => dataset ? analyzeScenario(regions, dataset, filtered) : null, [regions, dataset, filtered]);
+  const analysis = useMemo(() => dataset ? analyzeScenario(regions, dataset, filtered, competitionContext) : null, [regions, dataset, filtered, competitionContext]);
   const fullAggregates = useMemo(() => dataset ? aggregateByMunicipality(placements, dataset) : new Map(), [placements, dataset]);
   const warnings = useMemo(() => dataset && analysis ? validateScenario(regions, dataset, analysis) : [], [regions, dataset, analysis]);
   const membership = useMemo(() => {
@@ -201,8 +206,13 @@ export default function PlannerApp() {
     }
   }, [canWrite, editingRegion, dataset, commit]);
 
-  const exportContext = (scope: 'all' | 'active'): ExportContext | null => dataset ? { document: displayedDocument, dataset, placements, clubMetadata: clubs?.metadata ?? null, scope } : null;
+  const exportContext = (scope: 'all' | 'active'): ExportContext | null => dataset ? { document: displayedDocument, dataset, placements, clubMetadata: clubs?.metadata ?? null, scope, competitions: competitionContext } : null;
   const onExport = (format: 'json' | 'csv' | 'xlsx', scope: 'all' | 'active') => {
+    if (!competitionIndex || competitionError) {
+      setWriteActionError('Raporttia ei viety: kilpailuaineistoa ei ole ladattu tai sen päivitys epäonnistui. Päivitä kilpailuaineisto ja yritä uudelleen.');
+      return;
+    }
+    setWriteActionError('');
     const context = exportContext(scope);
     if (!context) return;
     if (format === 'json') download(exportJson(context), 'application/json', exportFileName('json'));
@@ -409,6 +419,8 @@ export default function PlannerApp() {
           </button>
         ))}
       </nav>
+      <CompetitionFilters />
+      {adminOpen && <CompetitionAnalytics geography={dataset?.municipalities} title="Ylläpidon kilpailutilastot" />}
 
       {migrationAvailable && canWrite && (
         <section className="planner-card">
@@ -493,8 +505,8 @@ export default function PlannerApp() {
               </aside>
             </div>
           )}
-          {view === 'dashboard' && <DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} />}
-          {view === 'compare' && <ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} />}
+          {view === 'dashboard' && <><DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} /><CompetitionAnalytics geography={dataset.municipalities} title="Johdon kilpailuanalyysi" /></>}
+          {view === 'compare' && <><ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} /><CompetitionAnalytics geography={dataset.municipalities} title="Kilpailujen vuosivertailu" /></>}
           {view === 'unassigned' && <UnassignedView analysis={analysis} regions={regions} onShowOnMap={() => { setHighlightUnassigned(true); setSelectedRegionId(null); setEditing(false); setView('map'); }}
             onAssign={(regionId, codes) => setMunicipalities(regionId, codes, 'add', `Kohdistettu ${codes.length} kuntaa`)} />}
           {view === 'scenarios' && <ScenarioManager document={displayedDocument} dataset={dataset} readOnly={!canWrite}
@@ -504,7 +516,7 @@ export default function PlannerApp() {
             onDelete={(id) => void deleteScenario(id)}
             onSwitch={selectScenario} />}
           {view === 'backups' && <BackupManager backups={backups} current={displayedDocument} dataset={dataset} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} readOnly={!canWrite} />}
-          {view === 'data' && <><DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} readOnly={!canWrite} /><PopulationExplorer municipalities={dataset.municipalities} /></>}
+          {view === 'data' && <><DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} readOnly={!canWrite} /><CompetitionAnalytics geography={dataset.municipalities} title="Raporttien kilpailutilastot" /><PopulationExplorer municipalities={dataset.municipalities} /></>}
         </main>
       )}
       <footer className="planner-footer">Kuntarajat © Tilastokeskus, kunta1000k 2025 (CC BY 4.0) · Taustakartta © OpenStreetMap · {remoteMode ? 'Suunnitelmat tallentuvat yhteisesti palvelimelle' : 'Suunnitelmat tallentuvat tähän selaimeen'} ({storageKind ?? '…'}). Tunnukset ovat yhteisiä eikä muutosten tekijää tunnisteta.</footer>

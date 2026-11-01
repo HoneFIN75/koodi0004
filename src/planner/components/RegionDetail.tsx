@@ -5,6 +5,7 @@ import { formatArea, formatDensity, formatPercent, type RegionStats } from '../.
 import type { ValidationWarning } from '../../services/validationService';
 import { StatCard, WarningList, decimalFormat, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
+import { CompetitionAnalytics } from '../../components/CompetitionAnalytics';
 
 interface RegionDetailProps {
   region: Region;
@@ -33,6 +34,9 @@ export function RegionDetail({ region, stats, explanation, warnings, onEdit, onD
         <button type="button" className="secondary-button" onClick={onDuplicate}><Copy size={15} /> Monista</button>
       </div>}
       <div className="stat-grid compact">
+        <StatCard label="Kilpailuja · valitut vuodet" value={formatCount(stats.competitionCount)} />
+        <StatCard label="Kilpailuja / 10 000 asukasta" value={formatCount(stats.competitionsPer10000)} />
+        <StatCard label="Kilpailuja / 1 000 km²" value={formatCount(stats.competitionsPer1000Km2)} />
         <StatCard label="Kuntia" value={stats.municipalityCount} />
         <StatCard label="Seuroja" value={stats.clubCount} />
         <StatCard label="Jäseniä" value={integerFormat.format(stats.members)} />
@@ -65,6 +69,7 @@ export function RegionDetail({ region, stats, explanation, warnings, onEdit, onD
         <ul className="chip-list">{stats.municipalities.map((municipality) => <li key={municipality.code}>{municipality.name} · {formatCount(municipality.population)} as.</li>)}</ul>
         {stats.missingCodes.length > 0 && <p className="field-error">Tuntemattomat kuntakoodit: {stats.missingCodes.join(', ')}</p>}
       </details>
+      <CompetitionAnalytics geography={stats.municipalities} scope={{ municipalityNames: stats.municipalities.map((item) => item.name) }} title="Alueen kilpailutrendit" />
       <details className="detail-list" open={stats.clubCount > 0 && stats.clubCount <= 12}>
         <summary>Seurat ({stats.clubCount})</summary>
         <table className="data-table compact">

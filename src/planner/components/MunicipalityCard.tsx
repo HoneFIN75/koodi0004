@@ -4,6 +4,7 @@ import type { Municipality, Region } from '../../models/region';
 import { formatArea, type MunicipalityAggregate } from '../../services/regionAnalytics';
 import { formatCount } from '../../services/mapService';
 import { getMunicipalityRank, getNationalPopulation, getPopulationCategory, per10000Residents } from '../../services/populationService';
+import { MunicipalityCompetitionSummary } from '../../components/MunicipalityCompetitionSummary';
 
 interface MunicipalityCardProps {
   municipality: Municipality;
@@ -35,6 +36,7 @@ export function MunicipalityCard({ municipality, aggregate, regions, memberOf, o
         <div><dt>Asukkaita / km²</dt><dd>{municipality.population !== null && municipality.areaKm2 > 0 ? formatCount(municipality.population / municipality.areaKm2) : 'Ei tietoa'}</dd></div>
         <div><dt>Seuroja / 10 000 asukasta</dt><dd>{formatCount(per10000Residents(aggregate?.clubs.length ?? 0, municipality.population))}</dd></div>
       </dl>
+      <MunicipalityCompetitionSummary name={municipality.name} municipality={municipality} />
       <h3>Alueet</h3>
       {memberOf.length === 0 && <p className="empty-text">Kunta ei kuulu mihinkään alueeseen.</p>}
       <ul className="membership-list">

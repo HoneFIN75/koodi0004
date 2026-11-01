@@ -7,8 +7,11 @@ import { BarChart, StatCard, decimalFormat, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
 import { summarizePopulation } from '../../services/populationService';
 
-type MetricKey = 'areaKm2' | 'municipalityCount' | 'clubCount' | 'members' | 'votes' | 'areaShare' | 'membersPerKm2' | 'population' | 'populationShare' | 'averagePopulation' | 'medianPopulation' | 'clubsPer10000' | 'membersPer10000' | 'populationDensity';
+type MetricKey = 'competitionCount' | 'competitionsPer10000' | 'competitionsPer1000Km2' | 'areaKm2' | 'municipalityCount' | 'clubCount' | 'members' | 'votes' | 'areaShare' | 'membersPerKm2' | 'population' | 'populationShare' | 'averagePopulation' | 'medianPopulation' | 'clubsPer10000' | 'membersPer10000' | 'populationDensity';
 const METRICS: { key: MetricKey; label: string; format: (stats: RegionStats) => string }[] = [
+  { key: 'competitionCount', label: 'Kilpailuja · valitut vuodet', format: (stats) => formatCount(stats.competitionCount) },
+  { key: 'competitionsPer10000', label: 'Kilpailuja / 10 000 asukasta', format: (stats) => formatCount(stats.competitionsPer10000) },
+  { key: 'competitionsPer1000Km2', label: 'Kilpailuja / 1 000 km²', format: (stats) => formatCount(stats.competitionsPer1000Km2) },
   { key: 'areaKm2', label: 'Pinta-ala', format: (stats) => formatArea(stats.areaKm2) },
   { key: 'areaShare', label: 'Kattavuus %', format: (stats) => formatPercent(stats.areaShare) },
   { key: 'municipalityCount', label: 'Kuntia', format: (stats) => String(stats.municipalityCount) },
@@ -62,6 +65,7 @@ export function ComparisonView({ regions, analysis, onSelectRegion }: { regions:
         </div>
       </section>
       <div className="stat-grid">
+        <StatCard label="Kilpailuja vertailualueissa" value={rows.some((row) => row.stats.competitionCount === null) ? 'Ei tietoa' : formatCount(total('competitionCount'))} detail="alueiden summat: päällekkäisyys sallittu" />
         <StatCard label="Vertailualueiden väestö 2025" value={rows.some((row) => row.stats.population === null) ? 'Ei tietoa' : formatCount(population)} detail="päällekkäiset kunnat vain kerran" />
         <StatCard label="Vertailussa" value={`${rows.length} aluetta`} />
         <StatCard label="Pinta-ala yhteensä" value={formatArea(total('areaKm2'))} detail="päällekkäisyydet lasketaan kumpaankin" />
