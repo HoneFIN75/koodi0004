@@ -6,9 +6,10 @@ interface RankingCardProps {
   rows: MunicipalityStat[];
   valueLabel: string;
   limit?: number;
+  showClubCount?: boolean;
 }
 
-export function RankingCard({ title, description, rows, valueLabel, limit = 10 }: RankingCardProps) {
+export function RankingCard({ title, description, rows, valueLabel, limit = 10, showClubCount = true }: RankingCardProps) {
   return (
     <section className="panel ranking-card">
       <div className="panel-heading">
@@ -19,7 +20,7 @@ export function RankingCard({ title, description, rows, valueLabel, limit = 10 }
         {rows.slice(0, limit).map((row, index) => (
           <div className="ranking-row" key={`${row.name}-${index}`}>
             <span className={`rank-number ${index < 3 ? 'rank-highlight' : ''}`}>{String(index + 1).padStart(2, '0')}</span>
-            <div className="rank-name"><strong>{row.name}</strong><span>{row.clubs} seuraa</span></div>
+            <div className="rank-name"><strong>{row.name}</strong>{showClubCount && <span>{row.clubs} seuraa</span>}</div>
             <strong className="rank-value">{row.members.toLocaleString('fi-FI')} <small>{valueLabel}</small></strong>
           </div>
         ))}
