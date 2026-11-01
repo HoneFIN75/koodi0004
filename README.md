@@ -12,6 +12,20 @@ Missing or invalid counts remain unknown, not zero. Average, median, extrema, an
 
 The Vite development server exposes the repository JSON directly, and the production build copies that same file to `dist/jsondb/seurat.json`. No duplicate fixture or manually synchronized database is required.
 
+## Club data API (phase 1)
+
+The first club-administration backend phase adds a versioned private store at `clubs.json`, a public read endpoint, an Admin-only read/write endpoint, and a one-time CLI migration. This phase deliberately does not switch the dashboard or region planner to the new endpoint; those clients continue to read `jsondb/seurat.json` until the shared-reader phase is implemented.
+
+The production build includes `api/planner.php`, `api/clubs.php`, and `api/clubs-api.php`; deploy the complete `dist/` output. `clubs.php` delegates to the planner endpoint so both APIs use the same private data-directory, session, role, HTTPS, and CSRF checks. Keep the existing private `planner-data` directory outside the web root with permissions `700`; the JSON files and lock files must have permissions `600`. The public endpoint is `GET /api/clubs.php`. Admin access is `GET /api/clubs.php?view=admin`; a full replacement requires `PUT /api/clubs.php`, a valid Admin session, `X-CSRF-Token`, and the current `X-Expected-Revision`. Do not expose the private store as a static file.
+
+Run the migration from a trusted CLI environment after creating the private output directory:
+
+```sh
+php server/migrate-clubs.php jsondb/seurat.json /absolute/private/planner-data/clubs.json
+```
+
+The migration validates the source before creating a new file, creates deterministic IDs from the normalized club name and municipality, derives voting power from membership, and refuses duplicate names/municipalities or an existing destination. The current source contains two such duplicate groups. Review the source records first; to preserve them as separate clubs without merging, explicitly confirm that choice by adding `--preserve-duplicate-name-town` to the command. IDs for those duplicate rows are then deterministically distinguished by source row. Previously public legacy website and email fields remain public after migration; all new contact fields default to private. The migration prints aggregate warnings only, not contact details. Back up the source and verify the resulting record count before transferring `clubs.json` to production. The API returns `503` until this migration has provisioned its store. Never run the migration through an HTTP endpoint.
+
 ## Province regions and comparison
 
 `jsondb/regions.json` is the source of truth for province IDs, display names, colors, and corresponding municipality `province` values. It contains no boundary geometry: the club map and planner overlay reuse municipality polygons from `public/geo/kunnat.geojson`. Province membership for clubs, population, area, and competitions is derived from that shared municipality dataset; province aggregates are not stored in planner documents. If the region list and municipality properties do not cover one another, the UI reports the mismatch rather than silently assigning municipalities.

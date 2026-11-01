@@ -465,6 +465,10 @@ $root = document_root();
 $directory = planner_data_directory($root);
 $file = data_file($directory);
 $action = (string)($_GET['action'] ?? '');
+if ($action === 'clubs') {
+    require_once __DIR__ . '/clubs-api.php';
+    clubs_api($directory);
+}
 if ($action !== '') {
     auth_action($directory);
 }
