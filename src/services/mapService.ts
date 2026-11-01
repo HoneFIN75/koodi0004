@@ -9,16 +9,17 @@ export function markerRadius(members: number | null): number {
 }
 
 const colorStops = [
-  { votes: 0, rgb: [30, 58, 138] },
+  { votes: 0, rgb: [0, 0, 0] },
   { votes: 10, rgb: [37, 99, 235] },
   { votes: 15, rgb: [245, 158, 11] },
-  { votes: 20, rgb: [220, 38, 38] },
+  { votes: 20, rgb: [22, 163, 74] },
+  { votes: 25, rgb: [220, 38, 38] },
 ];
 
 export function markerColor(votes: number | null): string {
   if (votes === null) return '#64748b';
-  if (votes > 20) {
-    const lightness = (129 / 255) * 100 - 25 * (1 - Math.exp(-(votes - 20) / 20));
+  if (votes > 25) {
+    const lightness = (129 / 255) * 100 - 25 * (1 - Math.exp(-(votes - 25) / 20));
     return `hsl(0 ${(182 / 252) * 100}% ${lightness}%)`;
   }
   const upper = colorStops.findIndex((stop) => stop.votes >= votes);

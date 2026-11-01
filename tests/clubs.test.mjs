@@ -136,14 +136,16 @@ test('marker size is smooth and strictly increasing beyond 999 members', () => {
 });
 
 test('voting colors match exact anchors and interpolate future values', () => {
+  assert.equal(markerColor(0), '#000000');
   assert.equal(markerColor(10), '#2563eb');
   assert.equal(markerColor(15), '#f59e0b');
-  assert.equal(markerColor(20), '#dc2626');
+  assert.equal(markerColor(20), '#16a34a');
+  assert.equal(markerColor(25), '#dc2626');
+  assert.notEqual(markerColor(22), markerColor(20));
   assert.notEqual(markerColor(12), markerColor(10));
   assert.notEqual(markerColor(12), markerColor(15));
   assert.notEqual(markerColor(25), markerColor(30));
   assert.equal(markerColor(null), '#64748b');
-  assert.ok(/^#[0-9a-f]{6}$/.test(markerColor(0)));
 });
 
 test('repository reads the shared club API without caching and retries failures', async () => {
