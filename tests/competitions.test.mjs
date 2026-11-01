@@ -23,6 +23,8 @@ test('the supplied dataset is consumed unchanged, including duplicate rows and f
   const actual = indexCompetitions(parseCompetitions(payload));
   assert.equal(actual.records.length, payload.length);
   assert.ok(payload.length > 0);
+  assert.equal(payload.some((competition) => competition.Vuosi === 2019), false);
+  assert.equal(payload.some((competition) => competition['Kilpailun nimi'] === 'Karkkilan Pikkujoulu'), false);
   assert.deepEqual(actual.records, payload);
   assert.deepEqual(Object.fromEntries(actual.years.map((year) => [year, actual.byYear.get(year).length])),
     payload.reduce((counts, row) => ({ ...counts, [row.Vuosi]: (counts[row.Vuosi] ?? 0) + 1 }), {}));
