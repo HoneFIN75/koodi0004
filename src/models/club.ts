@@ -1,11 +1,23 @@
 export interface Club {
+  id?: string;
   seura: string;
   paikkakunta: string;
   latitude: number | null;
   longitude: number | null;
   jasenmaara: number | null;
   aanimaara: number | null;
+  contact?: ClubContact;
   details: Record<string, string | number>;
+}
+
+export interface ClubContact {
+  name: string;
+  email: string;
+  phone: string;
+  website: string;
+  instagram: string;
+  tiktok: string;
+  public: true;
 }
 
 export type LocatedClub = Club & { latitude: number; longitude: number };

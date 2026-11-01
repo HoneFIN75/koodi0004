@@ -1,7 +1,7 @@
 import type { Club, Database } from '../models/club';
 import { getVotingPower } from '../services/membershipRules.ts';
 
-const DATABASE_URL = './jsondb/seurat.json';
+const DATABASE_URL = './api/clubs.php';
 let databaseRequest: Promise<Database> | undefined;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -26,7 +26,22 @@ function text(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-const coreFields = new Set(['seura', 'paikkakunta', 'latitude', 'longitude', 'jasenmaara', 'aanimaara']);
+const coreFields = new Set(['id', 'archived', 'contact', 'seura', 'paikkakunta', 'latitude', 'longitude', 'jasenmaara', 'aanimaara']);
+
+function parseContact(value: unknown): Club['contact'] {
+  if (!isRecord(value) || value.public !== true) return undefined;
+  const fields = ['name', 'email', 'phone', 'website', 'instagram', 'tiktok'] as const;
+  if (fields.some((field) => typeof value[field] !== 'string')) return undefined;
+  return {
+    name: value.name as string,
+    email: value.email as string,
+    phone: value.phone as string,
+    website: value.website as string,
+    instagram: value.instagram as string,
+    tiktok: value.tiktok as string,
+    public: true,
+  };
+}
 
 export function parseDatabase(value: unknown): Database {
   if (!isRecord(value) || !Array.isArray(value.data)) {
@@ -47,11 +62,13 @@ export function parseDatabase(value: unknown): Database {
   let incomplete = 0;
   let mismatchedVotingPower = 0;
   let undeterminedVotingPower = 0;
+  let invalidContacts = 0;
   for (const [index, item] of value.data.entries()) {
     if (!isRecord(item)) {
       skipped += 1;
       continue;
     }
+    if (item.archived === true) continue;
     const seura = text(item.seura);
     const paikkakunta = text(item.paikkakunta);
     const lat = parseNumber(item.latitude);
@@ -61,6 +78,10 @@ export function parseDatabase(value: unknown): Database {
     const jasenmaara = parseCount(item.jasenmaara);
     const sourceVotes = parseCount(item.aanimaara);
     const aanimaara = getVotingPower(jasenmaara);
+    const contact = item.contact === undefined ? undefined : parseContact(item.contact);
+    if (item.contact !== undefined && item.contact !== null && isRecord(item.contact) && item.contact.public === true && !contact) {
+      invalidContacts += 1;
+    }
     if (item.aanimaara !== undefined && item.aanimaara !== null) {
       if (jasenmaara === null) {
         if (sourceVotes !== null) undeterminedVotingPower += 1;
@@ -78,9 +99,10 @@ export function parseDatabase(value: unknown): Database {
       }
     }
     data.push({
+      ...(text(item.id) ? { id: text(item.id)! } : {}),
       seura: seura ?? `Nimetön seura (tietue ${index + 1})`,
       paikkakunta: paikkakunta ?? 'Paikkakunta puuttuu',
-      latitude, longitude, jasenmaara, aanimaara, details: Object.fromEntries(entries),
+      latitude, longitude, jasenmaara, aanimaara, ...(contact ? { contact } : {}), details: Object.fromEntries(entries),
     });
   }
 
@@ -97,23 +119,32 @@ export function parseDatabase(value: unknown): Database {
   if (undeterminedVotingPower) {
     warnings.push(`${undeterminedVotingPower} seuran lähdeaineiston äänimäärää ei voida tarkistaa, koska jäsenmäärä puuttuu. Sovellus näyttää äänivallan tuntemattomana.`);
   }
+  if (invalidContacts) {
+    warnings.push(`${invalidContacts} seuran julkisia yhteystietoja ei voitu käsitellä virheellisen tietorakenteen vuoksi.`);
+  }
   return { metadata: { generatedAt, recordCount, source }, data, warnings };
 }
 
 async function loadDatabase(): Promise<Database> {
-  const response = await fetch(DATABASE_URL);
+  const response = await fetch(DATABASE_URL, { cache: 'no-store' });
   if (!response.ok) {
-    throw new Error(`Seuratietokantaa ei voitu ladata (${response.status}). Tarkista, että ${DATABASE_URL} on julkaistu.`);
+    throw new Error(`Seuratietoja ei voitu ladata (${response.status}). Varmista, että seuratietopalvelu on käytettävissä.`);
   }
   return parseDatabase(await response.json() as unknown);
 }
 
+function getDatabase(): Promise<Database> {
+  databaseRequest ??= loadDatabase().catch((error: unknown) => {
+    databaseRequest = undefined;
+    throw error;
+  });
+  return databaseRequest;
+}
+
 export const clubRepository = {
-  getDatabase(): Promise<Database> {
-    databaseRequest ??= loadDatabase().catch((error: unknown) => {
-      databaseRequest = undefined;
-      throw error;
-    });
-    return databaseRequest;
+  getDatabase,
+  refresh(): Promise<Database> {
+    databaseRequest = undefined;
+    return getDatabase();
   },
 };

@@ -164,7 +164,7 @@ PR 1:n tarkoitus on luoda turvallinen, testattava tallennus- ja rajapintaperusta
 
 ### PR 2 — Yhteinen seuratietolähde
 
-Vaihda dashboard ja aluesuunnittelu lukemaan samaa palvelimen julkaisemaa aineistoa. Päivitä arkistoitujen seurojen suodatus kaikissa seuralaskentaa käyttävissä näkymissä. Lisää latausvirheiden näkyvä käsittely, uudelleenyritys ja aineiston päivitys tallennuksen jälkeen.
+**Tila: toteutetaan tässä PR:ssä.** Dashboard ja aluesuunnittelu lukevat saman palvelimen julkisen seurarajapinnan kautta. API suodattaa arkistoidut ja ei-julkiset yhteystiedot ennen vastauksen lähettämistä; asiakas validoi ja säilyttää julkiset yhteystiedot ja näyttää ne seuran tietopaneelissa. Julkinen tietolähde käyttää `no-store`-pyyntöä, säilyttää latausvirheiden uudelleenyrityksen ja tarjoaa tietolähteen pakotetun päivityksen jatkokäyttöä varten. Vite-kehityspalvelin käyttää vain paikallista read-only-fixturea; tuotanto ei koskaan varaa staattiseen vanhaan JSONiin.
 
 **Hyväksyntä:** kartta, listat, tilastot, kilpailu-/kunta-analyysien seuraluvut ja aluesuunnittelu käyttävät samaa aktiivisten seurojen aineistoa. Arkistointi ja palautus vaikuttavat johdonmukaisesti eikä aiempia käyttäjän suunnitteludokumentteja muuteta.
 
