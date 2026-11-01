@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import 'leaflet.markercluster';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import type { MunicipalityDataset, Position, Region } from '../../models/region';
 import type { ProvinceDataset, ProvinceOverlaySettings } from '../../models/province.ts';
 import { outlineSegments } from '../../services/geoService';
@@ -85,15 +88,15 @@ export function RegionMap(props: RegionMapProps) {
   const latest = useRef(props);
   latest.current = props;
   const layers = useRef<{
-    map: L.Map; tiles: L.TileLayer; municipalities: L.GeoJSON; fills: L.LayerGroup; outlines: L.LayerGroup; labels: L.LayerGroup; clubs: L.LayerGroup; provinceOverlay: ReturnType<typeof createProvinceOverlay> | null;
-    renderers: Record<'fill' | 'municipality' | 'outline' | 'clubs', L.Canvas>;
+    map: L.Map; tiles: L.TileLayer; municipalities: L.GeoJSON; fills: L.LayerGroup; outlines: L.LayerGroup; labels: L.LayerGroup; clubs: L.MarkerClusterGroup; provinceOverlay: ReturnType<typeof createProvinceOverlay> | null;
+    renderers: Record<'fill' | 'municipality' | 'outline', L.Canvas>;
   } | null>(null);
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const { dataset } = props;
 
   useEffect(() => {
     if (!element.current) return undefined;
-    const map = L.map(element.current, { zoomSnap: 0.25, minZoom: 4, maxBounds: [[54, 8], [74, 42]], zoomAnimation: !reducedMotion, fadeAnimation: !reducedMotion, attributionControl: true });
+    const map = L.map(element.current, { zoomSnap: 0.25, minZoom: 4, maxZoom: 18, maxBounds: [[54, 8], [74, 42]], zoomAnimation: !reducedMotion, fadeAnimation: !reducedMotion, attributionControl: true });
     map.fitBounds(FINLAND_BOUNDS);
     const panes = [['provinceOverlay', 405], ['regionFill', 410], ['municipality', 420], ['regionOutline', 430], ['clubs', 440]] as const;
     for (const [name, zIndex] of panes) map.createPane(name).style.zIndex = String(zIndex);
@@ -101,7 +104,6 @@ export function RegionMap(props: RegionMapProps) {
       fill: L.canvas({ pane: 'regionFill', padding: 0.4 }),
       municipality: L.canvas({ pane: 'municipality', padding: 0.4, tolerance: 2 }),
       outline: L.canvas({ pane: 'regionOutline', padding: 0.4 }),
-      clubs: L.canvas({ pane: 'clubs', padding: 0.4, tolerance: 3 }),
     };
     const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Kuntarajat &copy; Tilastokeskus (CC BY 4.0)',
@@ -131,7 +133,22 @@ export function RegionMap(props: RegionMapProps) {
     const fills = L.layerGroup().addTo(map);
     const outlines = L.layerGroup().addTo(map);
     const labels = L.layerGroup().addTo(map);
-    const clubs = L.layerGroup().addTo(map);
+    const clubs = L.markerClusterGroup({
+      animate: !reducedMotion,
+      clusterPane: 'clubs',
+      maxClusterRadius: 40,
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: (group) => {
+        const count = group.getChildCount();
+        return L.divIcon({
+          html: `<span>${count}<small class="sr-only"> seuraa. Lähennä karttaa tai avaa ryhmä.</small></span>`,
+          className: 'club-cluster',
+          iconSize: [44, 44],
+        });
+      },
+    }).addTo(map);
     const provinceOverlay = props.provinces
       ? createProvinceOverlay(dataset, props.provinces, props.provinceSettings, 'provinceOverlay')
       : null;
@@ -226,14 +243,39 @@ export function RegionMap(props: RegionMapProps) {
     if (!current) return;
     current.clubs.clearLayers();
     if (!showClubs) return;
+    const markers: L.Marker[] = [];
     for (const { club, municipalityCode } of placements) {
       if (club.latitude === null || club.longitude === null) continue;
-      L.circleMarker([club.latitude, club.longitude], {
-        pane: 'clubs', renderer: current.renderers.clubs, radius: Math.max(3.5, markerRadius(club.jasenmaara) * 0.55),
-        color: '#FFFFFF', weight: 1.2, fillColor: markerColor(club.aanimaara), fillOpacity: 0.95,
-      }).bindTooltip(tooltipElement(club.seura, [club.paikkakunta, `Jäseniä ${club.jasenmaara ?? 'ei tietoa'} · ääniä ${club.aanimaara ?? 'ei tietoa'}`, `Kunnan väestö 2025: ${formatCount(municipalityCode ? dataset.byCode.get(municipalityCode)?.population ?? null : null)}`]), { direction: 'top' })
-        .addTo(current.clubs);
+      const diameter = Math.max(8, markerRadius(club.jasenmaara) * 1.1);
+      const iconSize = Math.max(44, diameter);
+      const marker = L.marker([club.latitude, club.longitude], {
+        pane: 'clubs',
+        icon: L.divIcon({
+          className: 'club-marker',
+          html: `<span style="width:${diameter}px;height:${diameter}px;background:${markerColor(club.aanimaara)}"></span>`,
+          iconSize: [iconSize, iconSize],
+          iconAnchor: [iconSize / 2, iconSize / 2],
+        }),
+        keyboard: true,
+        title: `${club.seura}, ${club.paikkakunta}. Avaa seuran tiedot.`,
+        alt: club.seura,
+      }).bindTooltip(tooltipElement(club.seura, [club.paikkakunta, `Jäseniä ${club.jasenmaara ?? 'ei tietoa'} · ääniä ${club.aanimaara ?? 'ei tietoa'}`, `Kunnan väestö 2025: ${formatCount(municipalityCode ? dataset.byCode.get(municipalityCode)?.population ?? null : null)}`]), { direction: 'top' });
+      marker.on('add', () => {
+        const node = marker.getElement();
+        node?.setAttribute('aria-label', marker.options.title ?? club.seura);
+        if (node) {
+          node.onkeydown = (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              event.stopPropagation();
+              marker.openTooltip();
+            }
+          };
+        }
+      });
+      markers.push(marker);
     }
+    current.clubs.addLayers(markers);
   }, [placements, showClubs, dataset]);
 
   useEffect(() => {
