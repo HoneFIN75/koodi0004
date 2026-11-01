@@ -508,7 +508,8 @@ export default function PlannerApp() {
           {clubs.warnings.length > 0 && <p className="notice">{clubs.warnings.join(' ')}</p>}
           {provinceCoverageIssues.length > 0 && <p className="notice" role="status">{provinceCoverageIssues.join(' ')}</p>}
           {view === 'map' && (
-            <div className="planner-map-layout">
+            <div className="planner-map-view">
+            <div className={`planner-map-layout${selectedRegion && !editingRegion ? ' has-region-detail' : ''}`}>
               <aside className="planner-sidebar" aria-label="Alueet ja suodattimet">
                 <RegionList regions={regions} stats={analysis.stats} selectedRegionId={selectedRegionId} onSelect={selectRegion} onCreate={createRegion} readOnly={!canWrite}
                   onEdit={(id) => { setSelectedRegionId(id); setEditing(true); setSelectedMunicipality(null); }} onDuplicate={duplicateRegion} onDelete={deleteRegion}
@@ -536,12 +537,10 @@ export default function PlannerApp() {
                   {showClubs && <span>{VOTING_POWERS.map((votes) => <span key={votes}><i className="legend-dot" style={{ background: markerColor(votes) }} />{votes}</span>)} ääntä · koko = jäsenmäärä</span>}
                 </div>
               </section>
-              <aside className="planner-panel" aria-label="Tiedot">
+              {(!selectedRegion || editingRegion) && <aside className="planner-panel" aria-label="Tiedot">
                 {editingRegion && <RegionEditor region={editingRegion} dataset={dataset} aggregates={fullAggregates} membership={membership}
                   onChange={(changes, label, field) => updateRegion(editingRegion.id, changes, label, field)}
                   onMunicipalities={(codes, mode, label) => setMunicipalities(editingRegion.id, codes, mode, label)} onClose={() => setEditing(false)} />}
-                {!editingRegion && selectedRegion && <RegionDetail region={selectedRegion} stats={analysis.stats.get(selectedRegion.id)!} explanation={explainCoverage(selectedRegion, analysis.stats.get(selectedRegion.id)!, analysis)} readOnly={!canWrite}
-                  warnings={warnings.filter((warning) => warning.regionId === selectedRegion.id)} onEdit={() => setEditing(true)} onDuplicate={() => duplicateRegion(selectedRegion.id)} onClose={() => setSelectedRegionId(null)} />}
                 {!editingRegion && !selectedRegion && selectedMunicipality && dataset.byCode.get(selectedMunicipality) && (
                   <MunicipalityCard municipality={dataset.byCode.get(selectedMunicipality)!} aggregate={fullAggregates.get(selectedMunicipality)} regions={[...regions].sort((a, b) => a.number - b.number)} memberOf={membership.get(selectedMunicipality) ?? []} readOnly={!canWrite}
                     onAdd={(regionId) => setMunicipalities(regionId, [selectedMunicipality], 'add', `Lisätty kunta ${dataset.byCode.get(selectedMunicipality)?.name}`)}
@@ -556,7 +555,12 @@ export default function PlannerApp() {
                     <WarningList warnings={warnings} onSelectRegion={selectRegion} />
                   </section>
                 )}
-              </aside>
+              </aside>}
+            </div>
+            {!editingRegion && selectedRegion && <div className="region-detail-wide">
+              <RegionDetail region={selectedRegion} stats={analysis.stats.get(selectedRegion.id)!} explanation={explainCoverage(selectedRegion, analysis.stats.get(selectedRegion.id)!, analysis)} readOnly={!canWrite}
+                warnings={warnings.filter((warning) => warning.regionId === selectedRegion.id)} onEdit={() => setEditing(true)} onDuplicate={() => duplicateRegion(selectedRegion.id)} onClose={() => setSelectedRegionId(null)} />
+            </div>}
             </div>
           )}
           {view === 'dashboard' && <><DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} /><CompetitionAnalytics geography={dataset.municipalities} title="Johdon kilpailuanalyysi" /></>}

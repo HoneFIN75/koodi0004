@@ -126,16 +126,49 @@ test('selected region details do not cause horizontal overflow', async ({ page }
     await addMunicipality(page, 'Rovaniemi');
     await page.getByRole('button', { name: 'Sulje muokkaus' }).click();
 
+    await expect(page.locator('.region-detail-wide')).toBeVisible();
     const overflow = await page.locator('.planner-map-layout').evaluate((layout) => ({
       clientWidth: layout.clientWidth,
       scrollWidth: layout.scrollWidth,
-      panelClientWidth: layout.querySelector('.planner-panel')?.clientWidth,
-      panelScrollWidth: layout.querySelector('.planner-panel')?.scrollWidth,
+      mapWidth: layout.querySelector('.planner-map-column')?.getBoundingClientRect().width,
+      sidebarWidth: layout.querySelector('.planner-sidebar')?.getBoundingClientRect().width,
     }));
     expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
-    expect(overflow.panelScrollWidth).toBeLessThanOrEqual(overflow.panelClientWidth ?? 0);
+    expect(overflow.mapWidth).toBeGreaterThan(overflow.sidebarWidth ?? 0);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
     if (width === 1440) await page.reload();
+  }
+});
+
+test('selected region statistics span below the map and sidebar at desktop and mobile widths', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Uusi alue' }).click();
+  await page.getByLabel('Nimi', { exact: true }).fill('Pohjois-Pohjanmaa');
+  await addMunicipality(page, 'Oulu');
+  await page.getByRole('button', { name: 'Sulje muokkaus' }).click();
+
+  const detail = page.locator('.region-detail-wide');
+  for (const width of [1440, 1100, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(detail).toBeVisible();
+    const layout = await page.evaluate(() => {
+      const mapLayout = document.querySelector('.planner-map-layout')!;
+      const detailContainer = document.querySelector('.region-detail-wide')!;
+      const map = mapLayout.querySelector('.planner-map-column')!.getBoundingClientRect();
+      const sidebar = mapLayout.querySelector('.planner-sidebar')!.getBoundingClientRect();
+      const content = detailContainer.getBoundingClientRect();
+      return {
+        mapBottom: map.bottom,
+        sidebarBottom: sidebar.bottom,
+        detailTop: content.top,
+        detailWidth: content.width,
+        layoutWidth: mapLayout.getBoundingClientRect().width,
+        statsColumnCount: getComputedStyle(detailContainer.querySelector('.stat-grid')!).gridTemplateColumns.split(' ').length,
+      };
+    });
+    expect(layout.detailTop).toBeGreaterThanOrEqual(Math.max(layout.mapBottom, layout.sidebarBottom));
+    expect(layout.detailWidth).toBeGreaterThan(layout.layoutWidth * 0.9);
+    expect(layout.statsColumnCount).toBe(width > 1280 ? 5 : width > 860 ? 4 : 2);
   }
 });
 

@@ -64,11 +64,15 @@
 .notice { padding: 12px 14px; margin: 0 0 14px; font-size: 12px; line-height: 1.6; border: 1px solid var(--gold); border-radius: 10px; background: var(--surface-raised); }
 .pill { display: inline-block; padding: 2px 8px; margin-left: 6px; color: var(--text); background: color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 999px; font: 600 10px 'DM Mono', monospace; vertical-align: middle; }
 .eyebrow { margin: 0; }
+.planner-map-view { display: grid; gap: 14px; min-width: 0; }
 .planner-map-layout { display: grid; grid-template-columns: 330px minmax(0, 1fr) 380px; gap: 14px; align-items: start; }
+.planner-map-layout.has-region-detail { grid-template-columns: 330px minmax(0, 1fr); }
 .planner-sidebar, .planner-panel { display: grid; gap: 14px; max-height: calc(100vh - 170px); overflow-y: auto; position: sticky; top: 150px; padding-bottom: 4px; scrollbar-width: thin; }
 .planner-panel { min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .planner-panel > * { min-width: 0; max-width: 100%; }
 .region-detail { min-width: 0; overflow-wrap: anywhere; }
+.region-detail-wide { min-width: 0; }
+.region-detail-wide .stat-grid.compact { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
 .planner-map-column { display: grid; gap: 8px; min-width: 0; }
 .map-options { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; padding: 8px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-size: 12px; }
 .map-status { margin-left: auto; color: var(--muted); font: 11px 'DM Mono', monospace; }
@@ -276,7 +280,9 @@
 
 @media (max-width: 1280px) {
   .planner-map-layout { grid-template-columns: 300px minmax(0, 1fr); }
+  .planner-map-layout.has-region-detail { grid-template-columns: 300px minmax(0, 1fr); }
   .planner-panel { grid-column: 1 / -1; position: static; max-height: none; }
+  .region-detail-wide .stat-grid.compact { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 860px) {
   .planner-shell { width: calc(100% - 20px); }
@@ -288,6 +294,7 @@
   .planner-map-column { order: -1; width: 100%; }
   .planner-sidebar, .planner-panel { position: static; max-height: none; width: 100%; }
   .planner-map { height: 62vh; min-height: 380px; }
+  .region-detail-wide .stat-grid.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .chart-grid { grid-template-columns: 1fr; }
   .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .view-header h2 { font-size: 21px; }
