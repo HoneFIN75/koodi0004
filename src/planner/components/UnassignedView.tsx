@@ -25,6 +25,7 @@ export function UnassignedView({ analysis, regions, onShowOnMap, onAssign }: Una
         <button type="button" className="primary-button" onClick={onShowOnMap}><MapPinned size={16} /> Korosta kartalla</button>
       </header>
       <div className="stat-grid">
+        <StatCard label="Kohdistamattomien kuntien kilpailut" value={formatCount(analysis.totals.unassignedCompetitions)} detail="aktiiviset kilpailuvuodet" />
         <StatCard label="Kohdistamaton väestö 2025" value={formatCount(analysis.totals.unassignedPopulation)} />
         <StatCard label="Kohdistamattomia kuntia" value={analysis.unassigned.length} tone={analysis.unassigned.length ? 'warning' : undefined} />
         <StatCard label="Kohdistamattomia seuroja" value={totals.clubs} />
@@ -47,13 +48,14 @@ export function UnassignedView({ analysis, regions, onShowOnMap, onAssign }: Una
           )}
         </div>
         <table className="data-table">
-          <thead><tr><th scope="col">Kunta</th><th scope="col">Maakunta</th><th scope="col">Väestö 2025</th><th scope="col" className="numeric">Seuroja</th><th scope="col" className="numeric">Jäseniä</th><th scope="col" className="numeric">Äänimäärä</th><th scope="col" className="numeric">Pinta-ala</th>{enabled.length > 0 && <th scope="col"><span className="sr-only">Toiminnot</span></th>}</tr></thead>
+          <thead><tr><th scope="col">Kunta</th><th scope="col">Maakunta</th><th scope="col">Väestö 2025</th><th scope="col">Kilpailuja · valitut vuodet</th><th scope="col" className="numeric">Seuroja</th><th scope="col" className="numeric">Jäseniä</th><th scope="col" className="numeric">Äänimäärä</th><th scope="col" className="numeric">Pinta-ala</th>{enabled.length > 0 && <th scope="col"><span className="sr-only">Toiminnot</span></th>}</tr></thead>
           <tbody>
             {rows.map((row) => (
               <tr key={row.municipality.code}>
                 <th scope="row">{row.municipality.name}</th>
                 <td>{row.municipality.province ?? '–'}</td>
                 <td>{formatCount(row.municipality.population)}</td>
+                <td>{formatCount(row.competitionCount)}</td>
                 <td className="numeric">{row.clubs.length}</td>
                 <td className="numeric">{integerFormat.format(row.members)}</td>
                 <td className="numeric">{row.votes}</td>
@@ -61,7 +63,7 @@ export function UnassignedView({ analysis, regions, onShowOnMap, onAssign }: Una
                 {enabled.length > 0 && <td><button type="button" className="text-button" disabled={!target} onClick={() => onAssign(target, [row.municipality.code])} aria-label={`Lisää ${row.municipality.name} valittuun alueeseen`}>Lisää</button></td>}
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={enabled.length > 0 ? 8 : 7} className="empty-text">Kaikki kunnat on kohdistettu alueisiin.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={enabled.length > 0 ? 9 : 8} className="empty-text">Kaikki kunnat on kohdistettu alueisiin.</td></tr>}
           </tbody>
         </table>
       </section>

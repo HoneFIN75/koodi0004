@@ -6,6 +6,8 @@ import type { MunicipalityDataset } from './models/region';
 import { assignClubs } from './services/regionAnalytics';
 import { per10000Residents, summarizePopulation } from './services/populationService';
 import { PopulationExplorer } from './components/PopulationExplorer';
+import { CompetitionFilters } from './components/CompetitionFilters';
+import { CompetitionAnalytics } from './components/CompetitionAnalytics';
 import type { Club, Database, MunicipalityStat } from './models/club';
 import { ChartCard } from './components/ChartCard';
 import { MapView } from './components/MapView';
@@ -149,6 +151,8 @@ export default function App() {
         <div className="hero-aside"><div className="hero-number">{database ? numberFormat.format(totals.clubs) : '—'}</div><span>seuraa mukana</span><div className="hero-line" /><small>DATA PÄIVITETTY<br />{database?.metadata.generatedAt ? new Date(database.metadata.generatedAt).toLocaleDateString('fi-FI') : 'Ei tietoa'}</small></div>
       </section>
 
+      <CompetitionFilters />
+
       {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}
       {populationError && <p className="data-warning" role="alert">Kuntien väestöanalyysi ei ole saatavilla: {populationError} <button onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
       {!database && !error && <div className="loading-state" role="status"><span className="loading-spinner" />Ladataan seuroja ja rakennetaan tilannekuvaa…</div>}
@@ -198,6 +202,7 @@ export default function App() {
         {municipalities && <PopulationExplorer municipalities={municipalities.municipalities} />}
       </section>
       </>}
+      <CompetitionAnalytics geography={municipalities?.municipalities} title="Suomen kilpailutoiminta" />
 
       <footer className="footer"><div className="brand-mark small"><span /></div><span>SEURAKARTTA</span><span className="footer-source">Tietolähde: seuratietokanta{database ? ` · ${database.data.length} seuraa · metadata: ${database.metadata.recordCount ?? 'ei tietoa'}` : ''}</span><a href="https://www.openstreetmap.org/copyright">Kartta © OpenStreetMap</a></footer>
     </main>

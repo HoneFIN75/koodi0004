@@ -37,6 +37,7 @@ export function RegionList({ regions, stats, selectedRegionId, onSelect, onCreat
                   <strong>{region.name}</strong>
                   <small>{region.shortName} · {regionStats?.municipalityCount ?? 0} kuntaa · {regionStats?.clubCount ?? 0} seuraa · {integerFormat.format(regionStats?.members ?? 0)} jäsentä</small>
                   <small>Väestö 2025: {formatCount(regionStats?.population ?? null)} asukasta</small>
+                  <small>Kilpailuja valittuina vuosina: {formatCount(regionStats?.competitionCount ?? null)}</small>
                 </span>
               </button>
               {!readOnly && <span className="row-actions">

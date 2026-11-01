@@ -2,11 +2,13 @@ import React, { Suspense, lazy, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles.css';
+import { startCompetitionRefresh } from './state/competitionStore';
 
 const PlannerApp = lazy(() => import('./planner/PlannerApp'));
 const isPlannerRoute = () => window.location.hash.startsWith('#/alueet');
 
 function Root() {
+  useEffect(startCompetitionRefresh, []);
   const [planner, setPlanner] = useState(isPlannerRoute);
   useEffect(() => {
     const onChange = () => { setPlanner(isPlannerRoute()); window.scrollTo(0, 0); };

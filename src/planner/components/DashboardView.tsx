@@ -29,6 +29,9 @@ export function DashboardView({ analysis, regions, dataset, scenarioCount, scena
         <div><p className="eyebrow">JOHDON KOJELAUTA</p><h2>{scenarioName}</h2><p>{filtered ? 'Seuraluvut on laskettu suodatetusta aineistosta.' : 'Luvut lasketaan reaaliaikaisesti seura-aineistosta ja kuntarajoista.'}</p></div>
       </header>
       <div className="stat-grid">
+        <StatCard label="Kilpailuja valittuina vuosina" value={formatCount(analysis.totals.competitionCount)} />
+        <StatCard label="Alueiden kattamat kilpailut" value={formatCount(analysis.totals.assignedCompetitions)} detail="päällekkäiset kunnat kerran" />
+        <StatCard label="Kohdistamattomien kuntien kilpailut" value={formatCount(analysis.totals.unassignedCompetitions)} />
         <StatCard icon={Users} label="Suomen väestö 2025" value={formatCount(analysis.totals.nationalPopulation)} />
         <StatCard icon={Users} label="Alueiden kattama väestö" value={formatCount(analysis.totals.assignedPopulation)} detail="jokainen kunta vain kerran" />
         <StatCard icon={Users} label="Kohdistamaton väestö" value={formatCount(analysis.totals.unassignedPopulation)} />
@@ -45,6 +48,7 @@ export function DashboardView({ analysis, regions, dataset, scenarioCount, scena
         <StatCard icon={Scale} label="Varoituksia" value={warnings.filter((warning) => warning.severity === 'warning').length} tone={warnings.length ? 'warning' : undefined} detail={`${warnings.filter((warning) => warning.severity === 'info').length} huomiota`} />
       </div>
       <div className="chart-grid">
+        <section className="planner-card"><BarChart title="Kilpailuja alueittain · valitut vuodet" rows={[...active].filter(({ stats }) => stats.competitionCount !== null).sort((a, b) => (b.stats.competitionCount ?? 0) - (a.stats.competitionCount ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.competitionCount ?? 0, color: region.color }))} /><p className="hint">Aluekohtaisesti päällekkäisyys sallitaan; valtakunnallinen summa laskee kilpailun kerran. Seurasuodattimet eivät rajaa kilpailuja.</p></section>
         <section className="planner-card"><BarChart title="Väestö 2025 alueittain" rows={[...active].filter(({ stats }) => stats.population !== null).sort((a, b) => (b.stats.population ?? 0) - (a.stats.population ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.population ?? 0, color: region.color, display: formatCount(stats.population) }))} /></section>
         <section className="planner-card"><BarChart title="Jäseniä / 10 000 asukasta" rows={[...active].filter(({ stats }) => stats.membersPer10000 !== null).sort((a, b) => (b.stats.membersPer10000 ?? 0) - (a.stats.membersPer10000 ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.membersPer10000 ?? 0, color: region.color, display: formatCount(stats.membersPer10000) }))} /><p className="hint">Väestö koskee koko aluetta; seuraluvut seuraavat suodatusta. Päällekkäisillä alueilla sama väestö näkyy kummassakin aluepalkissa.</p></section>
         <section className="planner-card"><BarChart title="Kattavuusjakauma: osuus Suomen pinta-alasta" rows={byArea.map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.areaShare * 100, color: region.color, display: formatPercent(stats.areaShare) }))} emptyText="Ei käytössä olevia alueita, joissa on kuntia." /></section>
@@ -52,6 +56,7 @@ export function DashboardView({ analysis, regions, dataset, scenarioCount, scena
         <section className="planner-card"><BarChart title="Äänimäärä alueittain" rows={[...active].sort((a, b) => b.stats.votes - a.stats.votes).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.votes, color: region.color, display: integerFormat.format(stats.votes) }))} /></section>
         <section className="planner-card"><BarChart title="Seuroja / 1 000 km²" rows={[...active].sort((a, b) => b.stats.clubsPerKm2 - a.stats.clubsPerKm2).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.clubsPerKm2 * 1000, color: region.color }))} /></section>
       </div>
+      {analysis.totals.unmatchedCompetitionMunicipalities.length > 0 && <p className="notice" role="alert">Kuntarajoihin kohdistumattomat kilpailukunnat: {analysis.totals.unmatchedCompetitionMunicipalities.join(', ')}. Niiden kilpailut sisältyvät valtakunnallisiin lukuihin, eivät aluelukuihin.</p>}
       <section className="planner-card">
         <header className="card-header"><div><h2>Suunnitelman tarkistukset</h2><p>Validointi päivittyy jokaisen muutoksen jälkeen.</p></div></header>
         <WarningList warnings={warnings} onSelectRegion={onSelectRegion} />

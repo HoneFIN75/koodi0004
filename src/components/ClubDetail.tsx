@@ -4,6 +4,7 @@ import type { Club } from '../models/club';
 import type { Municipality } from '../models/region';
 import { getMunicipalityRank, getPopulationCategory, per10000Residents } from '../services/populationService';
 import { formatCount, hasLocation, markerColor } from '../services/mapService';
+import { MunicipalityCompetitionSummary } from './MunicipalityCompetitionSummary';
 
 const labels: Record<string, string> = {
   district: 'Piiri', region: 'Alue', website: 'Verkkosivusto', email: 'Sähköposti', foundedYear: 'Perustamisvuosi',
@@ -58,6 +59,7 @@ export function ClubDetail({ club, onClose, municipality }: { club: Club; onClos
         })}
         <div><dt>Koordinaatit</dt><dd>{hasLocation(club) ? `${club.latitude.toFixed(5)}, ${club.longitude.toFixed(5)}` : 'Sijaintitieto puuttuu'}</dd></div>
       </dl>
+      <MunicipalityCompetitionSummary name={municipality?.name ?? club.paikkakunta} municipality={municipality} />
     </aside>
   );
 }

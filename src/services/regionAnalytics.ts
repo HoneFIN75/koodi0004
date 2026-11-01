@@ -1,4 +1,6 @@
 import type { Club } from '../models/club';
+import type { CompetitionContext } from '../models/competition.ts';
+import { getCompetitionStatistics } from './competitionService.ts';
 import type { Municipality, MunicipalityDataset, Region } from '../models/region';
 import { pointInGeometry } from './geoService.ts';
 import { getCoveragePopulation, getDatasetPopulation, matchesPopulation, normalizeMunicipalityName, per10000Residents, summarizePopulation, type PopulationFilters } from './populationService.ts';
@@ -14,6 +16,7 @@ export interface MunicipalityAggregate {
   clubs: Club[];
   members: number;
   votes: number;
+  competitionCount: number | null;
 }
 
 export interface RegionStats {
@@ -41,6 +44,9 @@ export interface RegionStats {
   populationDensity: number | null;
   clubsPerKm2: number;
   membersPerKm2: number;
+  competitionCount: number | null;
+  competitionsPer10000: number | null;
+  competitionsPer1000Km2: number | null;
 }
 
 export interface PlannerFilters extends PopulationFilters {
@@ -76,9 +82,13 @@ export function assignClubs(clubs: Club[], dataset: MunicipalityDataset): ClubPl
   });
 }
 
-export function aggregateByMunicipality(placements: ClubPlacement[], dataset: MunicipalityDataset): Map<string, MunicipalityAggregate> {
+export function aggregateByMunicipality(placements: ClubPlacement[], dataset: MunicipalityDataset, competitions?: CompetitionContext): Map<string, MunicipalityAggregate> {
   const index = new Map<string, MunicipalityAggregate>();
-  for (const municipality of dataset.municipalities) index.set(municipality.code, { municipality, clubs: [], members: 0, votes: 0 });
+  const competitionStats = competitions?.index ? getCompetitionStatistics(competitions.index, competitions.yearFilter) : null;
+  const counts = new Map(competitionStats?.municipalities.map((row) => [normalizeName(row.name), row.count]));
+  for (const municipality of dataset.municipalities) index.set(municipality.code, {
+    municipality, clubs: [], members: 0, votes: 0, competitionCount: competitionStats ? counts.get(normalizeName(municipality.name)) ?? 0 : null,
+  });
   for (const { club, municipalityCode } of placements) {
     const aggregate = municipalityCode ? index.get(municipalityCode) : undefined;
     if (!aggregate) continue;
@@ -130,6 +140,8 @@ export function computeRegionStats(region: Region, dataset: MunicipalityDataset,
   const populationStats = summarizePopulation(municipalities);
   const population = missingCodes.length ? null : populationStats.total;
   const national = getDatasetPopulation(dataset).total;
+  const competitionCount = missingCodes.length || municipalities.some((item) => index.get(item.code)?.competitionCount == null)
+    ? null : municipalities.reduce((sum, item) => sum + (index.get(item.code)?.competitionCount ?? 0), 0);
   return {
     regionId: region.id,
     municipalityCount: municipalities.length,
@@ -153,6 +165,9 @@ export function computeRegionStats(region: Region, dataset: MunicipalityDataset,
     populationDensity: population !== null && areaKm2 > 0 ? population / areaKm2 : null,
     clubsPerKm2: areaKm2 > 0 ? clubs.length / areaKm2 : 0,
     membersPerKm2: areaKm2 > 0 ? members / areaKm2 : 0,
+    competitionCount,
+    competitionsPer10000: per10000Residents(competitionCount, population),
+    competitionsPer1000Km2: competitionCount !== null && areaKm2 > 0 ? competitionCount / areaKm2 * 1000 : null,
   };
 }
 
@@ -161,17 +176,19 @@ export interface ScenarioAnalysis {
   activeRegions: Region[];
   assignedCodes: Set<string>;
   unassigned: MunicipalityAggregate[];
-  totals: { clubs: number; members: number; votes: number; unplacedClubs: Club[]; nationalPopulation: number | null; assignedPopulation: number | null; unassignedPopulation: number | null; clubMunicipalityPopulation: number | null };
+  totals: { clubs: number; members: number; votes: number; unplacedClubs: Club[]; nationalPopulation: number | null; assignedPopulation: number | null; unassignedPopulation: number | null; clubMunicipalityPopulation: number | null; competitionCount: number | null; assignedCompetitions: number | null; unassignedCompetitions: number | null; unmatchedCompetitionMunicipalities: string[] };
 }
 
 /** Disabled regions are excluded from coverage: only enabled regions count as an assignment. */
-export function analyzeScenario(regions: Region[], dataset: MunicipalityDataset, placements: ClubPlacement[]): ScenarioAnalysis {
-  const index = aggregateByMunicipality(placements, dataset);
+export function analyzeScenario(regions: Region[], dataset: MunicipalityDataset, placements: ClubPlacement[], competitions?: CompetitionContext): ScenarioAnalysis {
+  const index = aggregateByMunicipality(placements, dataset, competitions);
   const stats = new Map(regions.map((region) => [region.id, computeRegionStats(region, dataset, index)]));
   const activeRegions = regions.filter((region) => region.enabled);
   const assignedCodes = new Set(activeRegions.flatMap((region) => region.municipalityCodes).filter((code) => dataset.byCode.has(code)));
   const unassigned = [...index.values()].filter((aggregate) => !assignedCodes.has(aggregate.municipality.code))
     .sort((a, b) => b.members - a.members || a.municipality.name.localeCompare(b.municipality.name, 'fi'));
+  const competitionStats = competitions?.index ? getCompetitionStatistics(competitions.index, competitions.yearFilter) : null;
+  const knownNames = new Set(dataset.municipalities.map((item) => normalizeName(item.name)));
   return {
     stats, activeRegions, assignedCodes, unassigned,
     totals: {
@@ -183,6 +200,10 @@ export function analyzeScenario(regions: Region[], dataset: MunicipalityDataset,
       assignedPopulation: getCoveragePopulation(regions, dataset),
       unassignedPopulation: summarizePopulation(unassigned.map((item) => item.municipality)).total,
       clubMunicipalityPopulation: summarizePopulation(dataset.municipalities.filter((item) => (index.get(item.code)?.clubs.length ?? 0) > 0)).total,
+      competitionCount: competitionStats?.total ?? null,
+      assignedCompetitions: competitionStats ? [...assignedCodes].reduce((sum, code) => sum + (index.get(code)?.competitionCount ?? 0), 0) : null,
+      unassignedCompetitions: competitionStats ? unassigned.reduce((sum, row) => sum + (row.competitionCount ?? 0), 0) : null,
+      unmatchedCompetitionMunicipalities: competitionStats?.municipalities.filter((row) => !knownNames.has(normalizeName(row.name))).map((row) => row.name) ?? [],
     },
   };
 }
@@ -201,6 +222,7 @@ export function explainCoverage(region: Region, stats: RegionStats, analysis: Sc
   parts.push(`${region.name} kattaa noin ${formatPercent(stats.areaShare)} Suomen pinta-alasta (${formatArea(stats.areaKm2)}) ja ${stats.municipalityCount} ${stats.municipalityCount === 1 ? 'kunnan' : 'kuntaa'}.`);
   parts.push(`Alueella on ${stats.clubCount} ${stats.clubCount === 1 ? 'seura' : 'seuraa'} (${formatPercent(clubShare)} kaikista) ja ${integer.format(stats.members)} jäsentä (${formatPercent(memberShare)}).`);
   if (stats.population !== null) parts.push(`Väestö 2025: ${integer.format(stats.population)} asukasta${stats.populationShare !== null ? ` (${formatPercent(stats.populationShare)} Suomen väestöstä)` : ''}.`);
+  if (stats.competitionCount !== null) parts.push(`Aktiivisen vuosisuodattimen mukaisia kilpailuja: ${integer.format(stats.competitionCount)}.`);
   if (stats.clubCount === 0) {
     parts.push('Alueella ei ole lainkaan seuroja, joten se edustaa pelkkää maantieteellistä kattavuutta.');
   } else if (stats.areaShare > memberShare * 2 && stats.areaShare - memberShare > 0.02) {

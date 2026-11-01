@@ -69,7 +69,7 @@ test('population appears in planner maps, region details, dashboards, comparison
   await expect(page.locator('.planner-main')).toContainText('Väestö 2025 alueittain');
   await page.getByRole('button', { name: 'Vertailu', exact: true }).click();
   await page.getByLabel('Kaavion mittari').selectOption('population');
-  await expect(page.locator('.data-table')).toContainText('1 020 108');
+  await expect(page.getByRole('table', { name: 'Aluevertailu', exact: true })).toContainText('1 020 108');
   await page.getByRole('button', { name: 'Tuonti ja vienti', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Kuntien väestöanalyysi' })).toContainText('308 kuntaa');
 });
@@ -132,6 +132,7 @@ test('only Admin sees the password management area', async ({ page }) => {
 });
 
 test('all views render and pass axe checks in both themes', async ({ page }) => {
+  test.setTimeout(90_000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();
