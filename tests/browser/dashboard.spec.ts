@@ -258,9 +258,12 @@ test('loading is announced and reduced-motion preferences are respected', async 
   });
   await page.goto('/koodi0004/');
   await expect(page.locator('.loading-state')).toBeVisible();
-  await expect(page.locator('.metric-card')).toHaveCount(0);
+  const clubMetrics = page.locator('.dashboard-metric-sections .metric-card');
+  await expect(clubMetrics).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Kilpailujen yhteenveto', exact: true }).locator('.metric-card')).toHaveCount(3);
   release();
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
+  await expect(clubMetrics).toHaveCount(9);
   await expect(page.locator('.leaflet-fade-anim')).toHaveCount(0);
   await expect(page.locator('.loading-state')).toHaveCount(0);
 });
