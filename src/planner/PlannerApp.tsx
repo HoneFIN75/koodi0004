@@ -151,6 +151,14 @@ export default function PlannerApp() {
     return () => { active = false; };
   }, [attempt]);
   useEffect(() => {
+    const refreshClubs = () => {
+      void clubRepository.getDatabase().then((result) => setClubs(result))
+        .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Seuratietojen päivitys epäonnistui.'));
+    };
+    window.addEventListener('clubs-updated', refreshClubs);
+    return () => window.removeEventListener('clubs-updated', refreshClubs);
+  }, []);
+  useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch { /* storage unavailable */ }
   }, [dark]);

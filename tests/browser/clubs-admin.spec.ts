@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFile } from 'node:fs/promises';
 
 const existingClub = () => ({
   id: 'club_original',
@@ -121,4 +122,98 @@ test('Writer cannot see or load the Admin club management route', async ({ page 
   await expect(page.getByRole('navigation', { name: 'Aluesuunnittelun näkymät' }).getByRole('button', { name: 'Seurahallinta' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Seurahallinta on vain Adminille' })).toBeVisible();
   expect(state.adminReads).toBe(0);
+});
+
+test('JSON export requires privacy acknowledgement and retains full backup data', async ({ page }) => {
+  const state = await setup(page);
+  await page.goto('/koodi0004/#/alueet/seurahallinta');
+
+  const exportButton = page.getByRole('button', { name: 'Vie seurat JSON-tiedostona' });
+  await expect(exportButton).toBeDisabled();
+  await page.getByLabel(/Ymmärrän, että vientitiedosto/).check();
+  const download = page.waitForEvent('download');
+  await exportButton.click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/^seurakartta-seurat-\d{4}-\d{2}-\d{2}\.json$/);
+  const path = await file.path();
+  expect(path).not.toBeNull();
+  const exported = JSON.parse(await readFile(path!, 'utf8'));
+  expect(exported.format).toBe('seurakartta-clubs');
+  expect(exported.version).toBe(1);
+  expect(exported.clubs[0].contact.email).toBe('yhteys@example.fi');
+  expect(exported.clubs[0].contact.public).toBe(false);
+  expect(state.writes).toHaveLength(0);
+});
+
+test('JSON import previews merge changes and rejects invalid data before writing', async ({ page }) => {
+  const state = await setup(page);
+  await page.goto('/koodi0004/#/alueet/seurahallinta');
+  const newClub = existingClub();
+  newClub.id = 'club_imported';
+  newClub.seura = 'Tuotu seura ry';
+  newClub.paikkakunta = 'Turku';
+  newClub.jasenmaara = 320;
+  newClub.aanimaara = 20;
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'tuonti.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({
+      format: 'seurakartta-clubs',
+      version: 1,
+      exportedAt: '2026-11-01T12:00:00.000Z',
+      clubs: [newClub],
+    })),
+  });
+
+  await expect(page.locator('.clubs-import-preview')).toContainText('Lisätty 1');
+  await expect(page.getByRole('button', { name: 'Tuo esikatseltu aineisto' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Tuo esikatseltu aineisto' }).click();
+  await expect(page.locator('.clubs-admin [role="status"]')).toContainText('JSON-tuonti valmis');
+  expect(state.clubs).toHaveLength(2);
+  expect(state.clubs[1].id).toBe('club_imported');
+  expect(state.writes).toHaveLength(1);
+  await page.getByRole('navigation', { name: 'Aluesuunnittelun näkymät' }).getByRole('button', { name: 'Kartta' }).click();
+  await expect(page.locator('.map-status')).toContainText('2 / 2 seuraa');
+  await page.getByRole('navigation', { name: 'Aluesuunnittelun näkymät' }).getByRole('button', { name: 'Seurahallinta' }).click();
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'virheellinen.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ format: 'wrong', version: 3, clubs: [] })),
+  });
+  await expect(page.locator('.clubs-admin [role="alert"]')).toContainText('ei tueta');
+  expect(state.writes).toHaveLength(1);
+});
+
+test('full replacement requires a downloaded current backup and a separate confirmation', async ({ page }) => {
+  const state = await setup(page);
+  await page.goto('/koodi0004/#/alueet/seurahallinta');
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'korvaus.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({
+      format: 'seurakartta-clubs',
+      version: 1,
+      exportedAt: '2026-11-01T12:00:00.000Z',
+      clubs: [],
+    })),
+  });
+  await page.getByLabel('Korvaa koko aineisto').check();
+
+  const replaceButton = page.getByRole('button', { name: 'Korvaa koko aineisto', exact: true });
+  await expect(replaceButton).toBeDisabled();
+  const backupDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Lataa nykyisen aineiston varmuuskopio' }).click();
+  const download = await backupDownload;
+  const path = await download.path();
+  const backup = JSON.parse(await readFile(path!, 'utf8'));
+  expect(backup.clubs).toHaveLength(1);
+  expect(backup.clubs[0].contact.email).toBe('yhteys@example.fi');
+  await page.getByLabel(/Vahvistan nykyisen koko aineiston/).check();
+  await expect(replaceButton).toBeEnabled();
+  await replaceButton.click();
+
+  await expect(page.locator('.clubs-admin [role="status"]')).toContainText('poistuu korvauksessa 1');
+  expect(state.clubs).toHaveLength(0);
+  expect(state.writes).toHaveLength(1);
 });

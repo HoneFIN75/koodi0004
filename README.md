@@ -18,6 +18,8 @@ The club-administration backend provides a versioned private store at `clubs.jso
 
 The Admin menu and route are hidden from Writer users, and the server independently checks Admin authorization on all private reads and writes. Updates require the Admin session, HTTPS, a CSRF token, and the current data revision.
 
+The Admin club manager supports versioned JSON export and import with a validated preview, merge, add-only, and explicitly confirmed full replacement modes. Read [SEURATIEDOSTON-JSON-MUOTO.md](SEURATIEDOSTON-JSON-MUOTO.md) before exchanging backups: exports can contain private contact information, and full replacement requires downloading a current backup first.
+
 The production build includes `api/planner.php`, `api/clubs.php`, and `api/clubs-api.php`; deploy the complete `dist/` output. `clubs.php` delegates to the planner endpoint so both APIs use the same private data-directory, session, role, HTTPS, and CSRF checks. Keep the existing private `planner-data` directory outside the web root with permissions `700`; the JSON files and lock files must have permissions `600`. The public endpoint is `GET /api/clubs.php`. Admin access is `GET /api/clubs.php?view=admin`; a full replacement requires `PUT /api/clubs.php`, a valid Admin session, `X-CSRF-Token`, and the current `X-Expected-Revision`. Do not expose the private store as a static file.
 
 Run the migration from a trusted CLI environment after creating the private output directory:

@@ -170,13 +170,13 @@ PR 1:n tarkoitus on luoda turvallinen, testattava tallennus- ja rajapintaperusta
 
 ### PR 3 — Adminin Seurahallinta
 
-**Tila: toteutetaan tässä PR:ssä.** Lisää Adminille näkyvä oma valikko ja suojattu reitti, seuraluettelo hakuineen, lisäys- ja muokkauslomake, arkistointi ja palautus. Lomake hallitsee seuran nimeä, paikkakuntaa, koordinaatteja, jäsenmäärää, yhteyshenkilöä, sähköpostia, puhelinta, WWW-sivua sekä Instagram- ja TikTok-linkkejä. Äänivalta lasketaan jäsenmäärästä palvelun yhteisellä säännöllä. Muutokset tallennetaan nykyisellä Admin-suojatulla rajapinnalla CSRF- ja revision-tarkistuksin; arkistointi säilyttää tietueen ja poistaa sen julkisista näkymistä. Yhteystiedot julkaistaan vain erillisellä valinnalla.
+**Tila: valmis PR:ssä #50.** Adminille on oma valikko ja suojattu reitti, seuraluettelo hakuineen, lisäys- ja muokkauslomake sekä arkistointi ja palautus. Lomake hallitsee seuran nimeä, paikkakuntaa, koordinaatteja, jäsenmäärää, yhteyshenkilöä, sähköpostia, puhelinta, WWW-sivua sekä Instagram- ja TikTok-linkkejä. Äänivalta lasketaan jäsenmäärästä palvelun yhteisellä säännöllä. Muutokset tallennetaan nykyisellä Admin-suojatulla rajapinnalla CSRF- ja revision-tarkistuksin; arkistointi säilyttää tietueen ja poistaa sen julkisista näkymistä. Yhteystiedot julkaistaan vain erillisellä valinnalla.
 
 **Hyväksyntä:** Admin pystyy hallitsemaan kaikkia määriteltyjä kenttiä; Writer ei näe valikkoa eikä voi avata käyttöliittymää tai käyttää rajapintaa; julkiset yhteystiedot näkyvät vain julkisuusasetuksen ollessa päällä. Seuraa ei poisteta pysyvästi tässä vaiheessa: arkistointi on palautettava ja säilyttää tunnisteen sekä aiemmat yhteydet suunnitteluaineistoon.
 
 ### PR 4 — JSON-tuonti ja -vienti
 
-Toteuta tässä dokumentissa määritelty version 1 tiedostomuoto, täysi JSON-vienti, tuontitiedoston validointi ja esikatselu, yhdistämis- ja lisää vain uudet -toiminnot sekä erikseen vahvistettava koko aineiston korvaus. Sisällytä tulosraportti, yksityistietojen vientivaroitus, varmuuskopiointi ja atominen tallennus.
+**Tila: toteutetaan tässä PR:ssä.** Toteuta `SEURATIEDOSTON-JSON-MUOTO.md`-dokumentissa määritelty version 1 tiedostomuoto, täysi JSON-vienti, tuontitiedoston validointi ja esikatselu, yhdistämis- ja lisää vain uudet -toiminnot sekä erikseen vahvistettava koko aineiston korvaus. Sisällytä tulosraportti, yksityistietojen vientivaroitus, ennen korvausta ladattava varmuuskopio ja Admin-rajapinnan atominen tallennus.
 
 **Hyväksyntä:** saman aineiston vienti ja tuonti säilyttävät ID:t, yhteystiedot, tuntemattomat lisäkentät, puuttuvat arvot ja arkistointitilan. Virheellinen tai tuntemattoman version tiedosto ei muuta tallennusta; esikatselu vastaa toteutunutta muutosta.
 

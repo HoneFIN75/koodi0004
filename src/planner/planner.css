@@ -260,6 +260,16 @@
 .clubs-admin-form .field small { font-weight: 400; }
 .clubs-admin-public { padding-top: 10px; border-top: 1px solid var(--border); }
 .clubs-admin-denied { max-width: 720px; margin: 0 auto; }
+.clubs-json-tools { display: grid; gap: 12px; padding: 14px; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 12px; }
+.clubs-json-heading h3 { margin: 0; color: var(--text); font: 700 15px Manrope, sans-serif; text-transform: none; letter-spacing: 0; }
+.clubs-json-heading p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.clubs-json-options, .clubs-json-modes { display: grid; gap: 10px; min-width: 0; margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
+.clubs-json-options > legend, .clubs-json-modes > legend { padding: 0 5px; color: var(--text); font-size: 12px; font-weight: 700; }
+.clubs-json-options .notice, .clubs-import-preview .notice { margin: 0; }
+.clubs-json-options input[type='file'] { width: 100%; color: var(--text); font-size: 12px; }
+.clubs-json-modes { padding: 8px 10px; }
+.clubs-import-preview { display: grid; gap: 8px; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; }
+.clubs-import-preview > p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
 
 @media (max-width: 1280px) {
   .planner-map-layout { grid-template-columns: 300px minmax(0, 1fr); }
