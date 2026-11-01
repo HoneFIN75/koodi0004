@@ -6,9 +6,6 @@ import { formatArea, formatPercent, type RegionStats, type ScenarioAnalysis } fr
 import { BarChart, StatCard, decimalFormat, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
 import { summarizePopulation } from '../../services/populationService';
-import { per10000Residents } from '../../services/populationService';
-import type { CompetitionContext } from '../../state/useCompetitions';
-import { CompetitionScope } from '../../components/CompetitionScope';
 
 type MetricKey = 'areaKm2' | 'municipalityCount' | 'clubCount' | 'members' | 'votes' | 'areaShare' | 'membersPerKm2' | 'population' | 'populationShare' | 'averagePopulation' | 'medianPopulation' | 'clubsPer10000' | 'membersPer10000' | 'populationDensity';
 const METRICS: { key: MetricKey; label: string; format: (stats: RegionStats) => string }[] = [
@@ -28,7 +25,7 @@ const METRICS: { key: MetricKey; label: string; format: (stats: RegionStats) => 
   { key: 'populationDensity', label: 'Asukkaita / km²', format: (stats) => formatCount(stats.populationDensity) },
 ];
 
-export function ComparisonView({ regions, analysis, onSelectRegion, competitions }: { regions: Region[]; analysis: ScenarioAnalysis; onSelectRegion: (id: string) => void; competitions: CompetitionContext }) {
+export function ComparisonView({ regions, analysis, onSelectRegion }: { regions: Region[]; analysis: ScenarioAnalysis; onSelectRegion: (id: string) => void }) {
   const sortedRegions = useMemo(() => [...regions].sort((a, b) => a.number - b.number), [regions]);
   const [chosen, setChosen] = useState<string[] | null>(null);
   const selectedIds = chosen ?? sortedRegions.filter((region) => region.enabled).map((region) => region.id);
@@ -72,28 +69,24 @@ export function ComparisonView({ regions, analysis, onSelectRegion, competitions
         <StatCard label="Jäseniä yhteensä" value={integerFormat.format(total('members'))} detail={rows.length ? `keskimäärin ${integerFormat.format(total('members') / rows.length)} / alue` : undefined} />
         <StatCard label="Äänimäärä yhteensä" value={integerFormat.format(total('votes'))} detail={rows.length ? `keskimäärin ${integerFormat.format(total('votes') / rows.length)} / alue` : undefined} />
       </div>
-      <CompetitionScope context={competitions} codes={rows.flatMap(({ region }) => region.municipalityCodes)} title="Vertailualueiden yhdiste" />
       <section className="planner-card table-card">
         <table className="data-table">
           <caption className="sr-only">Aluevertailu</caption>
           <thead><tr>
             <th scope="col">{headerButton('number', 'Alue')}</th>
             {METRICS.map((item) => <th key={item.key} scope="col" className="numeric">{headerButton(item.key, item.label)}</th>)}
-            <th scope="col">Ensisijaiset kilpailut · suodatettu</th><th scope="col">Liittyvät kilpailut · suodatettu</th><th scope="col">Ensisijaiset kilpailut / 10 000 asukasta</th>
           </tr></thead>
           <tbody>
             {rows.map(({ region, stats }) => (
               <tr key={region.id}>
                 <th scope="row"><button type="button" className="link-button" onClick={() => onSelectRegion(region.id)}><span className="region-number small" style={{ background: region.color }}>{region.number}</span> {region.name}</button></th>
                 {METRICS.map((item) => <td key={item.key} className="numeric">{item.format(stats)}</td>)}
-                <td>{competitions.filters.visibility === 'hidden' ? 'Piilotettu' : competitions.analysis?.regionCounts.get(region.id) ?? 0}</td><td>{competitions.filters.visibility === 'hidden' ? 'Piilotettu' : competitions.analysis?.regionCoverageCounts.get(region.id) ?? 0}</td><td>{competitions.filters.visibility === 'hidden' ? 'Piilotettu' : formatCount(per10000Residents(competitions.analysis?.regionCounts.get(region.id) ?? 0, stats.population))}</td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={METRICS.length + 4} className="empty-text">Valitse vähintään yksi alue.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={METRICS.length + 1} className="empty-text">Valitse vähintään yksi alue.</td></tr>}
           </tbody>
         </table>
       </section>
-      {competitions.filters.visibility !== 'hidden' && <section className="planner-card"><BarChart title="Vertailualueiden ensisijaiset kilpailut · suodatettu" rows={rows.map(({ region }) => ({ id: region.id, label: region.name, value: competitions.analysis?.regionCounts.get(region.id) ?? 0, color: region.color })).sort((a, b) => b.value - a.value)} /></section>}
       <section className="planner-card">
         <label className="field inline">Kaavion mittari
           <select value={chartMetric} onChange={(event) => setChartMetric(event.target.value as MetricKey)}>{METRICS.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select>

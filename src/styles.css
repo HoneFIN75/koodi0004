@@ -220,7 +220,7 @@ a { color: inherit; text-decoration: none; }
   .member-filter { flex-basis: 100%; max-width: none; }
   .vote-filter { flex: 1; min-width: 0; }
   .clear-filters { font-size: 11px; }
-  .analytics-section { padding: 38px 0 28px; }.section-heading { align-items: flex-start; }.section-heading h2 { font-size: 21px; }.section-heading p { font-size: 11px; }.section-count { display: none; }.analytics-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }.chart-card, .ranking-card, .overview-card { padding: 16px; min-height: 0; }
+  .analytics-section { padding: 38px 0 28px; }.section-heading { align-items: flex-start; }.section-heading h2 { font-size: 21px; }.section-heading p { font-size: 11px; }.section-count { display: none; }.analytics-grid { grid-template-columns: 1fr; gap: 10px; }.chart-card, .ranking-card, .overview-card { padding: 16px; min-height: 0; }
   .footer { flex-wrap: wrap; padding: 13px 0; font-size: 9px; }.footer-source { margin-left: 0; width: 100%; order: 3; }.footer a { margin-left: auto; }
 }
 
@@ -246,47 +246,3 @@ a { color: inherit; text-decoration: none; }
 .population-distribution .bar-track { margin-top: 5px; height: 10px; }
 .population-map-legend { position: absolute; left: 10px; bottom: 12px; z-index: 500; display: grid; gap: 4px; padding: 10px; border-radius: 8px; background: var(--surface); color: var(--text); border: 1px solid var(--border); font-size: 11px; max-width: calc(100% - 65px); }
 .population-map-legend i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: middle; }
-.competition-panel { padding: 20px; margin: 24px 0; min-width: 0; }
-.competition-panel h2 { margin-top: 0; }
-.competition-panel p, .competition-scope p { overflow-wrap: anywhere; }
-.competition-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px; }
-.competition-controls label, .competition-layer-control label { display: flex; flex-direction: column; gap: 6px; min-width: 0; font-size: 13px; }
-.competition-controls input, .competition-controls select, .competition-layer-control select { width: 100%; min-width: 0; padding: 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); }
-.competition-years { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; border: 1px solid var(--border); border-radius: 8px; }
-.competition-years label { display: inline-flex; gap: 6px; align-items: center; padding: 4px; }
-.competition-panel button, .competition-scope button, .competition-popup button { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; }
-.competition-panel button:focus-visible, .competition-scope button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.competition-summary { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 0; }
-.competition-summary span { border: 1px solid var(--border); padding: 12px; border-radius: 8px; }
-.competition-layer-control { padding: 10px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 12px; }
-.competition-year-legend { display: flex; flex-wrap: wrap; gap: 12px; list-style: none; padding: 0; margin: 10px 0; font-size: 12px; }
-.competition-year-legend li { display: inline-flex; align-items: center; gap: 6px; }
-.competition-year-legend i { width: 14px; height: 14px; border: 1px solid var(--text); border-radius: 3px; flex-shrink: 0; }
-.competition-chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px; }
-.competition-chart { padding: 12px; border: 1px solid var(--border); border-radius: 8px; min-width: 0; }
-.competition-chart ul { list-style: none; padding: 0; margin: 0; }
-.competition-chart li { padding: 6px 0; overflow-wrap: anywhere; }
-.competition-chart .bar-track { margin-top: 6px; }
-.competition-list { padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 8px; }
-.competition-list button { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 6px; overflow-wrap: anywhere; height: 100%; }
-.competition-list span, .competition-list small { font-size: 12px; }
-.competition-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.competition-quality { margin-top: 20px; font-size: 12px; }
-.competition-quality ul { max-height: 300px; overflow: auto; overflow-wrap: anywhere; }
-.competition-details { padding: 16px; margin: 16px 0; overflow-wrap: anywhere; border: 2px solid var(--accent); }
-.competition-details header { display: flex; align-items: flex-start; gap: 12px; justify-content: space-between; }
-.competition-details h3 { margin-top: 0; }
-.competition-details dl, .competition-scope dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 10px; }
-.competition-details dt, .competition-scope dt { font-size: 12px; }
-.competition-details dd, .competition-scope dd { margin: 4px 0; }
-.competition-scope { margin: 14px 0; padding: 12px; border: 1px solid var(--border); border-radius: 8px; overflow-wrap: anywhere; }
-.competition-scope ul { padding-left: 16px; max-height: 250px; overflow: auto; }
-.competition-scope li { margin: 6px 0; }
-.competition-marker { background: transparent; }
-.competition-marker svg { width: 44px; height: 44px; }
-.competition-marker > span { position: absolute; left: 7px; bottom: -1px; min-width: 30px; text-align: center; background: #fff; color: #17212b; border: 1px solid #17212b; font-size: 10px; font-weight: 700; line-height: 14px; border-radius: 3px; }
-.competition-cluster { display: flex; align-items: center; justify-content: center; background: #17212b; color: #fff; border: 3px double #fff; border-radius: 12px; font-weight: 700; box-shadow: 0 0 0 2px #17212b; }
-.competition-marker:focus, .competition-cluster:focus { outline: 3px solid #d55e00; outline-offset: 3px; }
-.competition-popup { max-height: 320px; overflow: auto; overflow-wrap: anywhere; color: #17212b; }
-.competition-popup p { margin: 6px 0; }
-.competition-popup button { background: #fff; border-color: #17212b; color: #17212b; }

@@ -6,10 +6,6 @@ import type { MunicipalityDataset } from './models/region';
 import { assignClubs } from './services/regionAnalytics';
 import { per10000Residents, summarizePopulation } from './services/populationService';
 import { PopulationExplorer } from './components/PopulationExplorer';
-import { CompetitionPanel } from './components/CompetitionPanel';
-import { CompetitionLayerControl } from './components/CompetitionLayerControl';
-import { useCompetitions } from './state/useCompetitions';
-import { useActiveScenario } from './state/usePlanner';
 import type { Club, Database, MunicipalityStat } from './models/club';
 import { ChartCard } from './components/ChartCard';
 import { MapView } from './components/MapView';
@@ -84,8 +80,6 @@ export default function App() {
   const [attempt, setAttempt] = useState(0);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('seurakartta-theme') !== 'light');
-  const plannerScenario = useActiveScenario();
-  const competitions = useCompetitions(municipalities, plannerScenario.regions);
 
   useEffect(() => {
     let active = true;
@@ -121,7 +115,6 @@ export default function App() {
   const coveredMembers = useMemo(() => filteredClubs.reduce((sum, club) => sum + (clubMunicipalities.get(club) ? club.jasenmaara ?? 0 : 0), 0), [filteredClubs, clubMunicipalities]);
   const coveredClubs = useMemo(() => filteredClubs.filter((club) => Boolean(clubMunicipalities.get(club))).length, [filteredClubs, clubMunicipalities]);
   const populationFor = useCallback((club: Club) => clubMunicipalities.get(club)?.population ?? null, [clubMunicipalities]);
-  const municipalityCodeFor = useCallback((club: Club) => clubMunicipalities.get(club)?.code ?? null, [clubMunicipalities]);
   const sortedClubs = useMemo(() => [...filteredClubs].sort((a, b) => (b.jasenmaara ?? -1) - (a.jasenmaara ?? -1)), [filteredClubs]);
   const mappedCount = useMemo(() => filteredClubs.filter(hasLocation).length, [filteredClubs]);
   const maxMembers = useMemo(() => clubs.reduce((maximum, club) => Math.max(maximum, club.jasenmaara ?? 0), 0), [clubs]);
@@ -182,17 +175,15 @@ export default function App() {
           <span className="filter-hint">Suodatus päivittää myös tilastot</span>
         </div>
         <ClubFilters filters={filters} maxMembers={maxMembers} votingOptions={votingOptions} onChange={onFilterChange} />
-        <CompetitionLayerControl context={competitions} />
         <div className="map-layout">
-          <MapView clubs={filteredClubs} allClubs={clubs} selectedClub={selectedClub} onSelect={setSelectedClub} populationFor={populationFor} municipalityCodeFor={municipalityCodeFor} competitions={competitions} />
+          <MapView clubs={filteredClubs} allClubs={clubs} selectedClub={selectedClub} onSelect={setSelectedClub} populationFor={populationFor} />
           <div hidden={selectedClub !== null}>
             <ClubResults key={JSON.stringify(filters)} clubs={sortedClubs} selectedClub={selectedClub} onSelect={setSelectedClub} />
           </div>
-          {selectedClub && <ClubDetail club={selectedClub} onClose={closeDetail} municipality={clubMunicipalities.get(selectedClub) ?? null} competitions={competitions} />}
+          {selectedClub && <ClubDetail club={selectedClub} onClose={closeDetail} municipality={clubMunicipalities.get(selectedClub) ?? null} />}
         </div>
         {mappedCount < filteredClubs.length && <p className="empty-note">{filteredClubs.length - mappedCount} seuralta puuttuu karttasijainti. Niiden muut tiedot ovat mukana tilastoissa ja luettelossa.</p>}
       </section>
-      <CompetitionPanel context={competitions} />
 
       <section className="analytics-section" id="tilastot">
         <div className="section-heading"><div><div className="eyebrow">DATASTA NÄKEMYKSIIN</div><h2>Seurakenttä lukuina</h2><p>Suodatettu aineisto: {totals.clubs} seuraa, {totals.municipalities} kuntaa. Jäsenmäärä tiedossa {totals.knownMembers} seuralla.</p></div><div className="section-count"><span>{numberFormat.format(totals.members)}</span> jäsentä analyysissä</div></div>
@@ -204,7 +195,7 @@ export default function App() {
           <OverviewBars rows={municipalityStats} />
           <RankingCard title="Aluevertailu" description="Aineiston alue tai suuntaa-antava koordinaattiryhmä" rows={regions} valueLabel="jäsentä" limit={5} />
         </div>
-        {municipalities && <PopulationExplorer municipalities={municipalities.municipalities} competitions={competitions} />}
+        {municipalities && <PopulationExplorer municipalities={municipalities.municipalities} />}
       </section>
       </>}
 

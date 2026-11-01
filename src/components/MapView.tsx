@@ -7,8 +7,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import type { Club } from '../models/club';
 import { formatCount, hasLocation, makePopup, markerColor, markerRadius } from '../services/mapService';
 import { MapLegend } from './MapLegend';
-import type { CompetitionContext } from '../state/useCompetitions';
-import { addCompetitionMapLayer } from '../services/competitionMapService';
 
 interface MapViewProps {
   clubs: Club[];
@@ -16,18 +14,15 @@ interface MapViewProps {
   selectedClub: Club | null;
   onSelect: (club: Club) => void;
   populationFor: (club: Club) => number | null;
-  municipalityCodeFor: (club: Club) => string | null;
-  competitions: CompetitionContext;
 }
 
 const finlandBounds: L.LatLngTuple[] = [[59.6, 19], [70.2, 32]];
 
-export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor, municipalityCodeFor, competitions }: MapViewProps) {
+export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor }: MapViewProps) {
   const element = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const cluster = useRef<L.MarkerClusterGroup | null>(null);
   const markers = useRef(new Map<Club, L.Marker>());
-  const competitionLayer = useRef<ReturnType<typeof addCompetitionMapLayer> | null>(null);
   const [tileError, setTileError] = useState(false);
   const reducedMotion = useRef(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
@@ -83,17 +78,6 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
   }, []);
 
   useEffect(() => {
-    if (!map.current || !competitions.municipalities || !competitions.competitions.length) return;
-    const layer = addCompetitionMapLayer(map.current, competitions.competitions, competitions.municipalities, competitions.select);
-    competitionLayer.current = layer;
-    return () => { layer.remove(); competitionLayer.current = null; };
-  }, [competitions.competitions, competitions.municipalities, competitions.select]);
-
-  useEffect(() => {
-    competitionLayer.current?.select(competitions.selected);
-  }, [competitions.selected, competitions.competitions]);
-
-  useEffect(() => {
     const instance = map.current;
     if (!instance) return;
     const bounds = L.latLngBounds(finlandBounds);
@@ -113,14 +97,6 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
     for (const club of clubs) {
       if (!hasLocation(club)) continue;
       const diameter = markerRadius(club.jasenmaara) * 2;
-      const tooltip = makePopup(club, populationFor(club));
-      const code = municipalityCodeFor(club);
-      const location = code ? competitions.municipalities?.byCode.get(code) : null;
-      if (location && competitions.filters.visibility !== 'hidden') {
-        const counts = document.createElement('p');
-        counts.textContent = `Kilpailut (suodatettu): ${competitions.analysis?.primaryCounts.get(location.code) ?? 0} ensisijaista · ${competitions.analysis?.associatedCounts.get(location.code) ?? 0} liittyvää`;
-        tooltip.append(counts);
-      }
       const marker = L.marker([club.latitude, club.longitude], {
         icon: L.divIcon({
           className: 'club-marker',
@@ -131,7 +107,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
         title: `${club.seura}, ${club.paikkakunta}: ${formatCount(club.jasenmaara)} jäsentä, ${formatCount(club.aanimaara)} ääntä. Avaa tiedot.`,
         alt: club.seura,
         keyboard: true,
-      }).bindTooltip(tooltip, { direction: 'top', opacity: 1 });
+      }).bindTooltip(makePopup(club, populationFor(club)), { direction: 'top', opacity: 1 });
       marker.on('click', () => onSelect(club));
       marker.on('add', () => {
         const node = marker.getElement();
@@ -150,7 +126,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
       layers.push(marker);
     }
     group.addLayers(layers);
-  }, [clubs, onSelect, populationFor, municipalityCodeFor, competitions.analysis, competitions.filters.visibility, competitions.municipalities]);
+  }, [clubs, onSelect, populationFor]);
 
   useEffect(() => {
     if (!selectedClub || !hasLocation(selectedClub) || !map.current) return;

@@ -57,7 +57,6 @@ export function DataManager({ onExport, onImport, knownCodes, readOnly = false }
           <button type="button" className="secondary-button" onClick={() => onExport('xlsx', scope)}><FileSpreadsheet size={16} /> Excel (.xlsx)</button>
         </div>
         <p className="hint">JSON-vienti voidaan tuoda takaisin sellaisenaan. CSV käyttää puolipistettä erottimena (suomenkielinen Excel).</p>
-        <p className="hint">Kilpailuluvut käyttävät yhteisiä kilpailusuodattimia. Excel sisältää erillisen Kilpailut-välilehden; JSON sisältää johdetut kilpailutilastot ja CSV kuntakohtaiset kilpailuluvut. Viiteaineistoa ei tallenneta suunnitelmaan. Kilpailujen oma JSON- ja CSV-vienti on kilpailupaneelissa.</p>
       </section>
       {!readOnly && <section className="planner-card">
         <h2 className="card-title"><Upload size={17} /> Tuo</h2>

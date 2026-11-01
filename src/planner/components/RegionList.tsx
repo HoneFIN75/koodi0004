@@ -3,7 +3,6 @@ import type { Region } from '../../models/region';
 import type { RegionStats } from '../../services/regionAnalytics';
 import { integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
-import type { CompetitionContext } from '../../state/useCompetitions';
 
 interface RegionListProps {
   regions: Region[];
@@ -16,10 +15,9 @@ interface RegionListProps {
   onDelete: (region: Region) => void;
   onToggle: (region: Region, field: 'enabled' | 'visible') => void;
   readOnly?: boolean;
-  competitions: CompetitionContext;
 }
 
-export function RegionList({ regions, stats, selectedRegionId, onSelect, onCreate, onEdit, onDuplicate, onDelete, onToggle, readOnly = false, competitions }: RegionListProps) {
+export function RegionList({ regions, stats, selectedRegionId, onSelect, onCreate, onEdit, onDuplicate, onDelete, onToggle, readOnly = false }: RegionListProps) {
   const sorted = [...regions].sort((a, b) => a.number - b.number || a.name.localeCompare(b.name, 'fi'));
   return (
     <section className="planner-card region-list" aria-labelledby="region-list-title">
@@ -39,7 +37,6 @@ export function RegionList({ regions, stats, selectedRegionId, onSelect, onCreat
                   <strong>{region.name}</strong>
                   <small>{region.shortName} · {regionStats?.municipalityCount ?? 0} kuntaa · {regionStats?.clubCount ?? 0} seuraa · {integerFormat.format(regionStats?.members ?? 0)} jäsentä</small>
                   <small>Väestö 2025: {formatCount(regionStats?.population ?? null)} asukasta</small>
-                  <small>{competitions.filters.visibility === 'hidden' ? 'Kilpailut piilotettu' : `Ensisijaiset kilpailut (suodatettu): ${competitions.analysis?.regionCounts.get(region.id) ?? 0}`}</small>
                 </span>
               </button>
               {!readOnly && <span className="row-actions">
