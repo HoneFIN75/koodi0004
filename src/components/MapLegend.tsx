@@ -1,4 +1,5 @@
 import { markerColor, markerRadius } from '../services/mapService';
+import { VOTING_POWERS } from '../services/membershipRules.ts';
 
 export function MapLegend() {
   return (
@@ -13,9 +14,9 @@ export function MapLegend() {
         </div>
         <strong>Väri = äänivalta</strong>
         <div className="vote-key">
-          {[10, 15, 20].map((votes) => <span key={votes}><i style={{ background: markerColor(votes) }} />{votes} ääntä</span>)}
+          {VOTING_POWERS.map((votes) => <span key={votes}><i style={{ background: markerColor(votes) }} />{votes} ääntä</span>)}
         </div>
-        <p>Muut arvot: liukuva väriskaala.<br />Harmaa: äänimäärä puuttuu.<br />Ryhmässä oleva luku = seurojen määrä.</p>
+        <p>Äänivalta määräytyy jäsenmäärän mukaan.<br />Harmaa: jäsenmäärä puuttuu.<br />Ryhmässä oleva luku = seurojen määrä.</p>
       </div>
     </details>
   );

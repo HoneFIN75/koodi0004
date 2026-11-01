@@ -1,4 +1,5 @@
 import type { Club, Database } from '../models/club';
+import { getVotingPower } from '../services/membershipRules.ts';
 
 const DATABASE_URL = './jsondb/seurat.json';
 let databaseRequest: Promise<Database> | undefined;
@@ -44,6 +45,8 @@ export function parseDatabase(value: unknown): Database {
   const data: Club[] = [];
   let skipped = 0;
   let incomplete = 0;
+  let mismatchedVotingPower = 0;
+  let undeterminedVotingPower = 0;
   for (const [index, item] of value.data.entries()) {
     if (!isRecord(item)) {
       skipped += 1;
@@ -56,8 +59,16 @@ export function parseDatabase(value: unknown): Database {
     const latitude = lat !== null && lat >= -90 && lat <= 90 ? lat : null;
     const longitude = lng !== null && lng >= -180 && lng <= 180 ? lng : null;
     const jasenmaara = parseCount(item.jasenmaara);
-    const aanimaara = parseCount(item.aanimaara);
-    if (!seura || !paikkakunta || latitude === null || longitude === null || jasenmaara === null || aanimaara === null) {
+    const sourceVotes = parseCount(item.aanimaara);
+    const aanimaara = getVotingPower(jasenmaara);
+    if (item.aanimaara !== undefined && item.aanimaara !== null) {
+      if (jasenmaara === null) {
+        if (sourceVotes !== null) undeterminedVotingPower += 1;
+      } else if (sourceVotes !== aanimaara) {
+        mismatchedVotingPower += 1;
+      }
+    }
+    if (!seura || !paikkakunta || latitude === null || longitude === null || jasenmaara === null) {
       incomplete += 1;
     }
     const entries: [string, string | number][] = [];
@@ -78,7 +89,13 @@ export function parseDatabase(value: unknown): Database {
   }
   if (skipped) warnings.push(`${skipped} virheellistä tietuetta ohitettiin, koska ne eivät ole JSON-objekteja.`);
   if (incomplete) {
-    warnings.push(`${incomplete} seuran tiedot ovat puutteelliset. Tuntemattomia lukumääriä ei lasketa nolliksi; ilman koordinaatteja olevat seurat näkyvät vain luettelossa ja tilastoissa.`);
+    warnings.push(`${incomplete} seuran tiedot ovat puutteelliset. Tuntemattomia jäsenmääriä ei lasketa nolliksi eikä niiden äänivaltaa voida päätellä; ilman koordinaatteja olevat seurat näkyvät vain luettelossa ja tilastoissa.`);
+  }
+  if (mismatchedVotingPower) {
+    warnings.push(`${mismatchedVotingPower} seuran lähdeaineiston äänimäärä poikkeaa jäsenmäärään perustuvasta äänivallasta. Sovellus käyttää määritelmän mukaista laskettua arvoa.`);
+  }
+  if (undeterminedVotingPower) {
+    warnings.push(`${undeterminedVotingPower} seuran lähdeaineiston äänimäärää ei voida tarkistaa, koska jäsenmäärä puuttuu. Sovellus näyttää äänivallan tuntemattomana.`);
   }
   return { metadata: { generatedAt, recordCount, source }, data, warnings };
 }

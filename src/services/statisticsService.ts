@@ -1,12 +1,5 @@
 import type { Club, DistributionStat, MunicipalityStat } from '../models/club';
-
-const MEMBERSHIP_BUCKETS = [
-  { label: '0–25', max: 25 },
-  { label: '26–75', max: 75 },
-  { label: '76–150', max: 150 },
-  { label: '151–300', max: 300 },
-  { label: '301+', max: Number.POSITIVE_INFINITY },
-];
+import { getMembershipBand, getVotingPower, MEMBERSHIP_BANDS } from './membershipRules.ts';
 
 export function getMunicipalityStats(clubs: readonly Club[]): MunicipalityStat[] {
   const groups = new Map<string, MunicipalityStat>();
@@ -20,21 +13,17 @@ export function getMunicipalityStats(clubs: readonly Club[]): MunicipalityStat[]
 }
 
 export function getMembershipDistribution(clubs: readonly Club[]): DistributionStat[] {
-  return MEMBERSHIP_BUCKETS.map(({ label, max }, index) => {
-    const min = index === 0 ? -1 : MEMBERSHIP_BUCKETS[index - 1].max;
-    return {
-      label,
-      count: clubs.filter((club) => club.jasenmaara !== null && club.jasenmaara > min && club.jasenmaara <= max).length,
-    };
-  });
+  return MEMBERSHIP_BANDS.map((band) => ({
+    label: band.label,
+    count: clubs.filter((club) => getMembershipBand(club.jasenmaara) === band).length,
+  }));
 }
 
 export function getVotingDistribution(clubs: readonly Club[]): DistributionStat[] {
-  const groups = new Map<number, number>([[10, 0], [15, 0], [20, 0]]);
-  for (const club of clubs) {
-    if (club.aanimaara !== null) groups.set(club.aanimaara, (groups.get(club.aanimaara) ?? 0) + 1);
-  }
-  return [...groups].sort(([a], [b]) => a - b).map(([votes, count]) => ({ label: `${votes} ääntä`, count }));
+  return MEMBERSHIP_BANDS.map(({ votes }) => ({
+    label: `${votes} ääntä`,
+    count: clubs.filter((club) => getVotingPower(club.jasenmaara) === votes).length,
+  }));
 }
 
 export function getRegionalStats(clubs: readonly Club[]): MunicipalityStat[] {
