@@ -101,7 +101,7 @@
 .region-row.disabled .region-row-main { opacity: .55; }
 .region-row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px; color: var(--text); text-align: left; background: none; border: 0; cursor: pointer; }
 .region-row-text { min-width: 0; display: grid; gap: 2px; }
-.region-row-text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.region-row-text strong { min-width: 0; overflow-wrap: anywhere; font-size: 13px; line-height: 1.4; }
 .region-row-text small { color: var(--muted); font-size: 11px; }
 .region-number { display: inline-grid; place-items: center; flex-shrink: 0; min-width: 28px; height: 28px; padding: 0 6px; color: #fff; border-radius: 8px; font: 700 12px 'DM Mono', monospace; text-shadow: 0 1px 2px #0008; }
 .region-number.large { min-width: 42px; height: 42px; border-radius: 12px; font-size: 17px; }

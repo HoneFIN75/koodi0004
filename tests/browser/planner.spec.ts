@@ -139,6 +139,32 @@ test('selected region details do not cause horizontal overflow', async ({ page }
   }
 });
 
+test('region names remain fully visible in the sidebar at desktop and mobile widths', async ({ page }) => {
+  const name = 'Pohjois-Suomen frisbeegolfseurojen yhteistoiminta-alue';
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await open(page);
+  await page.getByRole('button', { name: 'Uusi alue' }).click();
+  await page.getByLabel('Nimi', { exact: true }).fill(name);
+  await addMunicipality(page, 'Rovaniemi');
+  await page.getByRole('button', { name: 'Sulje muokkaus' }).click();
+
+  const regionName = page.locator('.region-row-text strong').filter({ hasText: name });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(regionName).toHaveText(name);
+    await expect(regionName).toBeVisible();
+    const dimensions = await regionName.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      textOverflow: getComputedStyle(element).textOverflow,
+      whiteSpace: getComputedStyle(element).whiteSpace,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+    expect(dimensions.textOverflow).not.toBe('ellipsis');
+    expect(dimensions.whiteSpace).not.toBe('nowrap');
+  }
+});
+
 test('creates a region, analyses it, undoes, redoes and restores after reload', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();
