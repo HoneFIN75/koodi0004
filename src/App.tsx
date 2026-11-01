@@ -170,8 +170,6 @@ export default function App() {
         <div className="hero-aside"><div className="hero-number">{database ? numberFormat.format(totals.clubs) : '—'}</div><span>seuraa mukana</span><div className="hero-line" /><small>DATA PÄIVITETTY<br />{database?.metadata.generatedAt ? new Date(database.metadata.generatedAt).toLocaleDateString('fi-FI') : 'Ei tietoa'}</small></div>
       </section>
 
-      <CompetitionFilters />
-
       {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}
       {populationError && <p className="data-warning" role="alert">Kuntien väestöanalyysi ei ole saatavilla: {populationError} <button onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
       {provinceError && <p className="data-warning" role="alert">Maakuntatietoja ei voitu ladata: {provinceError} <button onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
@@ -224,6 +222,7 @@ export default function App() {
         {municipalities && <PopulationExplorer municipalities={municipalities.municipalities} />}
       </section>
       </>}
+      <CompetitionFilters />
       <CompetitionAnalytics geography={municipalities?.municipalities} title="Suomen kilpailutoiminta" />
 
       <footer className="footer"><div className="brand-mark small"><span /></div><span>SEURAKARTTA</span><span className="footer-source">Tietolähde: seuratietokanta{database ? ` · ${database.data.length} seuraa · metadata: ${database.metadata.recordCount ?? 'ei tietoa'}` : ''}</span><a href="https://www.openstreetmap.org/copyright">Kartta © OpenStreetMap</a></footer>
