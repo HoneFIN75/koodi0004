@@ -246,6 +246,7 @@ a { color: inherit; text-decoration: none; }
   .dashboard-metric-sections { grid-template-columns: 1fr; }
   .dashboard-competition-heading { flex-wrap: wrap; }
   .dashboard-competition-overview .competition-filters-compact .competition-controls { justify-content: flex-start; }
+  .dashboard-competition-overview .competition-filters-compact .competition-controls label { flex-wrap: wrap; }
   .filter-hint { display: none; }
   .filter-bar { gap: 16px; flex-wrap: wrap; }
 }
