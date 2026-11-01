@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, MapPin, Moon, Search, Sun, Users, Vote, type LucideIcon } from 'lucide-react';
+import { AlertCircle, BarChart3, MapPin, Moon, Search, Sun, Trophy, Users, Vote, type LucideIcon } from 'lucide-react';
 import { clubRepository } from './data/clubRepository';
 import { municipalityRepository } from './data/municipalityRepository';
 import { provinceRepository } from './data/provinceRepository.ts';
@@ -14,7 +14,7 @@ import { ProvinceComparison } from './components/ProvinceComparison.tsx';
 import { CompetitionFilters } from './components/CompetitionFilters';
 import { CompetitionAnalytics } from './components/CompetitionAnalytics';
 import type { Club, Database, MunicipalityStat } from './models/club';
-import type { CompetitionStatistics } from './models/competition';
+import { describeCompetitionYears } from './services/competitionService';
 import { ChartCard } from './components/ChartCard';
 import { MapView } from './components/MapView';
 import { RankingCard } from './components/RankingCard';
@@ -25,12 +25,21 @@ import { filterClubs, type ClubFilters as Filters } from './services/searchServi
 import { formatCount, hasLocation } from './services/mapService';
 import { getMembershipDistribution, getMunicipalityStats, getTotals, getVotingDistribution } from './services/statisticsService';
 import { VOTING_POWERS } from './services/membershipRules.ts';
-import { useCompetitionStatistics } from './state/useCompetitions.ts';
+import { useCompetitionData, useCompetitionStatistics } from './state/useCompetitions.ts';
 
 const numberFormat = new Intl.NumberFormat('fi-FI');
 const emptyClubs: Club[] = [];
 const emptyMunicipalities: NonNullable<MunicipalityDataset['municipalities']> = [];
 const initialFilters: Filters = { query: '', maxMembers: null, votes: null };
+
+function describeCompetitionPeriod(years: readonly number[]) {
+  if (years.length === 0) return 'Vuosiaineistoa ei saatavilla';
+  const first = years[0];
+  const last = years[years.length - 1];
+  const period = years.length === 1 ? String(first)
+    : last - first + 1 === years.length ? `${first}–${last}` : years.join(', ');
+  return `${period} · ${years.length} ${years.length === 1 ? 'vuosi' : 'vuotta'}`;
+}
 
 interface MetricCardProps {
   icon: LucideIcon;
@@ -82,23 +91,6 @@ function OverviewBars({ rows }: { rows: MunicipalityStat[] }) {
   );
 }
 
-function CompetitionYearSummary({ statistics }: { statistics: CompetitionStatistics | null }) {
-  if (!statistics) return <p role="status">Ladataan kilpailutilastoja…</p>;
-  if (statistics.byYear.length === 0) return <p className="empty-note">Valitussa rajauksessa ei ole kilpailuja.</p>;
-
-  return <>
-    <div className="competition-table competition-year-table" role="region" aria-label="Kilpailujen vuositaulukko" tabIndex={0}>
-      <table>
-        <thead><tr><th scope="col">Vuosi</th><th scope="col">Kilpailuja</th><th scope="col">Kilpailukuntia</th></tr></thead>
-        <tbody>{statistics.byYear.map(({ year, count, municipalityCount }) => (
-          <tr key={year}><th scope="row">{year}</th><td>{formatCount(count)}</td><td>{formatCount(municipalityCount)}</td></tr>
-        ))}</tbody>
-      </table>
-    </div>
-    <p className="hint">Aineisto ei yksilöi järjestäjiä. Kilpailukunnat kertoo, kuinka monessa kunnassa järjestettiin kilpailuja kyseisenä vuonna.</p>
-  </>;
-}
-
 export default function App() {
   const [database, setDatabase] = useState<Database | null>(null);
   const [municipalities, setMunicipalities] = useState<MunicipalityDataset | null>(null);
@@ -140,7 +132,10 @@ export default function App() {
 
   const clubs = database?.data ?? emptyClubs;
   const clubMunicipalities = useMemo(() => new Map(municipalities ? assignClubs(clubs, municipalities).map(({ club, municipalityCode }) => [club, municipalityCode ? municipalities.byCode.get(municipalityCode) ?? null : null]) : []), [clubs, municipalities]);
+  const { index: competitionIndex, yearFilter: competitionYearFilter } = useCompetitionData();
   const competitionStatistics = useCompetitionStatistics({}, municipalities?.municipalities ?? emptyMunicipalities);
+  const competitionYears = competitionIndex?.years ?? [];
+  const competitionPeriod = describeCompetitionPeriod(competitionYears);
   const filteredClubs = useMemo(() => filterClubs(clubs, filters, (club) => clubMunicipalities.get(club)?.population ?? null), [clubs, filters, clubMunicipalities]);
   const coveredPopulation = useMemo(() => summarizePopulation(filteredClubs.flatMap((club) => {
     const municipality = clubMunicipalities.get(club);
@@ -193,10 +188,18 @@ export default function App() {
       {provinceError && <p className="data-warning" role="alert">Maakuntatietoja ei voitu ladata: {provinceError} <button onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
       {provinceCoverageIssues.length > 0 && <p className="data-warning" role="status">{provinceCoverageIssues.join(' ')}</p>}
       {!database && !error && <div className="loading-state" role="status"><span className="loading-spinner" />Ladataan seuroja ja rakennetaan tilannekuvaa…</div>}
-      <section className="dashboard-competition-overview panel" aria-label="Kilpailujen vuosiyhteenveto">
-        <h2>Kilpailut vuosittain</h2>
-        <CompetitionFilters />
-        <CompetitionYearSummary statistics={competitionStatistics} />
+      <section className="dashboard-competition-overview panel" aria-label="Kilpailujen yhteenveto">
+        <div className="dashboard-competition-heading">
+          <div><h2>Kilpailut</h2><p>Aineistovuodet {competitionPeriod}</p></div>
+          <CompetitionFilters compact />
+        </div>
+        <p className="dashboard-competition-scope" role="status">Avainluvut · {describeCompetitionYears(competitionYearFilter)}</p>
+        {!competitionStatistics && <p role="status">Ladataan kilpailutilastoja…</p>}
+        {competitionStatistics && <div className="dashboard-metrics-grid">
+          <MetricCard icon={Trophy} label="KILPAILUJA" value={competitionStatistics.total} suffix="kilpailua" />
+          <MetricCard icon={MapPin} label="KILPAILUKUNTIA" value={competitionStatistics.municipalityCount} suffix={competitionStatistics.municipalityCount === 1 ? 'kunta' : 'kuntaa'} />
+          <MetricCard icon={BarChart3} label="KILPAILUJA / AKTIIVINEN KUNTA" value={competitionStatistics.averagePerMunicipality} suffix="kilpailua / kunta" />
+        </div>}
       </section>
       {database && <>
       {database.warnings.length > 0 && <div className="data-warning" role="status"><AlertCircle size={20} /><div><strong>Aineiston huomautukset</strong>{database.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div></div>}

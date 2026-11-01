@@ -3,11 +3,11 @@ import { describeCompetitionYears } from '../services/competitionService';
 import { refreshCompetitions } from '../state/competitionStore';
 import { useCompetitionData } from '../state/useCompetitions';
 
-export function CompetitionFilters() {
+export function CompetitionFilters({ compact = false }: { compact?: boolean }) {
   const { index, yearFilter, setYearFilter, error, refreshing, updatedAt } = useCompetitionData();
   const years = [...new Set([...(index?.years ?? []), ...(yearFilter.mode === 'selected' ? yearFilter.years : yearFilter.mode === 'range' ? [yearFilter.from, yearFilter.to] : [])])].sort((a, b) => a - b);
   const latest = years[years.length - 1];
-  return <section className="competition-filters panel planner-card" aria-label="Kilpailujen vuosisuodatus">
+  return <section className={`competition-filters panel planner-card${compact ? ' competition-filters-compact' : ''}`} aria-label="Kilpailujen vuosisuodatus">
     <div className="competition-controls">
       <label>Kilpailujen vuodet
         <select value={yearFilter.mode} disabled={!index} onChange={(event) => {
@@ -35,7 +35,7 @@ export function CompetitionFilters() {
         {years.map((year) => <option key={year} value={year}>{year}</option>)}
       </select></label>
     </div>}
-    <p className="hint" role="status">Kilpailurajaus: {describeCompetitionYears(yearFilter)}. Rajaus koskee kaikkia kilpailutilastoja ja raportteja, ei ajattomia seura- tai väestötietoja.</p>
+    {!compact && <p className="hint" role="status">Kilpailurajaus: {describeCompetitionYears(yearFilter)}. Rajaus koskee kaikkia kilpailutilastoja ja raportteja, ei ajattomia seura- tai väestötietoja.</p>}
     {error && <p className="data-warning" role="alert">{error} {index ? 'Näytetään edellinen onnistuneesti ladattu kilpailuaineisto; luvut voivat olla vanhentuneita.' : 'Kilpailutilastot eivät ole saatavilla.'}</p>}
     {!index && !error && <p role="status">Ladataan kilpailuaineistoa…</p>}
     <details><summary>Kilpailujen tietolähde</summary><p>{COMPETITION_FILE} · {index?.records.length ?? '–'} aineistoriviä. Tarkistetaan 60 sekunnin välein sekä palattaessa sovellukseen. Viimeisin onnistunut tarkistus: {updatedAt ? new Date(updatedAt).toLocaleString('fi-FI') : 'ei vielä'}.</p></details>

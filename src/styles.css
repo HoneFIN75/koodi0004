@@ -75,9 +75,16 @@ a { color: inherit; text-decoration: none; }
 .dashboard-metrics-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .dashboard-metrics-grid .metric-card { min-width: 0; padding: 15px; }
 .dashboard-competition-overview { min-width: 0; padding: 20px; margin-block: 20px; }
+.dashboard-competition-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
+.dashboard-competition-heading h2 { margin-bottom: 4px; }
+.dashboard-competition-heading p, .dashboard-competition-scope { margin: 0; color: var(--muted); font-size: 11px; }
+.dashboard-competition-heading .competition-filters { flex: 0 1 auto; }
 .dashboard-competition-overview .competition-filters { margin: 0; padding: 0; border: 0; box-shadow: none; background: transparent; }
-.dashboard-competition-overview .competition-year-table { margin-block: 12px; }
-.dashboard-competition-overview .competition-year-table table { min-width: 360px; }
+.dashboard-competition-overview .competition-filters-compact .competition-controls { justify-content: flex-end; gap: 8px; }
+.dashboard-competition-overview .competition-filters-compact .competition-controls label { display: flex; align-items: center; gap: 8px; }
+.dashboard-competition-overview .competition-filters-compact .competition-controls select { min-height: 40px; }
+.dashboard-competition-overview .competition-filters-compact > details { margin-top: 8px; text-align: right; font-size: 11px; }
+.dashboard-competition-scope { margin: 14px 0 8px; }
 .panel, .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; box-shadow: var(--shadow); }
 .metric-card { min-height: 124px; position: relative; padding: 18px 20px; }
 .metric-icon { width: 30px; height: 30px; display: grid; place-items: center; color: var(--accent-strong); background: #85c98d13; border-radius: 7px; margin-bottom: 11px; }
@@ -237,6 +244,8 @@ a { color: inherit; text-decoration: none; }
   .map-layout { grid-template-columns: minmax(0, 1fr) 260px; }
   .map-canvas, .club-results, .club-detail { height: 520px; max-height: 520px; }
   .dashboard-metric-sections { grid-template-columns: 1fr; }
+  .dashboard-competition-heading { flex-wrap: wrap; }
+  .dashboard-competition-overview .competition-filters-compact .competition-controls { justify-content: flex-start; }
   .filter-hint { display: none; }
   .filter-bar { gap: 16px; flex-wrap: wrap; }
 }
