@@ -14,7 +14,9 @@ In development, Vite serves the legacy JSON fixture at the API route so dashboar
 
 ## Club data API (phase 1)
 
-The first club-administration backend phase adds a versioned private store at `clubs.json`, a public read endpoint, an Admin-only read/write endpoint, and a one-time CLI migration. The dashboard and region planner now use the public endpoint. The Admin interface is still planned and is not included in this phase.
+The club-administration backend provides a versioned private store at `clubs.json`, a public read endpoint, an Admin-only read/write endpoint, and a one-time CLI migration. The dashboard and region planner use the public endpoint. Admin users can manage clubs from the separate **Seurahallinta** menu in the planner: add and edit club details and contacts, and archive or restore records. Archiving preserves the stable club ID and planner references; public contacts are exposed only when the explicit public-contact setting is enabled.
+
+The Admin menu and route are hidden from Writer users, and the server independently checks Admin authorization on all private reads and writes. Updates require the Admin session, HTTPS, a CSRF token, and the current data revision.
 
 The production build includes `api/planner.php`, `api/clubs.php`, and `api/clubs-api.php`; deploy the complete `dist/` output. `clubs.php` delegates to the planner endpoint so both APIs use the same private data-directory, session, role, HTTPS, and CSRF checks. Keep the existing private `planner-data` directory outside the web root with permissions `700`; the JSON files and lock files must have permissions `600`. The public endpoint is `GET /api/clubs.php`. Admin access is `GET /api/clubs.php?view=admin`; a full replacement requires `PUT /api/clubs.php`, a valid Admin session, `X-CSRF-Token`, and the current `X-Expected-Revision`. Do not expose the private store as a static file.
 
