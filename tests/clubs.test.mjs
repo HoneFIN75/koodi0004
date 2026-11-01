@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { parseDatabase, clubRepository } from '../src/data/clubRepository.ts';
 import { filterClubs, searchClubs } from '../src/services/searchService.ts';
-import { getTotals, getVotingDistribution, getMembershipDistribution, getRegionalStats } from '../src/services/statisticsService.ts';
+import { getTotals, getVotingDistribution, getMembershipDistribution } from '../src/services/statisticsService.ts';
 import { markerColor, markerRadius, hasLocation } from '../src/services/mapService.ts';
 
 const record = (overrides = {}) => ({
@@ -71,7 +71,6 @@ test('invalid structure throws; invalid dates and counts are reported', () => {
 test('preserves extensible scalar details but not nested data', () => {
   const [club] = clubs([record({ region: 'Keski-Suomi', website: 'https://example.com', foundedYear: 1999, nested: {}, empty: '' })]);
   assert.deepEqual(club.details, { region: 'Keski-Suomi', website: 'https://example.com', foundedYear: 1999 });
-  assert.equal(getRegionalStats([club])[0].name, 'Keski-Suomi');
 });
 
 test('mean, median, extrema and missing-member denominators are correct', () => {

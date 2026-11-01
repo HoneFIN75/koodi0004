@@ -80,6 +80,30 @@ test('all filters update markers, totals, distributions and empty state', async 
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
 });
 
+test('province comparison and map overlay settings are data-driven and persist', async ({ page }) => {
+  await load(page);
+  const comparison = page.getByRole('region', { name: 'Maakuntavertailu' });
+  await expect(comparison.locator('.province-ranking-row')).toHaveCount(10);
+  await comparison.getByLabel('Näytä').selectOption('all');
+  await expect(comparison.locator('.province-ranking-row')).toHaveCount(19);
+  await comparison.getByLabel('Mittari').selectOption('population');
+  await comparison.getByLabel('Hae maakuntaa').fill('uusimaa');
+  await expect(comparison.locator('.province-ranking-row')).toHaveCount(1);
+  await expect(comparison).toContainText('Uusimaa');
+
+  const showRegions = page.getByLabel('Näytä maakunnat');
+  await expect(showRegions).toBeChecked();
+  await expect(page.locator('.province-fill').first()).toBeVisible();
+  await page.getByLabel('Maakuntatason peittävyys').fill('72');
+  await expect(page.getByText('72 %')).toBeVisible();
+  await page.getByLabel('Näytä maakuntarajat').uncheck();
+  await showRegions.uncheck();
+  await page.reload();
+  await expect(page.getByLabel('Maakuntatason peittävyys')).toHaveValue('72');
+  await expect(page.getByLabel('Näytä maakuntarajat')).not.toBeChecked();
+  await expect(page.getByLabel('Näytä maakunnat')).not.toBeChecked();
+});
+
 test('keyboard marker and list selection, extensible details and focus restoration', async ({ page }) => {
   await load(page);
   const listEntry = page.locator('.club-result').first();
@@ -109,7 +133,7 @@ test('coincident clubs cluster and expand with keyboard navigation', async ({ pa
   await cluster.focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('.club-marker')).toHaveCount(3);
-  await expect(page.locator('.leaflet-overlay-pane path')).toHaveCount(3);
+  await expect(page.locator('.leaflet-overlay-pane path:not(.province-fill):not(.province-border)')).toHaveCount(3);
   await expect(cluster).toHaveAttribute('tabindex', '-1');
   await expect(cluster).toHaveAttribute('aria-hidden', 'true');
 });

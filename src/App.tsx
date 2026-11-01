@@ -2,10 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertCircle, MapPin, Moon, Search, Sun, Users, Vote, type LucideIcon } from 'lucide-react';
 import { clubRepository } from './data/clubRepository';
 import { municipalityRepository } from './data/municipalityRepository';
+import { provinceRepository } from './data/provinceRepository.ts';
 import type { MunicipalityDataset } from './models/region';
+import type { ProvinceDataset } from './models/province.ts';
 import { assignClubs } from './services/regionAnalytics';
 import { per10000Residents, summarizePopulation } from './services/populationService';
+import { getProvinceCoverageIssues, getProvinceStatistics } from './services/provinceAnalytics.ts';
+import { useProvinceSettings } from './hooks/useProvinceSettings.ts';
 import { PopulationExplorer } from './components/PopulationExplorer';
+import { ProvinceComparison } from './components/ProvinceComparison.tsx';
 import { CompetitionFilters } from './components/CompetitionFilters';
 import { CompetitionAnalytics } from './components/CompetitionAnalytics';
 import type { Club, Database, MunicipalityStat } from './models/club';
@@ -17,11 +22,13 @@ import { ClubDetail } from './components/ClubDetail';
 import { ClubResults } from './components/ClubResults';
 import { filterClubs, type ClubFilters as Filters } from './services/searchService';
 import { formatCount, hasLocation } from './services/mapService';
-import { getMembershipDistribution, getMunicipalityStats, getRegionalStats, getTotals, getVotingDistribution } from './services/statisticsService';
+import { getMembershipDistribution, getMunicipalityStats, getTotals, getVotingDistribution } from './services/statisticsService';
 import { VOTING_POWERS } from './services/membershipRules.ts';
+import { useCompetitionStatistics } from './state/useCompetitions.ts';
 
 const numberFormat = new Intl.NumberFormat('fi-FI');
 const emptyClubs: Club[] = [];
+const emptyMunicipalities: NonNullable<MunicipalityDataset['municipalities']> = [];
 const initialFilters: Filters = { query: '', maxMembers: null, votes: null };
 
 interface MetricCardProps {
@@ -77,18 +84,23 @@ function OverviewBars({ rows }: { rows: MunicipalityStat[] }) {
 export default function App() {
   const [database, setDatabase] = useState<Database | null>(null);
   const [municipalities, setMunicipalities] = useState<MunicipalityDataset | null>(null);
+  const [provinces, setProvinces] = useState<ProvinceDataset | null>(null);
+  const [provinceError, setProvinceError] = useState('');
   const [populationError, setPopulationError] = useState('');
   const [error, setError] = useState('');
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [attempt, setAttempt] = useState(0);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('seurakartta-theme') !== 'light');
+  const [provinceSettings, setProvinceSettings] = useProvinceSettings();
 
   useEffect(() => {
     let active = true;
     setPopulationError('');
     municipalityRepository.getMunicipalities().then((result) => { if (active) setMunicipalities(result); })
       .catch((cause: unknown) => { if (active) setPopulationError(cause instanceof Error ? cause.message : 'Väestötiedon kuntakohdistus epäonnistui.'); });
+    provinceRepository.getProvinces().then((result) => { if (active) { setProvinces(result); setProvinceError(''); } })
+      .catch((cause: unknown) => { if (active) setProvinceError(cause instanceof Error ? cause.message : 'Maakuntatietojen lataus epäonnistui.'); });
     return () => { active = false; };
   }, [attempt]);
 
@@ -110,6 +122,7 @@ export default function App() {
 
   const clubs = database?.data ?? emptyClubs;
   const clubMunicipalities = useMemo(() => new Map(municipalities ? assignClubs(clubs, municipalities).map(({ club, municipalityCode }) => [club, municipalityCode ? municipalities.byCode.get(municipalityCode) ?? null : null]) : []), [clubs, municipalities]);
+  const competitionStatistics = useCompetitionStatistics({}, municipalities?.municipalities ?? emptyMunicipalities);
   const filteredClubs = useMemo(() => filterClubs(clubs, filters, (club) => clubMunicipalities.get(club)?.population ?? null), [clubs, filters, clubMunicipalities]);
   const coveredPopulation = useMemo(() => summarizePopulation(filteredClubs.flatMap((club) => {
     const municipality = clubMunicipalities.get(club);
@@ -124,7 +137,12 @@ export default function App() {
   const votingOptions = VOTING_POWERS;
   const totals = useMemo(() => getTotals(filteredClubs), [filteredClubs]);
   const municipalityStats = useMemo(() => getMunicipalityStats(filteredClubs), [filteredClubs]);
-  const regions = useMemo(() => getRegionalStats(filteredClubs), [filteredClubs]);
+  const provinceStatistics = useMemo(() => provinces && municipalities
+    ? getProvinceStatistics(provinces, municipalities, filteredClubs,
+      new Map([...clubMunicipalities].map(([club, municipality]) => [club, municipality?.code ?? null])), competitionStatistics)
+    : [], [provinces, municipalities, filteredClubs, clubMunicipalities, competitionStatistics]);
+  const provinceCoverageIssues = useMemo(() => provinces && municipalities
+    ? getProvinceCoverageIssues(provinces, municipalities) : [], [provinces, municipalities]);
   const membershipDistribution = useMemo(() => getMembershipDistribution(filteredClubs), [filteredClubs]);
   const votingDistribution = useMemo(() => getVotingDistribution(filteredClubs), [filteredClubs]);
   const onFilterChange = (next: Filters) => { setFilters(next); setSelectedClub(null); };
@@ -156,6 +174,8 @@ export default function App() {
 
       {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}
       {populationError && <p className="data-warning" role="alert">Kuntien väestöanalyysi ei ole saatavilla: {populationError} <button onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
+      {provinceError && <p className="data-warning" role="alert">Maakuntatietoja ei voitu ladata: {provinceError} <button onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
+      {provinceCoverageIssues.length > 0 && <p className="data-warning" role="status">{provinceCoverageIssues.join(' ')}</p>}
       {!database && !error && <div className="loading-state" role="status"><span className="loading-spinner" />Ladataan seuroja ja rakennetaan tilannekuvaa…</div>}
       {database && <>
       {database.warnings.length > 0 && <div className="data-warning" role="status"><AlertCircle size={20} /><div><strong>Aineiston huomautukset</strong>{database.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div></div>}
@@ -181,7 +201,8 @@ export default function App() {
         </div>
         <ClubFilters filters={filters} maxMembers={maxMembers} votingOptions={votingOptions} onChange={onFilterChange} />
         <div className="map-layout">
-          <MapView clubs={filteredClubs} allClubs={clubs} selectedClub={selectedClub} onSelect={setSelectedClub} populationFor={populationFor} />
+          <MapView clubs={filteredClubs} allClubs={clubs} selectedClub={selectedClub} onSelect={setSelectedClub} populationFor={populationFor}
+            municipalities={municipalities} provinces={provinces} provinceSettings={provinceSettings} onProvinceSettingsChange={setProvinceSettings} />
           <div hidden={selectedClub !== null}>
             <ClubResults key={JSON.stringify(filters)} clubs={sortedClubs} selectedClub={selectedClub} onSelect={setSelectedClub} />
           </div>
@@ -198,7 +219,7 @@ export default function App() {
           <ChartCard title="Jäsenmäärän jakauma" description="Jäsenmäärä äänivaltaluokittain" rows={membershipDistribution} />
           <ChartCard title="Äänimäärän jakauma" description="Äänivalta määräytyy jäsenmäärän mukaan" rows={votingDistribution} color="var(--gold)" />
           <OverviewBars rows={municipalityStats} />
-          <RankingCard title="Aluevertailu" description="Aineiston alue tai suuntaa-antava koordinaattiryhmä" rows={regions} valueLabel="jäsentä" limit={5} />
+          <ProvinceComparison rows={provinceStatistics} />
         </div>
         {municipalities && <PopulationExplorer municipalities={municipalities.municipalities} />}
       </section>

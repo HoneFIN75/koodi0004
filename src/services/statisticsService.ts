@@ -26,21 +26,6 @@ export function getVotingDistribution(clubs: readonly Club[]): DistributionStat[
   }));
 }
 
-export function getRegionalStats(clubs: readonly Club[]): MunicipalityStat[] {
-  const groups = new Map<string, MunicipalityStat>();
-  for (const club of clubs) {
-    const region = String(club.details.region ?? club.details.district ?? (
-      club.latitude === null || club.longitude === null ? 'Sijainti puuttuu'
-        : club.latitude >= 64 ? 'Pohjois-Suomi' : club.longitude >= 27 ? 'Itä-Suomi' : 'Etelä- ja Länsi-Suomi'
-    ));
-    const stat = groups.get(region) ?? { name: region, clubs: 0, members: 0 };
-    stat.clubs += 1;
-    stat.members += club.jasenmaara ?? 0;
-    groups.set(region, stat);
-  }
-  return [...groups.values()].sort((a, b) => b.members - a.members);
-}
-
 export function getTotals(clubs: readonly Club[]) {
   const ranked = clubs.filter((club) => club.jasenmaara !== null)
     .sort((a, b) => (a.jasenmaara ?? 0) - (b.jasenmaara ?? 0));
