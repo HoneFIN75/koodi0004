@@ -114,6 +114,28 @@ test('clustered clubs can be separated on the planner map', async ({ page }) => 
   await expect(map.locator('.club-marker[title^="Puskasoturit ry"]')).toBeVisible();
 });
 
+test('selected region details do not cause horizontal overflow', async ({ page }) => {
+  for (const width of [1440, 1100]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open(page);
+    await page.getByRole('button', { name: 'Uusi alue' }).click();
+    await page.getByLabel('Nimi', { exact: true }).fill('Lappi');
+    await addMunicipality(page, 'Rovaniemi');
+    await page.getByRole('button', { name: 'Sulje muokkaus' }).click();
+
+    const overflow = await page.locator('.planner-map-layout').evaluate((layout) => ({
+      clientWidth: layout.clientWidth,
+      scrollWidth: layout.scrollWidth,
+      panelClientWidth: layout.querySelector('.planner-panel')?.clientWidth,
+      panelScrollWidth: layout.querySelector('.planner-panel')?.scrollWidth,
+    }));
+    expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
+    expect(overflow.panelScrollWidth).toBeLessThanOrEqual(overflow.panelClientWidth ?? 0);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
+    if (width === 1440) await page.reload();
+  }
+});
+
 test('creates a region, analyses it, undoes, redoes and restores after reload', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();
