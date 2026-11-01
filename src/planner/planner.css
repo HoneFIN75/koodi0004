@@ -66,6 +66,9 @@
 .eyebrow { margin: 0; }
 .planner-map-layout { display: grid; grid-template-columns: 330px minmax(0, 1fr) 380px; gap: 14px; align-items: start; }
 .planner-sidebar, .planner-panel { display: grid; gap: 14px; max-height: calc(100vh - 170px); overflow-y: auto; position: sticky; top: 150px; padding-bottom: 4px; scrollbar-width: thin; }
+.planner-panel { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.planner-panel > * { min-width: 0; max-width: 100%; }
+.region-detail { min-width: 0; overflow-wrap: anywhere; }
 .planner-map-column { display: grid; gap: 8px; min-width: 0; }
 .map-options { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; padding: 8px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-size: 12px; }
 .map-status { margin-left: auto; color: var(--muted); font: 11px 'DM Mono', monospace; }
