@@ -58,6 +58,7 @@ test('year selection is shared across views, scopes and exports, without competi
   await page.goto('./');
   const total = page.getByTestId('competition-total');
   await expect(total).toHaveText('5');
+  await expect(page.locator('.competition-filters + .competition-analytics')).toHaveCount(1);
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('selected');
   const years = page.getByRole('group', { name: 'Valitse kilpailuvuodet' });
   await years.getByLabel('2020', { exact: true }).check();
