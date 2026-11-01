@@ -8,12 +8,12 @@ const fixture = (data: unknown[], recordCount = data.length) => ({
 const club = (index: number, overrides: Record<string, unknown> = {}) => ({
   seura: `Testiseura ${index}`, paikkakunta: index % 2 ? 'Kouvola' : 'Jyväskylä',
   latitude: 60 + (index % 100) * 0.09, longitude: 20 + (index % 80) * 0.14,
-  jasenmaara: index, aanimaara: [10, 15, 20][index % 3], ...overrides,
+  jasenmaara: index, aanimaara: index === 0 ? 0 : index < 100 ? 10 : index < 300 ? 15 : index < 500 ? 20 : 25, ...overrides,
 });
 const smallData = fixture([
   club(0, { jasenmaara: 0, latitude: 60, longitude: 25 }),
   club(1, { jasenmaara: 25, latitude: 60, longitude: 25 }),
-  club(2, { jasenmaara: 100, latitude: 60, longitude: 25 }),
+  club(2, { jasenmaara: 100, aanimaara: 15, latitude: 60, longitude: 25 }),
   club(3, { jasenmaara: 1000, aanimaara: 25, latitude: 69, longitude: 28,
     website: 'https://example.com', region: 'Lappi', foundedYear: 2000 }),
 ]);
@@ -64,13 +64,13 @@ test('all filters update markers, totals, distributions and empty state', async 
   await load(page);
   await expect(page.locator('.metric-value').nth(1)).toContainText('1 125');
   await expect(page.locator('.metric-value').nth(3)).toContainText('62,5');
-  await expect(page.locator('#vote-filter option')).toHaveCount(5);
+  await expect(page.locator('#vote-filter option')).toHaveCount(6);
   await page.getByRole('textbox', { name: 'Hae seuraa tai kuntaa' }).fill('jyvaskyla');
   await expect(page.locator('.map-title p')).toContainText('2 / 4');
   await expect(page.locator('.metric-value').nth(1)).toContainText('100 jäsentä');
-  await page.getByLabel('Äänivalta', { exact: true }).selectOption('20');
+  await page.getByLabel('Äänivalta', { exact: true }).selectOption('15');
   await expect(page.locator('.map-title p')).toContainText('1 / 4');
-  await expect(page.locator('.chart-card').nth(1).locator('.bar-row').filter({ hasText: '20 ääntä' }).locator('.bar-value')).toHaveText('1');
+  await expect(page.locator('.chart-card').nth(1).locator('.bar-row').filter({ hasText: '15 ääntä' }).locator('.bar-value')).toHaveText('1');
   await page.getByLabel('Jäsenmäärä', { exact: false }).fill('25');
   await expect(page.locator('.map-title p')).toContainText('0 / 4');
   await expect(page.locator('.club-results')).toContainText('Ei suodattimia vastaavia seuroja');
@@ -114,8 +114,8 @@ test('coincident clubs cluster and expand with keyboard navigation', async ({ pa
   await expect(cluster).toHaveAttribute('aria-hidden', 'true');
 });
 
-test('600 clubs, stale metadata and future member/vote values adapt automatically', async ({ page }) => {
-  const data = fixture(Array.from({ length: 600 }, (_, index) => club(index, { aanimaara: index % 4 ? 10 : 30 })), 185);
+test('600 clubs and stale metadata adapt while voting power stays within the defined bands', async ({ page }) => {
+  const data = fixture(Array.from({ length: 600 }, (_, index) => club(index)), 185);
   const start = Date.now();
   await load(page, data);
   await expect(page.locator('.data-warning')).toContainText('600');
@@ -124,7 +124,7 @@ test('600 clubs, stale metadata and future member/vote values adapt automaticall
   await expect(page.locator('.club-result')).toHaveCount(12);
   await page.getByRole('button', { name: 'Näytä lisää seuroja' }).click();
   await expect(page.locator('.club-result')).toHaveCount(24);
-  await expect(page.locator('#vote-filter option[value=\"30\"]')).toHaveCount(1);
+  await expect(page.locator('#vote-filter option')).toHaveCount(6);
   const represented = await page.evaluate(() =>
     [...document.querySelectorAll('.club-cluster')].reduce((sum, cluster) => sum + Number.parseInt(cluster.textContent ?? '0'), 0)
       + document.querySelectorAll('.club-marker').length,

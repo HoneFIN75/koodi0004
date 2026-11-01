@@ -18,6 +18,7 @@ import { ClubResults } from './components/ClubResults';
 import { filterClubs, type ClubFilters as Filters } from './services/searchService';
 import { formatCount, hasLocation } from './services/mapService';
 import { getMembershipDistribution, getMunicipalityStats, getRegionalStats, getTotals, getVotingDistribution } from './services/statisticsService';
+import { VOTING_POWERS } from './services/membershipRules.ts';
 
 const numberFormat = new Intl.NumberFormat('fi-FI');
 const emptyClubs: Club[] = [];
@@ -120,7 +121,7 @@ export default function App() {
   const sortedClubs = useMemo(() => [...filteredClubs].sort((a, b) => (b.jasenmaara ?? -1) - (a.jasenmaara ?? -1)), [filteredClubs]);
   const mappedCount = useMemo(() => filteredClubs.filter(hasLocation).length, [filteredClubs]);
   const maxMembers = useMemo(() => clubs.reduce((maximum, club) => Math.max(maximum, club.jasenmaara ?? 0), 0), [clubs]);
-  const votingOptions = useMemo(() => [...new Set([10, 15, 20, ...clubs.flatMap((club) => club.aanimaara === null ? [] : [club.aanimaara])])].sort((a, b) => a - b), [clubs]);
+  const votingOptions = VOTING_POWERS;
   const totals = useMemo(() => getTotals(filteredClubs), [filteredClubs]);
   const municipalityStats = useMemo(() => getMunicipalityStats(filteredClubs), [filteredClubs]);
   const regions = useMemo(() => getRegionalStats(filteredClubs), [filteredClubs]);
@@ -194,8 +195,8 @@ export default function App() {
         <div className="analytics-grid">
           <RankingCard title="Suurimmat seurat" description="Tunnetun jäsenmäärän mukaan" rows={sortedClubs.flatMap((club) => club.jasenmaara === null ? [] : [{ name: club.seura, clubs: 1, members: club.jasenmaara }])} valueLabel="jäsentä" showClubCount={false} />
           <RankingCard title="Suurimmat kunnat" description="Jäseniä kunnittain" rows={municipalityStats} valueLabel="jäsentä" />
-          <ChartCard title="Jäsenmäärän jakauma" description="Seuroja jäsenmäärän mukaan" rows={membershipDistribution} />
-          <ChartCard title="Äänimäärän jakauma" description="Seuroja äänimäärän mukaan" rows={votingDistribution} color="var(--gold)" />
+          <ChartCard title="Jäsenmäärän jakauma" description="Jäsenmäärä äänivaltaluokittain" rows={membershipDistribution} />
+          <ChartCard title="Äänimäärän jakauma" description="Äänivalta määräytyy jäsenmäärän mukaan" rows={votingDistribution} color="var(--gold)" />
           <OverviewBars rows={municipalityStats} />
           <RankingCard title="Aluevertailu" description="Aineiston alue tai suuntaa-antava koordinaattiryhmä" rows={regions} valueLabel="jäsentä" limit={5} />
         </div>

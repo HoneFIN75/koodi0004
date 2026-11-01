@@ -13,6 +13,8 @@ import { authService, type AuthRole, type AuthSession } from '../services/authSe
 import { activeScenario, documentOps, type ImportResult } from '../services/plannerDocument';
 import { aggregateByMunicipality, analyzeScenario, assignClubs, emptyFilters, explainCoverage, filterPlacements, normalizeName, type PlannerFilters as Filters } from '../services/regionAnalytics';
 import { validateScenario } from '../services/validationService';
+import { VOTING_POWERS } from '../services/membershipRules.ts';
+import { markerColor } from '../services/mapService';
 import { plannerStore } from '../state/plannerStore';
 import { usePlanner } from '../state/usePlanner';
 import { BackupManager } from './components/BackupManager';
@@ -171,7 +173,7 @@ export default function PlannerApp() {
     return new Set(dataset.municipalities.filter((item) => normalizeName(item.name).includes(needle) || normalizeName(item.nameSv ?? '').includes(needle)).map((item) => item.code));
   }, [filters.municipalityQuery, dataset]);
   const maxMembers = useMemo(() => placements.reduce((max, { club }) => Math.max(max, club.jasenmaara ?? 0), 0), [placements]);
-  const votingOptions = useMemo(() => [...new Set([10, 15, 20, ...placements.flatMap(({ club }) => club.aanimaara === null ? [] : [club.aanimaara])])].sort((a, b) => a - b), [placements]);
+  const votingOptions = VOTING_POWERS;
 
   const selectedRegion = regions.find((region) => region.id === selectedRegionId) ?? null;
   const editingRegion = editing ? selectedRegion : null;
@@ -479,7 +481,7 @@ export default function PlannerApp() {
                   <span><i className="legend-swatch outline" /> Alueen raja</span>
                   <span><i className="legend-swatch dashed" /> Päällekkäinen alue</span>
                   {highlightUnassigned && <span><i className="legend-swatch unassigned" /> Kohdistamaton kunta</span>}
-                  {showClubs && <span><i className="legend-dot" style={{ background: '#2563eb' }} />10 <i className="legend-dot" style={{ background: '#f59e0b' }} />15 <i className="legend-dot" style={{ background: '#dc2626' }} />20 ääntä · koko = jäsenmäärä</span>}
+                  {showClubs && <span>{VOTING_POWERS.map((votes) => <span key={votes}><i className="legend-dot" style={{ background: markerColor(votes) }} />{votes}</span>)} ääntä · koko = jäsenmäärä</span>}
                 </div>
               </section>
               <aside className="planner-panel" aria-label="Tiedot">

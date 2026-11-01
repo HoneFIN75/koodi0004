@@ -6,6 +6,8 @@ Responsive analytics dashboard for Finnish disc golf clubs. The JSON database is
 
 The separately maintained database is `jsondb/seurat.json` in the repository and is served relative to the application base path. The payload contains a `data` array and optional `metadata` (`generatedAt`, `recordCount`, `source`). Club fields are `seura`, `paikkakunta`, `latitude`, `longitude`, `jasenmaara`, and `aanimaara`. Numbers may be JSON numbers or numeric strings (including non-breaking spaces). Every object in `data[]` is processed; a stale `metadata.recordCount` produces a visible warning, never truncates the dataset or blocks rendering.
 
+Membership bands and voting power follow one shared rule: 0 members means 0 votes; 1–99 means 10; 100–299 means 15; 300–499 means 20; and 500 or more means 25. `aanimaara` is derived from the validated member count when the database is loaded. A conflicting source value is replaced by the rule-based value and reported as a visible data warning. If the member count is missing or invalid, voting power remains unknown rather than being inferred from the source vote value.
+
 Missing or invalid counts remain unknown, not zero. Average, median, extrema, and membership distributions use only known member counts; totals sum known counts and the dashboard states how many records have membership data. Records without valid coordinates remain searchable and included in analytics, but are not placed at invented locations. Invalid non-object records are skipped with a visible warning. Malformed payloads and failed requests display an error with a retry button.
 
 The Vite development server exposes the repository JSON directly, and the production build copies that same file to `dist/jsondb/seurat.json`. No duplicate fixture or manually synchronized database is required.
@@ -62,13 +64,13 @@ The `Validate dashboard` workflow runs service tests and production browser chec
 
 - Text search matches club names and municipalities, ignoring case and accents.
 - The member slider selects **0 through the chosen maximum**, inclusive. Its full-range position includes unknown member counts; a narrower range excludes unknown counts.
-- Voting options include 10, 15, 20 and any additional values found in the database.
+- Voting options are the five rule-based values: 0, 10, 15, 20 and 25.
 - All metrics, rankings, distributions, results and map markers update together when filters change.
 - Metrics include total clubs/members, average, median and clickable largest/smallest clubs. All matching clubs are reachable through incremental list rendering.
 - Clicking or keyboard-activating a marker/list entry opens the non-modal detail panel. Escape or the close button closes it. Hover/focus shows a tooltip. Leaflet supports keyboard panning and zoom controls; touch users can pinch to zoom.
 - True Leaflet markers are clustered with visible club counts, animated expansion and spiderfying of coincident locations. Off-screen markers are not rendered. Reduced-motion preference disables cluster animation.
 - Marker radius smoothly increases with membership, including values above 999, and asymptotically approaches 28px to remain usable at extreme values. The map legend demonstrates representative sizes.
-- Voting colors are exactly blue `#2563eb` at 10, orange `#f59e0b` at 15 and red `#dc2626` at 20. Intermediate values interpolate RGB anchors; values above 20 continuously darken red. Unknown votes are slate gray. Numeric text accompanies the color encoding.
+- Voting colors distinguish all five rule-based values. Unknown voting power (because membership is unknown) is slate gray. Numeric text accompanies the color encoding.
 - The map starts fitted to Finland and all valid locations; filtering preserves the current view. “Näytä Suomi” restores the Finland extent.
 - Responsive light/dark cards, visible keyboard focus, named controls, live result announcements and loading/empty/error states are provided.
 

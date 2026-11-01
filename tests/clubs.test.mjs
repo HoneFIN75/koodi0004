@@ -43,7 +43,7 @@ test('missing values remain unknown, valid records are not discarded', () => {
   assert.equal(database.data.filter(hasLocation).length, 1);
   assert.equal(getTotals(database.data).average, 25);
   assert.equal(getTotals(database.data).knownMembers, 1);
-  assert.equal(getVotingDistribution(database.data)[0].count, 1);
+  assert.equal(getVotingDistribution(database.data)[1].count, 1);
 });
 
 test('normalizes numeric strings, rejects non-finite, fractional and blank counts', () => {
@@ -54,7 +54,7 @@ test('normalizes numeric strings, rejects non-finite, fractional and blank count
   ]);
   assert.equal(data[0].jasenmaara, 1234);
   assert.equal(data[0].latitude, 62.24);
-  assert.equal(data[0].aanimaara, 15);
+  assert.equal(data[0].aanimaara, 25);
   assert.equal(data[1].jasenmaara, null);
   assert.equal(data[1].aanimaara, null);
   assert.equal(data[2].jasenmaara, null);
@@ -86,24 +86,42 @@ test('mean, median, extrema and missing-member denominators are correct', () => 
   assert.equal(getTotals([]).average, null);
 });
 
-test('membership bucket edges and all voting categories are accounted for', () => {
-  const data = clubs([0, 25, 26, 75, 76, 150, 151, 300, 301, 10000].map((jasenmaara) => record({ jasenmaara })));
-  assert.deepEqual(getMembershipDistribution(data).map((row) => row.count), [2, 2, 2, 2, 2]);
-  assert.deepEqual(getVotingDistribution(clubs([record({ aanimaara: 25 }), record({ aanimaara: null })])), [
-    { label: '10 ääntä', count: 0 }, { label: '15 ääntä', count: 0 },
-    { label: '20 ääntä', count: 0 }, { label: '25 ääntä', count: 1 },
+test('membership and voting bands use the defined inclusive boundaries', () => {
+  const data = clubs([0, 1, 99, 100, 299, 300, 499, 500, 501].map((jasenmaara) => record({ jasenmaara })));
+  assert.deepEqual(getMembershipDistribution(data), [
+    { label: 'Ei jäseniä', count: 1 },
+    { label: 'Jäseniä 1–99', count: 2 },
+    { label: 'Jäseniä 100–299', count: 2 },
+    { label: 'Jäseniä 300–499', count: 2 },
+    { label: 'Jäseniä 500+', count: 2 },
   ]);
+  assert.deepEqual(data.map((club) => club.aanimaara), [0, 10, 10, 15, 15, 20, 20, 25, 25]);
+  assert.deepEqual(getVotingDistribution(data), [
+    { label: '0 ääntä', count: 1 }, { label: '10 ääntä', count: 2 },
+    { label: '15 ääntä', count: 2 }, { label: '20 ääntä', count: 2 },
+    { label: '25 ääntä', count: 2 },
+  ]);
+});
+
+test('source voting power is checked against the membership rule and unknown membership stays unknown', () => {
+  const database = parseDatabase(payload([
+    record({ jasenmaara: 500, aanimaara: 20 }),
+    record({ jasenmaara: null, aanimaara: 25 }),
+  ]));
+  assert.deepEqual(database.data.map((club) => club.aanimaara), [25, null]);
+  assert.ok(database.warnings.some((warning) => warning.includes('poikkeaa jäsenmäärään perustuvasta äänivallasta')));
+  assert.ok(database.warnings.some((warning) => warning.includes('äänimäärää ei voida tarkistaa')));
 });
 
 test('composed filters instantly produce the correct statistics', () => {
   const data = clubs([
-    record({ seura: 'Äänekoski', jasenmaara: 25, aanimaara: 15 }),
-    record({ seura: 'Muu seura', jasenmaara: 75, aanimaara: 15 }),
+    record({ seura: 'Äänekoski', jasenmaara: 25, aanimaara: 10 }),
+    record({ seura: 'Muu seura', jasenmaara: 75, aanimaara: 10 }),
     record({ jasenmaara: null }),
   ]);
   assert.equal(searchClubs(data, 'aanekoski').length, 1);
   assert.equal(searchClubs(data, 'JYVASKYLA').length, 3);
-  const filtered = filterClubs(data, { query: 'jyvaskyla', maxMembers: 25, votes: 15 });
+  const filtered = filterClubs(data, { query: 'jyvaskyla', maxMembers: 25, votes: 10 });
   assert.equal(getTotals(filtered).members, 25);
   assert.equal(getTotals(filtered).clubs, 1);
   assert.equal(filterClubs(data, { query: '', maxMembers: null, votes: null }).length, 3);
