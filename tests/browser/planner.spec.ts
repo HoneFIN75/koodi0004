@@ -165,6 +165,28 @@ test('region names remain fully visible in the sidebar at desktop and mobile wid
   }
 });
 
+test('region actions appear above full-width region details', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Uusi alue' }).click();
+  await page.getByLabel('Nimi', { exact: true }).fill('Esimerkkialue');
+  await addMunicipality(page, 'Rovaniemi');
+  await page.getByRole('button', { name: 'Sulje muokkaus' }).click();
+
+  const row = page.locator('.region-row').filter({ hasText: 'Esimerkkialue' });
+  const actions = row.locator('.row-actions');
+  const details = row.locator('.region-row-main');
+
+  await expect(actions).toBeVisible();
+  const layout = await row.evaluate((element) => {
+    const actions = element.querySelector('.row-actions')!.getBoundingClientRect();
+    const details = element.querySelector('.region-row-main')!.getBoundingClientRect();
+    const text = element.querySelector('.region-row-text')!.getBoundingClientRect();
+    return { actionsBottom: actions.bottom, detailsTop: details.top, textWidth: text.width, rowWidth: element.getBoundingClientRect().width };
+  });
+  expect(layout.actionsBottom).toBeLessThanOrEqual(layout.detailsTop);
+  expect(layout.textWidth).toBeGreaterThan(layout.rowWidth * 0.6);
+});
+
 test('creates a region, analyses it, undoes, redoes and restores after reload', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();

@@ -95,18 +95,18 @@
 .legend-swatch.unassigned { background: #e11d4848; border: 1.5px solid #e11d48; }
 .legend-dot { display: inline-block; width: 10px; height: 10px; margin-left: 4px; border-radius: 50%; border: 1px solid #fff; }
 .region-list ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.region-row { display: flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid transparent; border-radius: 10px; transition: background .15s, border-color .15s; }
+.region-row { display: grid; gap: 4px; padding: 4px; border: 1px solid transparent; border-radius: 10px; transition: background .15s, border-color .15s; }
 .region-row:hover { background: var(--surface-raised); }
 .region-row.selected { background: var(--surface-raised); border-color: var(--accent); }
 .region-row.disabled .region-row-main { opacity: .55; }
-.region-row-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px; color: var(--text); text-align: left; background: none; border: 0; cursor: pointer; }
+.region-row-main { display: flex; align-items: flex-start; gap: 10px; width: 100%; min-width: 0; min-height: 44px; padding: 4px; color: var(--text); text-align: left; background: none; border: 0; cursor: pointer; }
 .region-row-text { min-width: 0; display: grid; gap: 2px; }
 .region-row-text strong { min-width: 0; overflow-wrap: anywhere; font-size: 13px; line-height: 1.4; }
-.region-row-text small { color: var(--muted); font-size: 11px; }
+.region-row-text small { color: var(--muted); font-size: 11px; line-height: 1.45; }
 .region-number { display: inline-grid; place-items: center; flex-shrink: 0; min-width: 28px; height: 28px; padding: 0 6px; color: #fff; border-radius: 8px; font: 700 12px 'DM Mono', monospace; text-shadow: 0 1px 2px #0008; }
 .region-number.large { min-width: 42px; height: 42px; border-radius: 12px; font-size: 17px; }
 .region-number.small { min-width: 22px; height: 22px; border-radius: 6px; font-size: 11px; }
-.row-actions { display: flex; gap: 2px; }
+.row-actions { display: flex; justify-content: flex-end; gap: 2px; }
 .row-actions .icon-button { min-width: 32px; min-height: 32px; border-color: transparent; background: none; }
 .row-actions .icon-button:hover { border-color: var(--border); }
 .filters-card summary { display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; min-height: 32px; }
