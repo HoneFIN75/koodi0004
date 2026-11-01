@@ -169,7 +169,8 @@ a { color: inherit; text-decoration: none; }
 .clear-filters { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 7px; padding: 10px 12px; cursor: pointer; font-size: 12px; }
 .map-frame { position: relative; min-width: 0; }
 .province-overlay-controls { position: absolute; z-index: 600; top: 12px; left: 12px; display: grid; gap: 7px; width: min(250px, calc(100% - 24px)); margin: 0; padding: 9px 11px; color: var(--text); background: color-mix(in srgb, var(--surface) 94%, transparent); border: 1px solid var(--border); border-radius: 9px; box-shadow: 0 3px 12px #0f172a20; font-size: 10px; }
-.province-overlay-controls legend { padding: 0 4px; font-size: 10px; font-weight: 700; }
+.province-overlay-controls > summary { padding: 3px 4px; font-size: 10px; font-weight: 700; cursor: pointer; }
+.province-overlay-controls[open] > summary { margin-bottom: 4px; }
 .province-overlay-controls > label:not(.province-opacity) { display: flex; align-items: center; gap: 7px; cursor: pointer; }
 .province-overlay-controls input[type="checkbox"] { accent-color: var(--accent-strong); }
 .province-color-key summary { padding: 3px 0; cursor: pointer; font-weight: 600; }

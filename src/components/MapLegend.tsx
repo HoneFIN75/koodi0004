@@ -3,7 +3,7 @@ import { VOTING_POWERS } from '../services/membershipRules.ts';
 
 export function MapLegend() {
   return (
-    <details className="map-key" open>
+    <details className="map-key">
       <summary>Kartan selite</summary>
       <div className="legend-body">
         <strong>Koko = jäsenmäärä</strong>

@@ -1,14 +1,17 @@
+import { useState } from 'react';
 import type { ProvinceOverlaySettings } from '../models/province.ts';
 import type { ProvinceDataset } from '../models/province.ts';
 
-export function ProvinceOverlayControls({ settings, onChange, provinces }: {
+export function ProvinceOverlayControls({ settings, onChange, provinces, defaultOpen = true }: {
   settings: ProvinceOverlaySettings;
   onChange: (settings: ProvinceOverlaySettings) => void;
   provinces: ProvinceDataset | null;
+  defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <fieldset className="province-overlay-controls">
-      <legend>Maakuntataso</legend>
+    <details className="province-overlay-controls" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
+      <summary>Maakuntataso</summary>
       <label><input type="checkbox" checked={settings.showRegions} onChange={(event) => onChange({ ...settings, showRegions: event.target.checked })} /> Näytä maakunnat</label>
       <label><input type="checkbox" checked={settings.showRegionBorders} onChange={(event) => onChange({ ...settings, showRegionBorders: event.target.checked })} /> Näytä maakuntarajat</label>
       <label className="province-opacity"><span>Täytön peittävyys <strong>{Math.round(settings.regionOpacity * 100)} %</strong></span>
@@ -19,6 +22,6 @@ export function ProvinceOverlayControls({ settings, onChange, provinces }: {
         <summary>Maakuntien värit</summary>
         <div>{provinces.regions.map((province) => <span key={province.id}><i style={{ background: province.color }} />{province.name}</span>)}</div>
       </details>}
-    </fieldset>
+    </details>
   );
 }

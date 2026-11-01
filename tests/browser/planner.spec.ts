@@ -58,8 +58,11 @@ async function addMunicipality(page: Page, name: string) {
 
 test('province overlay is independent from planner regions and restores saved map settings', async ({ page }) => {
   await open(page);
+  await expect(page.locator('.province-overlay-controls')).toHaveJSProperty('open', true);
   await expect(page.locator('.province-fill').first()).toBeVisible();
   await expect(page.locator('.province-color-key')).toContainText('Uusimaa');
+  await expect(page.locator('.map-legend-bar .legend-dot').nth(0)).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+  await expect(page.locator('.map-legend-bar .legend-dot').nth(3)).toHaveCSS('background-color', 'rgb(22, 163, 74)');
   await page.getByLabel('Maakuntatason peittävyys').fill('64');
   await page.getByLabel('Näytä maakuntarajat').uncheck();
   await page.getByLabel('Näytä maakunnat').uncheck();

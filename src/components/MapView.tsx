@@ -174,7 +174,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
 
   return (
     <div className="map-frame">
-      <ProvinceOverlayControls settings={provinceSettings} provinces={provinces} onChange={onProvinceSettingsChange} />
+      <ProvinceOverlayControls settings={provinceSettings} provinces={provinces} onChange={onProvinceSettingsChange} defaultOpen={false} />
       <div className="map-canvas" ref={element} aria-label="Suomen seurojen kartta. Liiku nuolinäppäimillä ja zoomaa plus- ja miinusnäppäimillä."
         onKeyDown={(event) => {
           if (event.key === 'Escape') for (const marker of markers.current.values()) marker.closeTooltip();

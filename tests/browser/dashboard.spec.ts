@@ -92,6 +92,9 @@ test('province comparison and map overlay settings are data-driven and persist',
   await expect(comparison.locator('.province-ranking-row')).toHaveCount(1);
   await expect(comparison).toContainText('Uusimaa');
 
+  const overlay = page.locator('.province-overlay-controls');
+  await expect(overlay).toHaveJSProperty('open', false);
+  await overlay.locator(':scope > summary').click();
   const showRegions = page.getByLabel('Näytä maakunnat');
   await expect(showRegions).toBeChecked();
   await expect(page.locator('.province-fill').first()).toBeVisible();
@@ -100,9 +103,35 @@ test('province comparison and map overlay settings are data-driven and persist',
   await page.getByLabel('Näytä maakuntarajat').uncheck();
   await showRegions.uncheck();
   await page.reload();
+  await expect(page.locator('.province-overlay-controls')).toHaveJSProperty('open', false);
+  await page.locator('.province-overlay-controls > summary').click();
   await expect(page.getByLabel('Maakuntatason peittävyys')).toHaveValue('72');
   await expect(page.getByLabel('Näytä maakuntarajat')).not.toBeChecked();
   await expect(page.getByLabel('Näytä maakunnat')).not.toBeChecked();
+});
+
+test('homepage map controls and legend start collapsed and share voting colors', async ({ page }) => {
+  await load(page);
+  const overlay = page.locator('.province-overlay-controls');
+  const legend = page.locator('.map-key');
+  await expect(overlay).toHaveJSProperty('open', false);
+  await expect(legend).toHaveJSProperty('open', false);
+  await expect(overlay.getByLabel('Maakuntatason peittävyys')).toBeHidden();
+
+  const swatches = legend.locator('.vote-key i');
+  await expect(swatches.nth(0)).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+  await expect(swatches.nth(1)).toHaveCSS('background-color', 'rgb(37, 99, 235)');
+  await expect(swatches.nth(2)).toHaveCSS('background-color', 'rgb(245, 158, 11)');
+  await expect(swatches.nth(3)).toHaveCSS('background-color', 'rgb(22, 163, 74)');
+  await expect(swatches.nth(4)).toHaveCSS('background-color', 'rgb(220, 38, 38)');
+
+  await overlay.locator(':scope > summary').click();
+  await expect(overlay).toHaveJSProperty('open', true);
+  await expect(page.getByLabel('Maakuntatason peittävyys')).toBeVisible();
+  await overlay.locator(':scope > summary').click();
+  await legend.locator('summary').click();
+  await expect(overlay).toHaveJSProperty('open', false);
+  await expect(legend).toHaveJSProperty('open', true);
 });
 
 test('keyboard marker and list selection, extensible details and focus restoration', async ({ page }) => {
@@ -244,16 +273,17 @@ for (const width of [1440, 390, 320]) {
     if (width <= 650) {
       const legend = page.locator('.map-key');
       const summary = legend.locator('summary');
-      for (const open of [false, true]) {
-        await summary.focus();
-        await summary.press('Enter');
-        await expect(legend).toHaveJSProperty('open', open);
-        expect(await page.evaluate(() => {
-          const canvasBounds = document.querySelector('.map-canvas')!.getBoundingClientRect();
-          const legendBounds = document.querySelector('.map-key')!.getBoundingClientRect();
-          return legendBounds.top >= canvasBounds.bottom;
-        })).toBe(true);
-      }
+      await expect(legend).toHaveJSProperty('open', false);
+      await summary.focus();
+      await summary.press('Enter');
+      await expect(legend).toHaveJSProperty('open', true);
+      expect(await page.evaluate(() => {
+        const canvasBounds = document.querySelector('.map-canvas')!.getBoundingClientRect();
+        const legendBounds = document.querySelector('.map-key')!.getBoundingClientRect();
+        return legendBounds.top >= canvasBounds.bottom;
+      })).toBe(true);
+      await summary.press('Enter');
+      await expect(legend).toHaveJSProperty('open', false);
     }
     for (const theme of ['dark', 'light']) {
       if (theme === 'light') await page.getByRole('button', { name: 'Vaihda vaaleaan tilaan' }).click();
