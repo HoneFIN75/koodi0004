@@ -7,8 +7,6 @@ import { formatCount, markerColor, markerRadius } from '../../services/mapServic
 import { getMunicipalityRank, getPopulationCategory, populationCategories, summarizePopulation } from '../../services/populationService';
 import type { ClubPlacement, MunicipalityAggregate } from '../../services/regionAnalytics';
 import { readableTextColor } from '../../services/regionColors';
-import type { CompetitionContext } from '../../state/useCompetitions';
-import { addCompetitionMapLayer } from '../../services/competitionMapService';
 
 export const FINLAND_BOUNDS: L.LatLngBoundsExpression = [[59.45, 19.1], [70.15, 31.6]];
 const UNASSIGNED_COLOR = '#E11D48';
@@ -30,7 +28,6 @@ interface RegionMapProps {
   dark: boolean;
   onMunicipalityClick: (code: string) => void;
   onRegionSelect: (id: string) => void;
-  competitions: CompetitionContext;
 }
 
 // Leaflet forwards GeoJSON options (including the canvas renderer) to the polygons it creates.
@@ -89,11 +86,10 @@ export function RegionMap(props: RegionMapProps) {
   } | null>(null);
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const { dataset } = props;
-  const competitionLayer = useRef<ReturnType<typeof addCompetitionMapLayer> | null>(null);
 
   useEffect(() => {
     if (!element.current) return undefined;
-    const map = L.map(element.current, { zoomSnap: 0.25, minZoom: 4, maxZoom: 18, maxBounds: [[54, 8], [74, 42]], zoomAnimation: !reducedMotion, fadeAnimation: !reducedMotion, attributionControl: true });
+    const map = L.map(element.current, { zoomSnap: 0.25, minZoom: 4, maxBounds: [[54, 8], [74, 42]], zoomAnimation: !reducedMotion, fadeAnimation: !reducedMotion, attributionControl: true });
     map.fitBounds(FINLAND_BOUNDS);
     const panes = [['regionFill', 410], ['municipality', 420], ['regionOutline', 430], ['clubs', 440]] as const;
     for (const [name, zIndex] of panes) map.createPane(name).style.zIndex = String(zIndex);
@@ -122,7 +118,6 @@ export function RegionMap(props: RegionMapProps) {
             `Väestö 2025: ${formatCount(municipality?.population ?? null)} · sijoitus ${municipality ? getMunicipalityRank(municipality.name) ?? 'ei tietoa' : 'ei tietoa'}`,
             getPopulationCategory(municipality?.population ?? null)?.label ?? 'Väestötieto puuttuu',
             `Seuroja ${aggregate?.clubs.length ?? 0} · jäseniä ${aggregate?.members ?? 0} · ääniä ${aggregate?.votes ?? 0}`,
-            current.competitions.filters.visibility === 'hidden' ? 'Kilpailut piilotettu' : `Kilpailut (suodatettu): ${current.competitions.analysis?.primaryCounts.get(code) ?? 0} ensisijaista · ${current.competitions.analysis?.associatedCounts.get(code) ?? 0} liittyvää`,
             regions.length ? `Alueet: ${regions.map((region) => `${region.number} ${region.shortName}`).join(', ')}` : 'Ei kuulu alueeseen',
             current.editingRegion ? (current.editingRegion.municipalityCodes.includes(code) ? 'Poista alueesta napsauttamalla' : 'Lisää alueeseen napsauttamalla') : '',
           ].filter(Boolean));
@@ -138,17 +133,6 @@ export function RegionMap(props: RegionMapProps) {
     observer.observe(element.current);
     return () => { observer.disconnect(); map.remove(); layers.current = null; };
   }, [dataset, reducedMotion]);
-
-  useEffect(() => {
-    if (!layers.current || !props.competitions.competitions.length) return;
-    const layer = addCompetitionMapLayer(layers.current.map, props.competitions.competitions, dataset, props.competitions.select);
-    competitionLayer.current = layer;
-    return () => { layer.remove(); competitionLayer.current = null; };
-  }, [dataset, reducedMotion, props.competitions.competitions, props.competitions.select]);
-
-  useEffect(() => {
-    competitionLayer.current?.select(props.competitions.selected);
-  }, [props.competitions.selected, props.competitions.competitions]);
 
   useEffect(() => {
     const current = layers.current;
@@ -197,10 +181,10 @@ export function RegionMap(props: RegionMapProps) {
       L.marker([point[1], point[0]], {
         icon: L.divIcon({ className: 'region-label-icon', html: container, iconSize: [0, 0] }),
         keyboard: true, title: `Alue ${region.number}: ${region.name}`, alt: `Alue ${region.number}: ${region.name}`, riseOnHover: true, zIndexOffset: selected ? 1000 : 0,
-      }).bindTooltip(tooltipElement(region.name, [`Väestö 2025: ${formatCount(population)}`, props.competitions.filters.visibility === 'hidden' ? 'Kilpailut piilotettu' : `Ensisijaiset kilpailut (suodatettu): ${props.competitions.analysis?.regionCounts.get(region.id) ?? 0}`]))
+      }).bindTooltip(tooltipElement(region.name, [`Väestö 2025: ${formatCount(population)}`]))
         .on('click', () => onRegionSelect(region.id)).addTo(current.labels);
     }
-  }, [regions, dataset, selectedRegionId, onRegionSelect, props.populationLayer, props.competitions.analysis, props.competitions.filters.visibility]);
+  }, [regions, dataset, selectedRegionId, onRegionSelect, props.populationLayer]);
 
   const { editingRegion, selectedMunicipalityCode, highlightCodes, matchCodes, dark } = props;
   useEffect(() => {
@@ -218,7 +202,7 @@ export function RegionMap(props: RegionMapProps) {
       (layer as L.Path).setStyle(style);
       if (layer.isTooltipOpen()) layer.getTooltip()?.update();
     });
-  }, [editingRegion, selectedMunicipalityCode, highlightCodes, matchCodes, dark, dataset, props.membership, props.populationLayer, props.competitions.analysis]);
+  }, [editingRegion, selectedMunicipalityCode, highlightCodes, matchCodes, dark, dataset, props.membership, props.populationLayer]);
 
   const { placements, showClubs } = props;
   useEffect(() => {

@@ -1,6 +1,6 @@
 # Seurakartta
 
-Responsive analytics dashboard for Finnish disc golf clubs. Separate JSON sources provide clubs, municipality population and competitions; the application does not import, parse, or depend on spreadsheets.
+Responsive analytics dashboard for Finnish disc golf clubs. The JSON database is the sole source of truth; the application does not import, parse, or depend on spreadsheets.
 
 ## Data source
 
@@ -24,7 +24,7 @@ npm run build
 npm run preview
 ```
 
-The build uses relative asset and database URLs (`base: './'`), so the production bundle works both at a domain root and under a subdirectory such as `https://example.com/koodi0004/`. Deploy the complete contents of `dist/`—including `index.html`, `assets/`, `jsondb/`, `data/`, `geo/` and `api/`—to the web server's matching document root. The filesystem destination in `DEPLOY_PATH` must be the same directory that the `/koodi0004/` web URL serves.
+The build uses relative asset and database URLs (`base: './'`), so the production bundle works both at a domain root and under a subdirectory such as `https://example.com/koodi0004/`. Deploy the complete contents of `dist/`—`index.html`, `assets/`, and `jsondb/`—to the web server's matching document root. The filesystem destination in `DEPLOY_PATH` must be the same directory that the `/koodi0004/` web URL serves.
 
 Service and data-validation tests use Node.js 22.18+ (native TypeScript stripping), without additional test dependencies:
 
@@ -117,51 +117,6 @@ node scripts/build-municipality-names.mjs
 Regenerate it after updating municipality boundaries. Unknown population values remain unknown, not zero; complete totals and population-based rates are withheld when a participating municipality is missing. Scenario coverage and selected-region summary populations count a municipality only once, even when regions overlap. Individual region bars/rows still describe that region separately.
 
 The supplied file does not identify its original publisher or reference date within 2025; these are explicitly marked as unspecified in the UI and export metadata. Population categories are size bands, not official city status. Member-per-capita figures describe clubs relative to their municipalities' populations, not verified residential membership or participation rates. See [the full integration report](POPULATION-INTEGRATION.md) for the file inventory, calculations, data audit and enhancement recommendations.
-
-### Kilpailuaineisto
-
-`public/data/SFL-Kilpailut_lopullinen.json` säilyttää alkuperäisen kilpailutiedoston
-erillisenä ja muuttumattomana. Vite julkaisee sen polkuun
-`dist/data/SFL-Kilpailut_lopullinen.json`. Kilpailuja ei lisätä seura-, väestö-,
-kunta- tai suunnitelma-aineistoon. Nykyinen main-haaran julkaisu siirtää myös
-uuden `data/`-hakemiston; PHP-asetuksia tai tunnuksia ei tarvitse muuttaa.
-
-`competitionRepository` lataa aineiston kerran. `competitionService` normalisoi
-tapahtumat, kohdistaa kuntanimet ja rakentaa uudelleenkäytettävät indeksit.
-`competitionStore` ylläpitää molempien reittien yhteisiä kilpailusuodattimia ja
-valintaa. Kuten nykyiset seura- ja karttasuodattimet, nämä ovat katselutilaa,
-eivät suunnitelman tallennettavaa sisältöä: ne säilyvät reittivaihdon yli mutta
-nollautuvat sivun uudelleenlatauksessa.
-
-Oletuksena kilpailut on piilotettu. Valitse **Kaikki kilpailut** tai
-**Valitut vuodet**. Vuosivalinta tukee yhtä, useita, kaikkia tai ei yhtään
-vuotta. Haku huomioi kilpailut, järjestäjät, ensisijaiset ja muut kunnat sekä
-radat. Malli-, PDGA-, järjestäjä-, kunta- ja aluesuodattimet ovat yhteiset
-kartoille, luetteloille, vertailuille, kaavioille ja vienneille. Alueet ovat
-aktiivisen suunnitteluskenaarion alueita; Seurakartassa niiden valinnat ovat
-käytettävissä Aluesuunnittelun avaamisen jälkeen.
-
-Kartalla on yksi korin ja kiekon yhdistävä merkki kilpailua kohti, ensisijaisen
-kunnan edustuspisteessä. Klusterointi ja spiderfying avaavat myös päällekkäiset
-kilpailut. Vuosiväri, näkyvä vuosiluku, selite ja saavutettavat tekstit
-täydentävät toisiaan. Valinta korostaa kaikki kilpailuun liittyvät kohdistetut
-kunnat. Kohdistamattomat kilpailut löytyvät edelleen luettelosta ja hausta.
-
-Kansallinen tapahtumamäärä laskee jokaisen lähderivin kerran. Kunta- ja
-aluetilastot käyttävät ensisijaista kuntaa; liittyvien kilpailujen ja
-maantieteellisen kattavuuden luvut sisältävät myös muut kunnat, kukin kerran
-tapahtumaa kohti. Suunnittelualueiden tarkoituksellinen päällekkäisyys säilyy,
-joten aluerivejä ei saa summata kansalliseksi tapahtumamääräksi.
-Virheellisiä päivämääriä tai epäselviä kuntia ei korjata arvaamalla.
-
-Täydellinen toteutusinventaario on [COMPETITION-INTEGRATION.md](COMPETITION-INTEGRATION.md).
-Aineistokohtaiset huomautukset, indeksit ja tarkistussumma ovat tiedostossa
-`COMPETITION-DATA-QUALITY.json`. Päivitä tarkistus aineiston vaihtuessa:
-
-```sh
-node scripts/audit-competitions.mjs
-npm test
-```
 
 ### Shared region-planner access and storage
 
