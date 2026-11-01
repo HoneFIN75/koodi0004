@@ -6,6 +6,14 @@ Lisätään sovellukseen seurojen ylläpito, jolla Admin voi hallita seuratietoj
 
 Tämä dokumentti kuvaa suunnitellun muutoksen. Se ei tarkoita, että käyttöliittymä tai palvelinrajapinta olisi jo toteutettu.
 
+## Yhteenveto päätöksistä
+
+- Seurahallinta on oma valikkonsa ja reittinsä, jotka ovat käytettävissä vain Admin-roolilla. Palvelin valvoo samaa oikeutta.
+- Seuratiedolla on yksi auktoritatiivinen palvelintallennus. Julkinen sovellus ja aluesuunnittelu lukevat saman palvelun julkaisemaa aktiivista aineistoa.
+- Muutoksista tehdään erilliset, toisistaan riippuvat PR:t. Ensin rakennetaan ja validoidaan tallennus sekä lukupolku; hallintakäyttöliittymä ja JSON-työkalut tulevat vasta sen jälkeen.
+- Arkistointi korvaa normaalin pysyvän poiston. Yhteystietojen julkisuus on oletusarvoisesti pois päältä.
+- JSON-tuonti validoidaan kokonaisuutena ja esikatsellaan ennen tallennusta. Tuonnin oletus ei poista aineistosta puuttuvia seuroja.
+
 ## Nykytila ja vaikutukset
 
 - `jsondb/seurat.json` on nykyinen seuratietojen lähde. `src/data/clubRepository.ts` lataa ja validoi aineiston.
@@ -40,7 +48,7 @@ Näkymä sisältää haettavan ja suodatettavan seuraluettelon, selkeän lisäys
 
 Arkistointi on ensisijainen poistotapa. Arkistoitu seura ei osallistu julkisiin hakuihin, karttaan, tilastoihin tai aluesuunnittelun seuralukuihin, mutta tiedot jäävät Adminin palautettaviksi. Käyttöliittymän arkistointivahvistus kertoo vaikutuksesta. Pysyvä poisto ei kuulu tavanomaiseen ylläpitoon.
 
-Yhteystietojen julkisuus kannattaa toteuttaa kenttäkohtaisesti tai selkeästi määritellyllä yhteystietojen julkisuusasetuksella. Julkinen rajapinta tai aineisto palauttaa vain julkistettavaksi merkityt yhteystiedot. Adminin koko aineiston vienti voi sisältää myös yksityiset tiedot, ja käyttöliittymän tulee varoittaa tästä ennen vientiä.
+Yhteystietojen julkisuus toteutetaan tässä suunnitelmassa yhtenä selkeästi nimettynä yhteystietojen julkisuusasetuksena (`contact.public`). Oletusarvo on `false`. Julkinen rajapinta palauttaa yhteystietokentät vain, kun asetus on päällä. Adminin koko aineiston vienti voi sisältää myös yksityiset tiedot, ja käyttöliittymän tulee varoittaa tästä ennen vientiä.
 
 ### Julkinen seuran tietopaneeli
 
@@ -116,15 +124,54 @@ Kaikki kirjoitus-, tuonti-, vientiarkisto- ja palautustoiminnot tarkistetaan pal
 
 Koska nykyinen julkinen näkymä lukee staattista `jsondb/seurat.json`-tiedostoa, käyttöönotossa on muutettava lukupolku palvelimen julkiseen seurarajapintaan tai toteutettava muu automaattinen julkaisu samasta auktoritatiivisesta tallennuksesta. Pelkkä Admin-rajapinta staattisen aineiston rinnalla tuottaisi vanhentunutta dataa. Käyttöönotto edellyttää PHP:tä ja pysyvää, web-juuren ulkopuolista palvelintallennusta, kuten nykyisen aluesuunnittelun palvelintallennus.
 
-## Toteutusvaiheet
+## PR- ja toteutusjärjestys
 
-1. **Tietomalli ja migraatio:** lisää pysyvät ID:t, yhteystietokentät, yhteystietojen julkisuus ja arkistointitila. Säilytä vanhat lisäkentät ja jäsenmäärän/äänivallan nykyinen sääntö.
-2. **Rajapinta ja tallennus:** erota seuratallennus aluesuunnittelun tiedostosta. Lisää Admin-suojatut hallintatoiminnot, julkinen suodatettu lukupolku, CSRF-, versio- ja validointitarkistukset.
-3. **Yhteinen lukupolku:** vaihda dashboardin ja aluesuunnittelun seuratietolähde yhteiseksi päivittyväksi lähteeksi. Varmista arkistoinnin vaikutus kaikkiin lukuihin.
-4. **Hallintanäkymä:** lisää Adminille oma valikko, seuraluettelo, haku, CRUD-lomake, arkistointi/palautus ja käyttöliittymän ilmoitukset.
-5. **JSON-tuonti ja -vienti:** toteuta version 1 tiedostomuoto, validointi, esikatselu, toimintatavat, vahvistukset, varmuuskopiointi ja tulosraportti.
-6. **Julkinen tietopaneeli:** lisää yhteystieto-osio ja turvalliset linkit; näytä vain julkistetut tiedot.
-7. **Dokumentointi ja julkaisu:** pidä tämä tiedosto ajan tasalla, päivitä README:n tietolähdekuvaus ja dokumentoi palvelimen käyttöönotto. Julkaise migraation kanssa yhtenä kokonaisuutena.
+PR:t pidetään tarkoituksella rajattuina. Jokaisen PR:n tulee sisältää toteutukseen liittyvät palvelu- ja käyttöliittymätestit sekä dokumentaatiopäivitykset. Seuraava vaihe aloitetaan vasta, kun edellisen vaiheen hyväksymiskriteerit täyttyvät.
+
+### PR 1 — Seuratietojen malli ja palvelinrajapinta
+
+Lisää pysyvät ID:t, yhteystiedot, julkisuus- ja arkistointitiedot, migraatio nykyisestä `jsondb/seurat.json`-aineistosta sekä erillinen palvelintallennus. Toteuta julkinen suodatettu lukurajapinta ja Admin-suojatut luku- ja kirjoitustoiminnot. Säilytä tuntemattomat lisäkentät sekä jäsenmäärästä johdetun äänivallan nykyinen sääntö.
+
+**Hyväksyntä:** migraatio säilyttää kaikki nykyiset seurat ja lisäkentät; julkinen lukupolku ei paljasta yksityisiä yhteystietoja; vain Admin voi muuttaa aineistoa; tallennus on atominen ja versiotarkistettu; Writerin ja kirjautumattoman käyttäjän muutosyritykset hylätään palvelimella.
+
+### PR 2 — Yhteinen seuratietolähde
+
+Vaihda dashboard ja aluesuunnittelu lukemaan samaa palvelimen julkaisemaa aineistoa. Päivitä arkistoitujen seurojen suodatus kaikissa seuralaskentaa käyttävissä näkymissä. Lisää latausvirheiden näkyvä käsittely, uudelleenyritys ja aineiston päivitys tallennuksen jälkeen.
+
+**Hyväksyntä:** kartta, listat, tilastot, kilpailu-/kunta-analyysien seuraluvut ja aluesuunnittelu käyttävät samaa aktiivisten seurojen aineistoa. Arkistointi ja palautus vaikuttavat johdonmukaisesti eikä aiempia käyttäjän suunnitteludokumentteja muuteta.
+
+### PR 3 — Adminin Seurahallinta
+
+Lisää Adminille näkyvä oma valikko ja reitti, seuraluettelo hakuineen, lisäys- ja muokkauslomake, arkistointi ja palautus. Toteuta lomakevalidointi, tallennustilat, vahvistukset ja saavutettava virhe-/onnistumispalaute. Lisää yhteystieto-osio julkiseen seuran tietopaneeliin, turvalliset `mailto:`, `tel:` ja HTTP(S)-linkit sekä julkisuusasetuksen mukainen näyttö.
+
+**Hyväksyntä:** Admin pystyy hallitsemaan kaikkia määriteltyjä kenttiä; Writer ei näe valikkoa eikä voi avata reittiä tai käyttää rajapintaa; julkiset yhteystiedot näkyvät vain julkisuusasetuksen ollessa päällä.
+
+### PR 4 — JSON-tuonti ja -vienti
+
+Toteuta tässä dokumentissa määritelty version 1 tiedostomuoto, täysi JSON-vienti, tuontitiedoston validointi ja esikatselu, yhdistämis- ja lisää vain uudet -toiminnot sekä erikseen vahvistettava koko aineiston korvaus. Sisällytä tulosraportti, yksityistietojen vientivaroitus, varmuuskopiointi ja atominen tallennus.
+
+**Hyväksyntä:** saman aineiston vienti ja tuonti säilyttävät ID:t, yhteystiedot, tuntemattomat lisäkentät, puuttuvat arvot ja arkistointitilan. Virheellinen tai tuntemattoman version tiedosto ei muuta tallennusta; esikatselu vastaa toteutunutta muutosta.
+
+### PR 5 — Käyttöönotto ja ylläpidon viimeistely
+
+Päivitä README ja palvelimen käyttöönotto-ohjeet. Tee tuotantomigraatio ensin varmuuskopiosta, varmista palvelimen tallennusoikeudet ja PHP-konfiguraatio sekä käy läpi palautusmenettely. Poista vanha staattinen lukupolku vasta, kun uusi palvelinlähde toimii tuotannossa.
+
+**Hyväksyntä:** käyttöönotto- ja palautusohjeet on käyty läpi; tuotannon Admin-kirjautuminen, käyttöoikeudet, julkinen rajapinta, tuonti/vienti ja vanhojen näkymien toiminta on testattu.
+
+## Käyttöönoton riskit ja hallinta
+
+| Riski | Hallintakeino |
+|---|---|
+| Tuotantopalvelin ei tue PHP:tä tai pysyvää web-juuren ulkopuolista tallennusta | Varmista infrastruktuurin tuki ennen PR 1:n tuotantoon vientiä; jos tuki puuttuu, päätä tallennusratkaisu ennen käyttöliittymätyötä. |
+| Migraatio kadottaa seuroja tai tuntemattomia lisäkenttiä | Ota alkuperäisestä JSONista palautettava varmuuskopio; vertaa tietuemääriä ja kenttiä migraation jälkeen. |
+| Yhteystiedot julkaistaan vahingossa | Oletus `contact.public: false`; testaa julkinen rajapinta ja käyttöliittymä ilman Admin-istuntoa. |
+| Hallintaoikeus tarkistetaan vain selaimessa | Testaa Admin-, Writer- ja kirjautumattoman käyttäjän pyynnöt suoraan rajapintaa vasten. |
+| Tuonti ylikirjoittaa tai poistaa vääriä tietoja | Käytä esikatselua, vakaata ID:tä, atomista kirjoitusta ja oletuksena säilyttävää yhdistämistä; vaadi erillinen vahvistus korvaamiselle. |
+| Sovelluksen näkymät näyttävät eri aineistoja | Siirry yhteiseen lähteeseen yhtenä PR:nä ja testaa kaikki seuroja käyttävät näkymät ennen vanhan lukupolun poistoa. |
+
+### Julkaisun portit ja palautus
+
+Tuotantoon siirtymisen edellytykset ovat: tallennuspalvelun saatavuus ja oikeudet tarkistettu, migraation varmuuskopio tehty, migraation tietuemäärä täsmää, julkisten/ylläpitäjän API-testien läpäisy, Actions-testien onnistuminen ja palautusmenettelyn dokumentointi. Jos julkaisu epäonnistuu, palauta aiempi sovellusversio ja migraatiota edeltävä tietokantatiedosto; älä aja uutta migraatiota vanhan päälle ilman ensin tehtyä tilannearviota.
 
 ## Testaus- ja hyväksymiskriteerit
 
