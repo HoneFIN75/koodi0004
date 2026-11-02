@@ -99,6 +99,42 @@ test('province overlay is independent from planner regions and restores saved ma
   await expect(page.getByRole('button', { name: 'Uusi alue' })).toBeVisible();
 });
 
+test('planner map hovers directly on a municipality and highlights its region', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Uusi alue' }).click();
+  await page.getByLabel('Nimi', { exact: true }).fill('Lappi');
+  await addMunicipality(page, 'Rovaniemi');
+  await page.getByRole('button', { name: 'Sulje muokkaus' }).click();
+  await page.getByLabel('Seurat').uncheck();
+
+  const municipality = page.locator('.leaflet-municipality-pane path.municipality-698');
+  await expect(municipality).toHaveCount(1);
+  await municipality.scrollIntoViewIfNeeded();
+  const target = await municipality.evaluate((element) => {
+    const path = element as SVGPathElement;
+    const bounds = path.getBBox();
+    const matrix = path.getScreenCTM();
+    if (!matrix) throw new Error('Municipality path is not rendered.');
+    for (let row = 1; row < 20; row += 1) {
+      for (let column = 1; column < 20; column += 1) {
+        const point = new DOMPoint(bounds.x + bounds.width * column / 20, bounds.y + bounds.height * row / 20);
+        if (path.isPointInFill(point)) {
+          const screenPoint = point.matrixTransform(matrix);
+          return { x: screenPoint.x, y: screenPoint.y };
+        }
+      }
+    }
+    throw new Error('Could not find a point inside the municipality path.');
+  });
+  await page.mouse.move(target.x, target.y);
+
+  const tooltip = page.locator('.leaflet-tooltip');
+  await expect(tooltip).toContainText('Kunta: Rovaniemi');
+  await expect(tooltip).toContainText('Alue: Lappi');
+  await expect.poll(() => municipality.evaluate((element) => getComputedStyle(element).cursor)).toBe('pointer');
+  await expect.poll(() => municipality.evaluate((element) => getComputedStyle(element).fill)).toBe('rgb(100, 116, 139)');
+});
+
 test('population appears in planner maps, region details, dashboards, comparisons and exports', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();
