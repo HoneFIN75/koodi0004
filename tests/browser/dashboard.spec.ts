@@ -24,6 +24,23 @@ async function load(page: Page, data = smallData) {
   await expect(page.locator('.map-title p')).toContainText(`${data.data.length} /`);
 }
 
+test('map and club list are 20% taller across responsive layouts', async ({ page }) => {
+  await load(page, fixture(Array.from({ length: 30 }, (_, index) => club(index))));
+  const map = page.locator('.map-canvas');
+  const list = page.locator('.club-results');
+
+  await expect(map).toHaveJSProperty('offsetHeight', 672);
+  await expect(list).toHaveJSProperty('offsetHeight', 672);
+
+  await page.setViewportSize({ width: 900, height: 900 });
+  await expect(map).toHaveJSProperty('offsetHeight', 624);
+  await expect(list).toHaveJSProperty('offsetHeight', 624);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(map).toHaveJSProperty('offsetHeight', 552);
+  await expect(list).toHaveJSProperty('offsetHeight', 384);
+});
+
 test.beforeEach(async ({ page }) => {
   // Deterministic local tests do not depend on or request the public tile service.
   await page.route('https://*.tile.openstreetmap.org/**', (route) => route.fulfill({
