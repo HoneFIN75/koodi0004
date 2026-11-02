@@ -404,7 +404,7 @@ export default function PlannerApp() {
         <label className="scenario-switch">
           <span>Skenaario</span>
           <select aria-label="Skenaario" value={scenario.id} onChange={(event) => selectScenario(event.target.value)}>
-            {displayedDocument.scenarios.map((item) => <option key={item.id} value={item.id}>Skenaario: {item.name}</option>)}
+            {displayedDocument.scenarios.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </label>
         {canWrite && <div className="history-buttons">
