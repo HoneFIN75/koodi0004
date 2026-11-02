@@ -6,13 +6,14 @@ import { provinceRepository } from './data/provinceRepository.ts';
 import type { MunicipalityDataset } from './models/region';
 import type { ProvinceDataset } from './models/province.ts';
 import { assignClubs } from './services/regionAnalytics';
-import { per10000Residents, summarizePopulation } from './services/populationService';
+import { normalizeMunicipalityName, per10000Residents, summarizePopulation } from './services/populationService';
 import { getProvinceCoverageIssues, getProvinceStatistics } from './services/provinceAnalytics.ts';
 import { useProvinceSettings } from './hooks/useProvinceSettings.ts';
 import { PopulationExplorer } from './components/PopulationExplorer';
 import { ProvinceComparison } from './components/ProvinceComparison.tsx';
 import { CompetitionFilters } from './components/CompetitionFilters';
 import { CompetitionAnalytics } from './components/CompetitionAnalytics';
+import { ClubMatrix } from './components/ClubMatrix';
 import type { Club, Database, MunicipalityStat } from './models/club';
 import { describeCompetitionYears } from './services/competitionService';
 import { ChartCard } from './components/ChartCard';
@@ -26,6 +27,8 @@ import { formatCount, hasLocation } from './services/mapService';
 import { getMembershipDistribution, getMunicipalityStats, getTotals, getVotesByMembershipBand } from './services/statisticsService';
 import { VOTING_POWERS } from './services/membershipRules.ts';
 import { useCompetitionData, useCompetitionStatistics } from './state/useCompetitions.ts';
+import { plannerStore } from './state/plannerStore';
+import { usePlanner } from './state/usePlanner';
 
 const numberFormat = new Intl.NumberFormat('fi-FI');
 const emptyClubs: Club[] = [];
@@ -103,6 +106,14 @@ export default function App() {
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('seurakartta-theme') !== 'light');
   const [provinceSettings, setProvinceSettings] = useProvinceSettings();
+  const scenarios = usePlanner((state) => state.history.present.scenarios);
+  const activeScenarioId = usePlanner((state) => state.history.present.activeScenarioId);
+  const scenarioReady = usePlanner((state) => state.ready);
+  const scenarioError = usePlanner((state) => state.loadError);
+
+  useEffect(() => {
+    void plannerStore.getState().init();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -134,6 +145,8 @@ export default function App() {
   const clubMunicipalities = useMemo(() => new Map(municipalities ? assignClubs(clubs, municipalities).map(({ club, municipalityCode }) => [club, municipalityCode ? municipalities.byCode.get(municipalityCode) ?? null : null]) : []), [clubs, municipalities]);
   const { index: competitionIndex, yearFilter: competitionYearFilter } = useCompetitionData();
   const competitionStatistics = useCompetitionStatistics({}, municipalities?.municipalities ?? emptyMunicipalities);
+  const competitionCounts = useMemo(() => new Map((competitionStatistics?.municipalities ?? [])
+    .map((item) => [normalizeMunicipalityName(item.name), item.count])), [competitionStatistics]);
   const competitionYears = competitionIndex?.years ?? [];
   const competitionPeriod = describeCompetitionPeriod(competitionYears);
   const filteredClubs = useMemo(() => filterClubs(clubs, filters, (club) => clubMunicipalities.get(club)?.population ?? null), [clubs, filters, clubMunicipalities]);
@@ -168,7 +181,7 @@ export default function App() {
           <span className="brand-mark"><span /></span>
           <span>SEURA<span className="brand-light">KARTTA</span><small>SUOMEN FRISBEEGOLFSEURAT</small></span>
         </a>
-        <nav className="top-nav"><a className="active" href="#kartta">Kartta</a><a href="#tilastot">Tilastot</a><a href="#/alueet"><span className="nav-long">Aluesuunnittelu</span><span className="nav-short">Alueet</span></a></nav>
+        <nav className="top-nav"><a className="active" href="#kartta">Kartta</a><a href="#tilastot">Tilastot</a><a href="#seura-matriisi">Seura matriisi</a><a href="#/alueet"><span className="nav-long">Aluesuunnittelu</span><span className="nav-short">Alueet</span></a></nav>
         <button className="theme-toggle" onClick={() => setDarkMode((mode) => !mode)} aria-label={darkMode ? 'Vaihda vaaleaan tilaan' : 'Vaihda tummaan tilaan'}>
           {darkMode ? <Sun size={17} /> : <Moon size={17} />}<span>{darkMode ? 'Vaalea tila' : 'Tumma tila'}</span>
         </button>
@@ -262,6 +275,15 @@ export default function App() {
         </div>
         {municipalities && <PopulationExplorer municipalities={municipalities.municipalities} />}
       </section>
+      <ClubMatrix
+        clubs={clubs}
+        municipalityByClub={clubMunicipalities}
+        scenarios={scenarios}
+        activeScenarioId={activeScenarioId}
+        competitionCounts={competitionCounts}
+        scenarioLoading={!scenarioReady}
+        scenarioError={scenarioError}
+      />
       </>}
       <CompetitionAnalytics geography={municipalities?.municipalities} title="Suomen kilpailutoiminta" />
 

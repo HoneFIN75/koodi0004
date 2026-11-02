@@ -11,7 +11,13 @@ function Root() {
   useEffect(startCompetitionRefresh, []);
   const [planner, setPlanner] = useState(isPlannerRoute);
   useEffect(() => {
-    const onChange = () => { setPlanner(isPlannerRoute()); window.scrollTo(0, 0); };
+    let previousRoute = isPlannerRoute();
+    const onChange = () => {
+      const nextRoute = isPlannerRoute();
+      setPlanner(nextRoute);
+      if (nextRoute !== previousRoute) window.scrollTo(0, 0);
+      previousRoute = nextRoute;
+    };
     window.addEventListener('hashchange', onChange);
     return () => window.removeEventListener('hashchange', onChange);
   }, []);
