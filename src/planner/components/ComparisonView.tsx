@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { ArrowDown, ArrowUp } from 'lucide-react';
 import type { Region } from '../../models/region';
 import { formatArea, formatPercent, type RegionStats, type ScenarioAnalysis } from '../../services/regionAnalytics';
 import { BarChart, StatCard, decimalFormat, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
 import { summarizePopulation } from '../../services/populationService';
+import { SortableTableHeader } from '../../components/SortableTableHeader';
+import { sortTableRows, toggleTableSort, type TableSortState } from '../../services/tableSorting';
 
 type MetricKey = 'competitionCount' | 'competitionsPer10000' | 'competitionsPer1000Km2' | 'areaKm2' | 'municipalityCount' | 'clubCount' | 'members' | 'votes' | 'areaShare' | 'membersPerKm2' | 'population' | 'populationShare' | 'averagePopulation' | 'medianPopulation' | 'clubsPer10000' | 'membersPer10000' | 'populationDensity';
 const METRICS: { key: MetricKey; label: string; format: (stats: RegionStats) => string }[] = [
@@ -32,25 +33,18 @@ export function ComparisonView({ regions, analysis, onSelectRegion }: { regions:
   const sortedRegions = useMemo(() => [...regions].sort((a, b) => a.number - b.number), [regions]);
   const [chosen, setChosen] = useState<string[] | null>(null);
   const selectedIds = chosen ?? sortedRegions.filter((region) => region.enabled).map((region) => region.id);
-  const [sort, setSort] = useState<{ key: MetricKey | 'number'; direction: 1 | -1 }>({ key: 'number', direction: 1 });
+  const [sort, setSort] = useState<TableSortState>({ key: 'name', direction: 'asc' });
   const [chartMetric, setChartMetric] = useState<MetricKey>('members');
 
-  const rows = sortedRegions.filter((region) => selectedIds.includes(region.id)).map((region) => ({ region, stats: analysis.stats.get(region.id)! }))
-    .sort((a, b) => {
-      if (sort.key === 'number') return sort.direction * (a.region.number - b.region.number);
-      const left = a.stats[sort.key]; const right = b.stats[sort.key];
-      if (left === null) return right === null ? 0 : 1;
-      if (right === null) return -1;
-      return sort.direction * (left - right);
-    });
+  const rows = sortTableRows(
+    sortedRegions.filter((region) => selectedIds.includes(region.id)).map((region) => ({ region, stats: analysis.stats.get(region.id)! })),
+    sort,
+    (row, key) => key === 'name' ? row.region.name : row.stats[key as MetricKey],
+  );
   const total = (key: MetricKey) => rows.reduce((sum, row) => sum + (row.stats[key] ?? 0), 0);
   const population = summarizePopulation(rows.flatMap((row) => row.stats.municipalities)).total;
   const toggle = (id: string) => setChosen(selectedIds.includes(id) ? selectedIds.filter((item) => item !== id) : [...selectedIds, id]);
-  const headerButton = (key: MetricKey | 'number', label: string) => (
-    <button type="button" className="sort-button" onClick={() => setSort((current) => ({ key, direction: current.key === key ? (current.direction === 1 ? -1 : 1) : -1 }))}>
-      {label}{sort.key === key && (sort.direction === 1 ? <ArrowUp size={12} aria-label="nouseva" /> : <ArrowDown size={12} aria-label="laskeva" />)}
-    </button>
-  );
+  const changeSort = (key: string) => setSort((current) => toggleTableSort(current, key));
   const metric = METRICS.find((item) => item.key === chartMetric)!;
 
   return (
@@ -77,8 +71,9 @@ export function ComparisonView({ regions, analysis, onSelectRegion }: { regions:
         <table className="data-table">
           <caption className="sr-only">Aluevertailu</caption>
           <thead><tr>
-            <th scope="col">{headerButton('number', 'Alue')}</th>
-            {METRICS.map((item) => <th key={item.key} scope="col" className="numeric">{headerButton(item.key, item.label)}</th>)}
+            <SortableTableHeader columnKey="name" label="Alue" sortKey={sort.key} direction={sort.direction} onSort={changeSort} />
+            {METRICS.map((item) => <SortableTableHeader key={item.key} columnKey={item.key} label={item.label}
+              sortKey={sort.key} direction={sort.direction} onSort={changeSort} className="numeric" />)}
           </tr></thead>
           <tbody>
             {rows.map(({ region, stats }) => (

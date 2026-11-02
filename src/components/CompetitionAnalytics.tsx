@@ -7,6 +7,8 @@ import { ChartCard } from './ChartCard';
 import { formatCount } from '../services/mapService';
 import { exportCompetitionCsv } from '../services/exportService';
 import { normalizeMunicipalityName } from '../services/populationService';
+import { SortableTableHeader } from './SortableTableHeader';
+import { sortTableRows, toggleTableSort, type TableSortState } from '../services/tableSorting';
 
 const percentage = (value: number | null) => value === null ? 'Ei vertailupohjaa' : `${value > 0 ? '+' : ''}${value.toLocaleString('fi-FI', { maximumFractionDigits: 1 })} %`;
 const change = (value: number | null) => value === null ? '–' : `${value > 0 ? '+' : ''}${value}`;
@@ -19,6 +21,8 @@ export function CompetitionAnalytics({ geography, scope = {}, title = 'Kilpailut
   const [municipality, setMunicipality] = useState('');
   const [comparison, setComparison] = useState<[number | null, number | null]>([null, null]);
   const [rankingLimit, setRankingLimit] = useState(20);
+  const [yearSort, setYearSort] = useState<TableSortState>({ key: 'year', direction: 'asc' });
+  const [municipalitySort, setMunicipalitySort] = useState<TableSortState>({ key: 'rank', direction: 'asc' });
   const municipalityStats = useCompetitionStatistics({ ...scope, municipality: municipality || scope.municipality }, geography);
   if (!stats) return <section className="panel planner-card competition-analytics"><h2>{title}</h2><p>Kilpailutilastot eivät ole vielä saatavilla. Katso aineiston tila vuosisuodattimesta.</p></section>;
   const allowedNames = scope.municipalityNames ? new Set(scope.municipalityNames.map(normalizeMunicipalityName)) : null;
@@ -26,6 +30,15 @@ export function CompetitionAnalytics({ geography, scope = {}, title = 'Kilpailut
   const first = stats.byYear.find((row) => row.year === comparison[0]) ?? stats.byYear[0];
   const last = stats.byYear.find((row) => row.year === comparison[1]) ?? stats.byYear[stats.byYear.length - 1];
   const historicalComparison = first && last ? compareCompetitionYears(stats.byYear, first.year, last.year) : null;
+  const yearRows = sortTableRows(stats.byYear, yearSort, (row, key) => key === 'newMunicipalities'
+    ? row.newMunicipalities.length
+    : row[key as keyof typeof row] as number | string | null);
+  const municipalityRows = sortTableRows(stats.municipalities, municipalitySort, (row, key) => {
+    const value = row[key as keyof typeof row];
+    return typeof value === 'string' || typeof value === 'number' ? value : null;
+  });
+  const changeYearSort = (key: string) => setYearSort((current) => toggleTableSort(current, key));
+  const changeMunicipalitySort = (key: string) => setMunicipalitySort((current) => toggleTableSort(current, key));
   return <section className="panel planner-card competition-analytics" aria-label={title}>
     <h2>{title}</h2>
     <button type="button" className="clear-filters" disabled={Boolean(error)} onClick={() => {
@@ -50,8 +63,15 @@ export function CompetitionAnalytics({ geography, scope = {}, title = 'Kilpailut
     </div>
     <div className="competition-table" tabIndex={0} role="region" aria-label="Vieritettävä kilpailuvuosien taulukko">
       <table className="data-table"><caption>Vuositrendit ja vuosimuutokset</caption>
-        <thead><tr><th scope="col">Vuosi</th><th scope="col">Kilpailuja</th><th scope="col">Aktiivisia kuntia</th><th scope="col">Muutos edellisvuodesta</th><th scope="col">Muutos %</th><th scope="col">Uusia kuntia</th></tr></thead>
-        <tbody>{stats.byYear.map((row) => <tr key={row.year}><th scope="row">{row.year}</th><td>{row.count}</td><td>{row.municipalityCount}</td><td>{change(row.change)}</td><td>{percentage(row.changePercent)}</td><td>{row.newMunicipalities.length ? <details><summary>{row.newMunicipalities.length} kuntaa</summary>{row.newMunicipalities.join(', ')}</details> : '0'}</td></tr>)}</tbody>
+        <thead><tr>
+          <SortableTableHeader columnKey="year" label="Vuosi" sortKey={yearSort.key} direction={yearSort.direction} onSort={changeYearSort} />
+          <SortableTableHeader columnKey="count" label="Kilpailuja" sortKey={yearSort.key} direction={yearSort.direction} onSort={changeYearSort} />
+          <SortableTableHeader columnKey="municipalityCount" label="Aktiivisia kuntia" sortKey={yearSort.key} direction={yearSort.direction} onSort={changeYearSort} />
+          <SortableTableHeader columnKey="change" label="Muutos edellisvuodesta" sortKey={yearSort.key} direction={yearSort.direction} onSort={changeYearSort} />
+          <SortableTableHeader columnKey="changePercent" label="Muutos %" sortKey={yearSort.key} direction={yearSort.direction} onSort={changeYearSort} />
+          <SortableTableHeader columnKey="newMunicipalities" label="Uusia kuntia" sortKey={yearSort.key} direction={yearSort.direction} onSort={changeYearSort} />
+        </tr></thead>
+        <tbody>{yearRows.map((row) => <tr key={row.year}><th scope="row">{row.year}</th><td>{row.count}</td><td>{row.municipalityCount}</td><td>{change(row.change)}</td><td>{percentage(row.changePercent)}</td><td>{row.newMunicipalities.length ? <details><summary>{row.newMunicipalities.length} kuntaa</summary>{row.newMunicipalities.join(', ')}</details> : '0'}</td></tr>)}</tbody>
       </table>
     </div>
     <p className="hint">Uusi kunta = ensimmäinen esiintymisvuosi koko aineistossa, ei ensimmäinen valittu vuosi. Vuosimuutos näytetään vain, jos myös edellinen kalenterivuosi on valittu. Keskeneräiset tai tulevat vuodet eivät ole suoraan vertailukelpoisia.</p>
@@ -65,8 +85,16 @@ export function CompetitionAnalytics({ geography, scope = {}, title = 'Kilpailut
     <details open={stats.municipalities.length <= 10}><summary>Kuntien kilpailuranking ja tiheydet ({stats.municipalityCount})</summary>
       <p className="hint">Kilpailutiheys käyttää kiinteää väestövuotta 2025 ja kuntien pinta-alaa. Ei osallistujatiheys. Samat kilpailumäärät saavat saman sijoituksen.</p>
       <div className="competition-table" tabIndex={0} role="region" aria-label="Vieritettävä kuntien kilpailuranking"><table className="data-table">
-        <thead><tr><th scope="col">Sijoitus</th><th scope="col">Kunta</th><th scope="col">Kilpailuja</th><th scope="col">Osuus kilpailuista</th><th scope="col">Aktiivisia valittuja vuosia</th><th scope="col">Kilpailuja / 10 000 as.</th><th scope="col">Kilpailuja / 1 000 km²</th></tr></thead>
-        <tbody>{stats.municipalities.slice(0, rankingLimit).map((row) => <tr key={row.name}><td>{row.rank}</td><th scope="row">{row.name}</th><td>{row.count}</td><td>{percentage(row.share * 100)}</td><td>{row.activeYears}</td><td>{formatCount(row.per10000Residents)}</td><td>{formatCount(row.per1000Km2)}</td></tr>)}</tbody>
+        <thead><tr>
+          <SortableTableHeader columnKey="rank" label="Sijoitus" sortKey={municipalitySort.key} direction={municipalitySort.direction} onSort={changeMunicipalitySort} />
+          <SortableTableHeader columnKey="name" label="Kunta" sortKey={municipalitySort.key} direction={municipalitySort.direction} onSort={changeMunicipalitySort} />
+          <SortableTableHeader columnKey="count" label="Kilpailuja" sortKey={municipalitySort.key} direction={municipalitySort.direction} onSort={changeMunicipalitySort} />
+          <SortableTableHeader columnKey="share" label="Osuus kilpailuista" sortKey={municipalitySort.key} direction={municipalitySort.direction} onSort={changeMunicipalitySort} />
+          <SortableTableHeader columnKey="activeYears" label="Aktiivisia valittuja vuosia" sortKey={municipalitySort.key} direction={municipalitySort.direction} onSort={changeMunicipalitySort} />
+          <SortableTableHeader columnKey="per10000Residents" label="Kilpailuja / 10 000 as." sortKey={municipalitySort.key} direction={municipalitySort.direction} onSort={changeMunicipalitySort} />
+          <SortableTableHeader columnKey="per1000Km2" label="Kilpailuja / 1 000 km²" sortKey={municipalitySort.key} direction={municipalitySort.direction} onSort={changeMunicipalitySort} />
+        </tr></thead>
+        <tbody>{municipalityRows.slice(0, rankingLimit).map((row) => <tr key={row.name}><td>{row.rank}</td><th scope="row">{row.name}</th><td>{row.count}</td><td>{percentage(row.share * 100)}</td><td>{row.activeYears}</td><td>{formatCount(row.per10000Residents)}</td><td>{formatCount(row.per1000Km2)}</td></tr>)}</tbody>
       </table></div>
       {rankingLimit < stats.municipalities.length && <button type="button" className="clear-filters" onClick={() => setRankingLimit((limit) => limit + 20)}>Näytä lisää kilpailukuntia ({Math.min(rankingLimit, stats.municipalities.length)} / {stats.municipalities.length})</button>}
     </details>

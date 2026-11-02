@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MapPinned } from 'lucide-react';
 import type { Region } from '../../models/region';
 import { formatArea, type ScenarioAnalysis } from '../../services/regionAnalytics';
 import { StatCard, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
+import { SortableTableHeader } from '../../components/SortableTableHeader';
+import { sortTableRows, toggleTableSort, type TableSortState } from '../../services/tableSorting';
 
 interface UnassignedViewProps {
   analysis: ScenarioAnalysis;
@@ -15,7 +17,19 @@ interface UnassignedViewProps {
 export function UnassignedView({ analysis, regions, onShowOnMap, onAssign }: UnassignedViewProps) {
   const [target, setTarget] = useState('');
   const [onlyWithClubs, setOnlyWithClubs] = useState(false);
+  const [sort, setSort] = useState<TableSortState>({ key: 'name', direction: 'asc' });
   const rows = analysis.unassigned.filter((row) => !onlyWithClubs || row.clubs.length > 0);
+  const sortedRows = useMemo(() => sortTableRows(rows, sort, (row, key) => {
+    if (key === 'name') return row.municipality.name;
+    if (key === 'province') return row.municipality.province;
+    if (key === 'population') return row.municipality.population;
+    if (key === 'competitions') return row.competitionCount;
+    if (key === 'clubs') return row.clubs.length;
+    if (key === 'members') return row.members;
+    if (key === 'votes') return row.votes;
+    return row.municipality.areaKm2;
+  }), [rows, sort]);
+  const changeSort = (key: string) => setSort((current) => toggleTableSort(current, key));
   const totals = analysis.unassigned.reduce((sum, row) => ({ clubs: sum.clubs + row.clubs.length, members: sum.members + row.members, votes: sum.votes + row.votes, area: sum.area + row.municipality.areaKm2 }), { clubs: 0, members: 0, votes: 0, area: 0 });
   const enabled = [...regions].filter((region) => region.enabled).sort((a, b) => a.number - b.number);
   return (
@@ -48,9 +62,19 @@ export function UnassignedView({ analysis, regions, onShowOnMap, onAssign }: Una
           )}
         </div>
         <table className="data-table">
-          <thead><tr><th scope="col">Kunta</th><th scope="col">Maakunta</th><th scope="col">Väestö 2025</th><th scope="col">Kilpailuja · valitut vuodet</th><th scope="col" className="numeric">Seuroja</th><th scope="col" className="numeric">Jäseniä</th><th scope="col" className="numeric">Äänimäärä</th><th scope="col" className="numeric">Pinta-ala</th>{enabled.length > 0 && <th scope="col"><span className="sr-only">Toiminnot</span></th>}</tr></thead>
+          <thead><tr>
+            <SortableTableHeader columnKey="name" label="Kunta" sortKey={sort.key} direction={sort.direction} onSort={changeSort} />
+            <SortableTableHeader columnKey="province" label="Maakunta" sortKey={sort.key} direction={sort.direction} onSort={changeSort} />
+            <SortableTableHeader columnKey="population" label="Väestö 2025" sortKey={sort.key} direction={sort.direction} onSort={changeSort} />
+            <SortableTableHeader columnKey="competitions" label="Kilpailuja · valitut vuodet" sortKey={sort.key} direction={sort.direction} onSort={changeSort} />
+            <SortableTableHeader columnKey="clubs" label="Seuroja" sortKey={sort.key} direction={sort.direction} onSort={changeSort} className="numeric" />
+            <SortableTableHeader columnKey="members" label="Jäseniä" sortKey={sort.key} direction={sort.direction} onSort={changeSort} className="numeric" />
+            <SortableTableHeader columnKey="votes" label="Äänimäärä" sortKey={sort.key} direction={sort.direction} onSort={changeSort} className="numeric" />
+            <SortableTableHeader columnKey="area" label="Pinta-ala" sortKey={sort.key} direction={sort.direction} onSort={changeSort} className="numeric" />
+            {enabled.length > 0 && <th scope="col"><span className="sr-only">Toiminnot</span></th>}
+          </tr></thead>
           <tbody>
-            {rows.map((row) => (
+            {sortedRows.map((row) => (
               <tr key={row.municipality.code}>
                 <th scope="row">{row.municipality.name}</th>
                 <td>{row.municipality.province ?? '–'}</td>

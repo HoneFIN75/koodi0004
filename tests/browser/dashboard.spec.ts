@@ -99,6 +99,8 @@ test('club matrix sorts, filters, summarizes and adapts to mobile', async ({ pag
   const table = matrix.locator('.matrix-table');
   const names = () => table.locator('tbody tr td:first-child').allTextContents();
   await expect.poll(names).toEqual(['Alpha Disc Golf', 'Beta Disc Golf', 'Zulu Disc Golf']);
+  await expect(table.locator('thead th button')).toHaveCount(await table.locator('thead th').count());
+  await expect(table.locator('thead th').first()).toHaveAttribute('aria-sort', 'ascending');
   await expect(table.locator('thead th').filter({ hasText: 'Perustamisvuosi' })).toHaveCount(1);
   await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText(/1\s?999/);
   await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText('Kaakkois-Suomi');
@@ -112,6 +114,13 @@ test('club matrix sorts, filters, summarizes and adapts to mobile', async ({ pag
   await nameHeader.getByRole('button').click();
   await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending');
   await expect.poll(names).toEqual(['Alpha Disc Golf', 'Beta Disc Golf', 'Zulu Disc Golf']);
+  const memberHeader = table.getByRole('columnheader', { name: /Jäsenmäärä/ });
+  await memberHeader.getByRole('button').click();
+  await expect(memberHeader).toHaveAttribute('aria-sort', 'ascending');
+  await expect.poll(names).toEqual(['Beta Disc Golf', 'Alpha Disc Golf', 'Zulu Disc Golf']);
+  await memberHeader.getByRole('button').click();
+  await expect(memberHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect.poll(names).toEqual(['Zulu Disc Golf', 'Alpha Disc Golf', 'Beta Disc Golf']);
 
   await filters.locator(':scope > summary').click();
   await filters.getByRole('searchbox', { name: 'Seuran nimi' }).fill('alpha');
@@ -123,12 +132,65 @@ test('club matrix sorts, filters, summarizes and adapts to mobile', async ({ pag
   await filters.getByLabel('Skenaario').selectOption('alternate');
   await expect(table.locator('tbody tr').first()).toContainText('Sisä-Suomi');
   await expect(table.locator('tbody tr').first()).toContainText('Vaihtoehto');
+  await filters.getByLabel('Skenaario').selectOption('current');
 
   const header = table.locator('thead th').first();
   await expect(header).toHaveCSS('position', 'sticky');
+  const regionSummary = matrix.locator('.matrix-region-table table');
+  await expect(regionSummary.locator('thead th button')).toHaveCount(4);
+  await expect(regionSummary.locator('tbody th').allTextContents()).resolves.toEqual(['Kaakkois-Suomi', 'Keski-Suomi']);
+  const regionNameHeader = regionSummary.getByRole('columnheader', { name: /Alue/ });
+  await regionNameHeader.getByRole('button').click();
+  await expect(regionNameHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect(regionSummary.locator('tbody th').allTextContents()).resolves.toEqual(['Keski-Suomi', 'Kaakkois-Suomi']);
   await page.setViewportSize({ width: 320, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await matrix.locator('.matrix-table-wrap').evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+});
+
+test('all dashboard data tables sort from the first column and toggle each heading', async ({ page }) => {
+  await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: [
+    { 'Kilpailun nimi': 'Turku Open', Vuosi: 2022, Kunta: 'Turku' },
+    { 'Kilpailun nimi': 'Turku Open 2', Vuosi: 2022, Kunta: 'Turku' },
+    { 'Kilpailun nimi': 'Turku Open 3', Vuosi: 2022, Kunta: 'Turku' },
+    { 'Kilpailun nimi': 'Espoo Open', Vuosi: 2020, Kunta: 'Espoo' },
+    { 'Kilpailun nimi': 'Helsinki Open', Vuosi: 2021, Kunta: 'Helsinki' },
+  ] }));
+  await load(page);
+  const population = page.locator('.population-table table');
+  await expect(population.locator('thead th button')).toHaveCount(7);
+  const municipalityHeader = population.getByRole('columnheader', { name: /Kunta/ });
+  await expect(municipalityHeader).toHaveAttribute('aria-sort', 'ascending');
+  const municipalityNames = () => population.locator('tbody tr th').allTextContents();
+  const alphabeticRows = await municipalityNames();
+  await municipalityHeader.getByRole('button').click();
+  await expect(municipalityHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect.poll(async () => (await municipalityNames())[0]).not.toBe(alphabeticRows[0]);
+  await municipalityHeader.getByRole('button').click();
+  await expect(municipalityHeader).toHaveAttribute('aria-sort', 'ascending');
+  await expect.poll(municipalityNames).toEqual(alphabeticRows);
+
+  const analytics = page.getByRole('region', { name: 'Suomen kilpailutoiminta', exact: true });
+  const yearTable = analytics.locator('table').first();
+  await expect(yearTable.locator('thead th button')).toHaveCount(6);
+  const yearHeader = yearTable.getByRole('columnheader', { name: 'Vuosi' });
+  await expect(yearTable.locator('tbody tr th').allTextContents()).resolves.toEqual(['2020', '2021', '2022']);
+  await yearHeader.getByRole('button').click();
+  await expect(yearHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect(yearTable.locator('tbody tr th').allTextContents()).resolves.toEqual(['2022', '2021', '2020']);
+
+  const ranking = analytics.locator('details table');
+  await expect(ranking.locator('thead th button')).toHaveCount(7);
+  const rankHeader = ranking.getByRole('columnheader', { name: 'Sijoitus' });
+  await expect(rankHeader).toHaveAttribute('aria-sort', 'ascending');
+  const rankingRows = () => ranking.locator('tbody tr th').allTextContents();
+  const municipalityRankingHeader = ranking.getByRole('columnheader', { name: 'Kunta' });
+  await municipalityRankingHeader.getByRole('button').click();
+  await expect(municipalityRankingHeader).toHaveAttribute('aria-sort', 'ascending');
+  await expect.poll(rankingRows).toEqual(['Espoo', 'Helsinki', 'Turku']);
+  await municipalityRankingHeader.getByRole('button').click();
+  await expect(municipalityRankingHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect.poll(rankingRows).toEqual(['Turku', 'Helsinki', 'Espoo']);
 });
 
 test('population is shared across routes, supports municipality comparisons and filters club maps', async ({ page }) => {
