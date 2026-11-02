@@ -5,9 +5,10 @@ interface ChartCardProps {
   description: string;
   rows: DistributionStat[];
   color?: string;
+  showClubCount?: boolean;
 }
 
-export function ChartCard({ title, description, rows, color = 'var(--accent)' }: ChartCardProps) {
+export function ChartCard({ title, description, rows, color = 'var(--accent)', showClubCount = false }: ChartCardProps) {
   const max = Math.max(...rows.map((row) => row.count), 1);
   return (
     <section className="panel chart-card">
@@ -17,7 +18,7 @@ export function ChartCard({ title, description, rows, color = 'var(--accent)' }:
       <div className="bar-list">
         {rows.map((row) => (
           <div className="bar-row" key={row.label}>
-            <span className="bar-label">{row.label}</span>
+            <span className="bar-label">{row.label}{showClubCount && row.clubCount !== undefined && ` (${row.clubCount})`}</span>
             <div className="bar-track" aria-hidden="true"><span style={{ width: `${(row.count / max) * 100}%`, background: color, minWidth: row.count === 0 ? 0 : undefined }} /></div>
             <span className="bar-value">{row.count}</span>
           </div>

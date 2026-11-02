@@ -23,6 +23,7 @@ export function getVotesByMembershipBand(clubs: readonly Club[]): DistributionSt
   return MEMBERSHIP_BANDS.map((band) => ({
     label: band.label,
     count: clubs.reduce((total, club) => total + (getMembershipBand(club.jasenmaara) === band ? band.votes : 0), 0),
+    clubCount: clubs.filter((club) => getMembershipBand(club.jasenmaara) === band).length,
   }));
 }
 

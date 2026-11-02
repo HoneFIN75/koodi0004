@@ -256,7 +256,7 @@ export default function App() {
           <RankingCard title="Suurimmat seurat" description="Tunnetun jäsenmäärän mukaan" rows={sortedClubs.flatMap((club) => club.jasenmaara === null ? [] : [{ name: club.seura, clubs: 1, members: club.jasenmaara }])} valueLabel="jäsentä" showClubCount={false} />
           <RankingCard title="Suurimmat kunnat" description="Jäseniä kunnittain" rows={municipalityStats} valueLabel="jäsentä" />
           <ChartCard title="Jäsenmäärän jakauma" description="Jäsenmäärä äänivaltaluokittain" rows={membershipDistribution} />
-          <ChartCard title="Äänimäärä jäsenmääräluokittain" description="Äänet yhteensä kunkin jäsenmääräluokan seuroilta" rows={votesByMembershipBand} color="var(--gold)" />
+          <ChartCard title="Äänimäärä jäsenmääräluokittain" description="Äänet yhteensä kunkin jäsenmääräluokan seuroilta" rows={votesByMembershipBand} showClubCount />
           <OverviewBars rows={municipalityStats} />
           <ProvinceComparison rows={provinceStatistics} />
         </div>
