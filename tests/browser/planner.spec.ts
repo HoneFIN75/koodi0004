@@ -51,6 +51,19 @@ async function open(page: Page) {
   await expect(page.locator('.planner-shell')).toBeVisible();
 }
 
+async function loginAsAdmin(page: Page) {
+  const logout = page.getByRole('button', { name: /Kirjaudu ulos/ });
+  if (await logout.isVisible()) {
+    await logout.click();
+  }
+  const loginButton = page.getByRole('button', { name: 'Kirjaudu', exact: true });
+  await expect(loginButton).toBeVisible();
+  await loginButton.click();
+  await page.getByLabel('Tunnus').selectOption('admin');
+  await page.getByLabel('Salasana').fill('test-admin-password');
+  await page.getByRole('button', { name: 'Kirjaudu', exact: true }).last().click();
+}
+
 async function addMunicipality(page: Page, name: string) {
   await page.getByRole('searchbox', { name: 'Hae kuntaa nimellä' }).fill(name);
   await page.getByRole('list', { name: 'Kuntaluettelo' }).getByRole('checkbox', { name: new RegExp(`^${name}(?:\\s|$)`) }).check();
@@ -198,6 +211,7 @@ test('population appears in planner maps, region details, dashboards, comparison
   await page.getByRole('button', { name: 'Vertailu', exact: true }).click();
   await page.getByLabel('Kaavion mittari').selectOption('population');
   await expect(page.getByRole('table', { name: 'Aluevertailu', exact: true })).toContainText('1 020 108');
+  await loginAsAdmin(page);
   await page.getByRole('button', { name: 'Tuonti ja vienti', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Kuntien väestöanalyysi' })).toContainText('308 kuntaa');
 });
@@ -366,16 +380,33 @@ test('public users can browse but cannot edit until signing in', async ({ page }
   await expect(page.getByRole('button', { name: 'Uusi alue' })).toBeVisible();
 });
 
+test('expired login does not open a login panel or show a login-required banner', async ({ page }) => {
+  await open(page);
+  await page.route('**/api/planner.php**', async (route) => {
+    const request = route.request();
+    if (request.method() === 'POST') return route.fulfill({ status: 401, json: { error: 'Kirjautuminen vaaditaan.' } });
+    if (new URL(request.url()).searchParams.get('action') === 'session') {
+      return route.fulfill({ json: { authReady: true, role: null, csrfToken: 'anonymous-csrf-token' } });
+    }
+    return route.continue();
+  });
+  await page.getByRole('button', { name: 'Uusi alue' }).click();
+  await expect(page.locator('.save-indicator')).toContainText('Tallennus epäonnistui');
+  await expect(page.locator('.auth-panel')).toHaveCount(0);
+  await expect(page.getByText(/Kirjoittaminen vaatii kirjautumisen/)).toHaveCount(0);
+});
+
 test('only Admin sees the password management area', async ({ page }) => {
   await open(page);
   await expect(page.getByRole('button', { name: 'Admin', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: /Kirjaudu ulos/ }).click();
-  await page.getByRole('button', { name: 'Kirjaudu', exact: true }).click();
-  await page.getByLabel('Tunnus').selectOption('admin');
-  await page.getByLabel('Salasana').fill('test-admin-password');
-  await page.getByRole('button', { name: 'Kirjaudu', exact: true }).last().click();
+  const views = page.getByRole('navigation', { name: 'Aluesuunnittelun näkymät' });
+  await expect(views.getByRole('button', { name: 'Varmuuskopiot', exact: true })).toHaveCount(0);
+  await expect(views.getByRole('button', { name: 'Tuonti ja vienti', exact: true })).toHaveCount(0);
+  await loginAsAdmin(page);
   const adminButton = page.getByRole('button', { name: 'Admin', exact: true });
   await expect(adminButton).toBeVisible();
+  await expect(views.getByRole('button', { name: 'Varmuuskopiot', exact: true })).toBeVisible();
+  await expect(views.getByRole('button', { name: 'Tuonti ja vienti', exact: true })).toBeVisible();
   await adminButton.click();
   await expect(page.getByRole('heading', { name: 'Admin · tunnusten hallinta' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Kirjoittajan salasana' })).toBeVisible();
@@ -387,6 +418,7 @@ test('all views render and pass axe checks in both themes', async ({ page }) => 
   test.setTimeout(90_000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await open(page);
+  await loginAsAdmin(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();
   await addMunicipality(page, 'Helsinki');
   for (const view of ['Kartta', 'Kojelauta', 'Vertailu', 'Kohdistamattomat', 'Skenaariot', 'Varmuuskopiot', 'Tuonti ja vienti']) {
@@ -407,10 +439,10 @@ test('scenarios can be created and switched without leaking regions', async ({ p
   await page.getByLabel('Uuden skenaarion nimi').fill('Ehdotus A');
   await page.getByRole('button', { name: 'Luo skenaario' }).click();
   const selector = page.getByLabel('Skenaario', { exact: true });
-  await expect(selector.locator('option:checked')).toHaveText('Ehdotus A');
+  await expect(selector.locator('option:checked')).toHaveText('Skenaario: Ehdotus A');
   await page.getByRole('navigation', { name: 'Aluesuunnittelun näkymät' }).getByRole('button', { name: 'Kartta' }).click();
   await expect(page.locator('.region-row')).toHaveCount(0);
-  await selector.selectOption({ label: 'Nykyrakenne' });
+  await selector.selectOption({ label: 'Skenaario: Nykyrakenne' });
   await expect(page.locator('.region-row')).toHaveCount(1);
 });
 
@@ -446,7 +478,7 @@ test('browser data migrates only after explicit confirmation when the server is 
   expect(writes).toHaveLength(0);
 
   await page.getByRole('button', { name: 'Siirrä selaimen suunnitelma palvelimelle' }).click();
-  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Vanha suunnitelma');
+  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Skenaario: Vanha suunnitelma');
   await page.reload();
-  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Vanha suunnitelma');
+  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Skenaario: Vanha suunnitelma');
 });

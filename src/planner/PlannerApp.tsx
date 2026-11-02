@@ -46,6 +46,7 @@ const VIEWS: { id: View; label: string }[] = [
   { id: 'map', label: 'Kartta' }, { id: 'dashboard', label: 'Kojelauta' }, { id: 'compare', label: 'Vertailu' },
   { id: 'unassigned', label: 'Kohdistamattomat' }, { id: 'scenarios', label: 'Skenaariot' }, { id: 'backups', label: 'Varmuuskopiot' }, { id: 'data', label: 'Tuonti ja vienti' },
 ];
+const ADMIN_VIEWS: View[] = ['backups', 'data'];
 const THEME_KEY = 'seurakartta-theme';
 
 function download(content: BlobPart, type: string, name: string) {
@@ -105,6 +106,7 @@ export default function PlannerApp() {
   const backups = usePlanner((state) => state.backups);
   const document_ = history.present;
   const canWrite = !import.meta.env.PROD || authSession.role === 'writer' || authSession.role === 'admin';
+  const canAccessAdminViews = !import.meta.env.PROD || authSession.role === 'admin';
   const displayedDocument = canWrite || !viewScenarioId ? document_ : { ...document_, activeScenarioId: viewScenarioId };
   const scenario = activeScenario(displayedDocument);
   const regions = scenario.regions;
@@ -133,12 +135,13 @@ export default function PlannerApp() {
     authService.getSession().then((session) => {
       plannerStore.getState().setCsrfToken(session.csrfToken);
       setAuthSession(session);
-      setAuthOpen(true);
-      setAuthError('Kirjautuminen vanheni. Kirjaudu uudelleen tallentaaksesi muutokset.');
     }).catch((cause: unknown) => {
       setAuthError(cause instanceof Error ? cause.message : 'Kirjautumistietoja ei voitu tarkistaa.');
     });
   }, [authRequired]);
+  useEffect(() => {
+    if (!canAccessAdminViews && (ADMIN_VIEWS.includes(view) || view === 'clubs')) setView('map');
+  }, [canAccessAdminViews, view]);
   useEffect(() => {
     let active = true;
     setError('');
@@ -314,8 +317,9 @@ export default function PlannerApp() {
     setAuthSession(session);
   };
   const selectView = (next: View) => {
-    setView(next);
-    const route = next === 'clubs' ? CLUBS_ADMIN_ROUTE : '#/alueet';
+    const target = !canAccessAdminViews && (ADMIN_VIEWS.includes(next) || next === 'clubs') ? 'map' : next;
+    setView(target);
+    const route = target === 'clubs' ? CLUBS_ADMIN_ROUTE : '#/alueet';
     if (window.location.hash !== route) window.location.hash = route;
   };
   const login = async (event: FormEvent<HTMLFormElement>) => {
@@ -360,7 +364,7 @@ export default function PlannerApp() {
       refreshSession(session);
       setPasswordForms({ writer: { current: '', next: '', confirmation: '' }, admin: { current: '', next: '', confirmation: '' } });
       setAdminOpen(false);
-      setAuthOpen(true);
+      setAuthOpen(false);
       setAuthMessage('Salasana vaihdettiin. Kaikki istunnot mitätöitiin; kirjaudu uudelleen.');
       if (remoteMode) await plannerStore.getState().reloadRemote();
     } catch (cause) {
@@ -400,7 +404,7 @@ export default function PlannerApp() {
         <label className="scenario-switch">
           <span>Skenaario</span>
           <select aria-label="Skenaario" value={scenario.id} onChange={(event) => selectScenario(event.target.value)}>
-            {displayedDocument.scenarios.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            {displayedDocument.scenarios.map((item) => <option key={item.id} value={item.id}>Skenaario: {item.name}</option>)}
           </select>
         </label>
         {canWrite && <div className="history-buttons">
@@ -455,7 +459,7 @@ export default function PlannerApp() {
         </section>
       )}
       <nav className="planner-tabs" aria-label="Aluesuunnittelun näkymät">
-        {VIEWS.map((item) => (
+        {VIEWS.filter((item) => !ADMIN_VIEWS.includes(item.id) || canAccessAdminViews).map((item) => (
           <button key={item.id} type="button" className={view === item.id ? 'active' : ''} aria-current={view === item.id ? 'page' : undefined} onClick={() => selectView(item.id)}>
             {item.label}{item.id === 'unassigned' && analysis && analysis.unassigned.length > 0 && <span className="tab-badge">{analysis.unassigned.length}</span>}
           </button>
@@ -493,7 +497,6 @@ export default function PlannerApp() {
           {writeActionError && <p className="field-error" role="alert">{writeActionError}</p>}
         </section>
       )}
-      {authRequired && !canWrite && <p className="notice" role="alert">Kirjoittaminen vaatii kirjautumisen. {saveError}</p>}
       {writeActionError && !migrationAvailable && !authRequired && !writeConflict && <p className="notice" role="alert">{writeActionError}</p>}
       {saveStatus === 'error' && !authRequired && !writeConflict && !writeActionError && <p className="notice" role="alert">{saveError ?? 'Tallennus epäonnistui.'}</p>}
       {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}
@@ -578,8 +581,8 @@ export default function PlannerApp() {
             onDuplicate={(id) => { commit('Skenaarion monistus', (current) => documentOps.duplicateScenario(current, id)); setSelectedRegionId(null); }}
             onDelete={(id) => void deleteScenario(id)}
             onSwitch={selectScenario} />}
-          {view === 'backups' && <BackupManager backups={backups} current={displayedDocument} dataset={dataset} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} readOnly={!canWrite} />}
-          {view === 'data' && <><DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} readOnly={!canWrite} /><CompetitionAnalytics geography={dataset.municipalities} title="Raporttien kilpailutilastot" /><PopulationExplorer municipalities={dataset.municipalities} /></>}
+          {view === 'backups' && canAccessAdminViews && <BackupManager backups={backups} current={displayedDocument} dataset={dataset} onCreate={() => void createManualBackup()} onRestore={(snapshot) => void onRestore(snapshot)} readOnly={!canWrite} />}
+          {view === 'data' && canAccessAdminViews && <><DataManager onExport={onExport} onImport={onImport} knownCodes={new Set(dataset.byCode.keys())} readOnly={!canWrite} /><CompetitionAnalytics geography={dataset.municipalities} title="Raporttien kilpailutilastot" /><PopulationExplorer municipalities={dataset.municipalities} /></>}
         </main>
       )}
       <footer className="planner-footer">Kuntarajat © Tilastokeskus, kunta1000k 2025 (CC BY 4.0) · Taustakartta © OpenStreetMap · {remoteMode ? 'Suunnitelmat tallentuvat yhteisesti palvelimelle' : 'Suunnitelmat tallentuvat tähän selaimeen'} ({storageKind ?? '…'}). Tunnukset ovat yhteisiä eikä muutosten tekijää tunnisteta.</footer>
