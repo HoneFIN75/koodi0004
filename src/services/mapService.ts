@@ -47,3 +47,19 @@ export function makePopup(club: Club, population: number | null = null): HTMLEle
   content.append(title, municipality, stats, residents);
   return content;
 }
+
+export function createMunicipalityTooltip(municipalityName: string, areaName: string, details: string[] = [], className = 'map-popup'): HTMLElement {
+  const content = document.createElement('div');
+  content.className = className;
+  const municipality = document.createElement('strong');
+  municipality.textContent = `Kunta: ${municipalityName}`;
+  const area = document.createElement('span');
+  area.textContent = `Alue: ${areaName}`;
+  content.append(municipality, area);
+  for (const detail of details) {
+    const line = document.createElement('span');
+    line.textContent = detail;
+    content.append(line);
+  }
+  return content;
+}
