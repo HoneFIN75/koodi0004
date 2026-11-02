@@ -60,7 +60,8 @@ test('planner overview, regions, map and observations follow the requested order
   await page.setViewportSize({ width: 1440, height: 900 });
   await open(page);
   await expect(page.getByRole('heading', { name: 'Maakunta', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Havainnot', exact: true })).toBeVisible();
+  await expect(page.locator('.observations-panel')).toHaveJSProperty('open', false);
+  await expect(page.getByText('Suunnitelman tarkistuksissa esiin nousseet huomiot')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Tarkistukset', exact: true })).toHaveCount(0);
 
   const layout = await page.evaluate(() => {
@@ -79,6 +80,15 @@ test('planner overview, regions, map and observations follow the requested order
   expect(layout.regionListBottom).toBeLessThanOrEqual(layout.mapTop);
   expect(layout.observationsTop).toBeGreaterThanOrEqual(layout.mapBottom);
   expect(layout.regionColumns).toBe(5);
+
+  const observations = page.locator('.observations-panel');
+  const summary = observations.locator('summary');
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(observations).toHaveJSProperty('open', true);
+  await expect(observations.locator('.warning-list, .validation-ok')).toBeVisible();
+  await summary.click();
+  await expect(observations).toHaveJSProperty('open', false);
 });
 
 test('province overlay is independent from planner regions and restores saved map settings', async ({ page }) => {

@@ -557,10 +557,15 @@ export default function PlannerApp() {
               <RegionDetail region={selectedRegion} stats={analysis.stats.get(selectedRegion.id)!} explanation={explainCoverage(selectedRegion, analysis.stats.get(selectedRegion.id)!, analysis)} readOnly={!canWrite}
                 warnings={warnings.filter((warning) => warning.regionId === selectedRegion.id)} onEdit={() => setEditing(true)} onDuplicate={() => duplicateRegion(selectedRegion.id)} onClose={() => setSelectedRegionId(null)} />
             </div>}
-            <section className="planner-card observations-panel" aria-labelledby="observations-title">
-              <header className="card-header"><div><h2 id="observations-title">Havainnot</h2><p>Suunnitelman tarkistuksissa esiin nousseet huomiot</p></div></header>
-              <WarningList warnings={warnings} onSelectRegion={selectRegion} />
-            </section>
+            <details className="planner-card observations-panel">
+              <summary className="observations-summary">
+                <span className="observations-title">Havainnot</span>
+                <span className="observations-description">Suunnitelman tarkistuksissa esiin nousseet huomiot</span>
+              </summary>
+              <div className="observations-content">
+                <WarningList warnings={warnings} onSelectRegion={selectRegion} />
+              </div>
+            </details>
             </div>
           )}
           {view === 'dashboard' && <><DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} /><CompetitionAnalytics geography={dataset.municipalities} title="Johdon kilpailuanalyysi" /></>}

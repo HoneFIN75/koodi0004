@@ -72,7 +72,13 @@
 .planner-panel { display: grid; gap: 14px; max-height: calc(100vh - 170px); overflow-y: auto; position: sticky; top: 150px; padding-bottom: 4px; scrollbar-width: thin; }
 .planner-panel { min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .planner-panel > * { min-width: 0; max-width: 100%; }
-.observations-panel .card-header { margin-bottom: 10px; }
+.observations-summary { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; cursor: pointer; list-style: none; }
+.observations-summary::-webkit-details-marker { display: none; }
+.observations-summary::after { content: '▸'; margin-left: auto; color: var(--muted); }
+.observations-panel[open] .observations-summary::after { content: '▾'; }
+.observations-title { color: var(--text); font: 700 16px Manrope, sans-serif; letter-spacing: -.01em; }
+.observations-description { color: var(--muted); font-size: 12px; }
+.observations-content { margin-top: 12px; }
 .region-detail { min-width: 0; overflow-wrap: anywhere; }
 .region-detail-wide { min-width: 0; }
 .region-detail-wide .stat-grid.compact { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
