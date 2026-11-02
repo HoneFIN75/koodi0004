@@ -166,6 +166,35 @@ test('province comparison and map overlay settings are data-driven and persist',
   await expect(page.getByLabel('Näytä maakunnat')).not.toBeChecked();
 });
 
+test('hovering a municipality shows its name and province and highlights it gray', async ({ page }) => {
+  await load(page);
+  const municipality = page.locator('.province-fill.municipality-698');
+  await expect(municipality).toHaveCount(1);
+  await municipality.scrollIntoViewIfNeeded();
+  const target = await municipality.evaluate((element) => {
+    const path = element as SVGPathElement;
+    const bounds = path.getBBox();
+    const matrix = path.getScreenCTM();
+    if (!matrix) throw new Error('Municipality path is not rendered.');
+    for (let row = 1; row < 20; row += 1) {
+      for (let column = 1; column < 20; column += 1) {
+        const point = new DOMPoint(bounds.x + bounds.width * column / 20, bounds.y + bounds.height * row / 20);
+        if (path.isPointInFill(point)) {
+          const screenPoint = point.matrixTransform(matrix);
+          return { x: screenPoint.x, y: screenPoint.y };
+        }
+      }
+    }
+    throw new Error('Could not find a point inside the municipality path.');
+  });
+  await page.mouse.move(target.x, target.y);
+
+  const tooltip = page.locator('.leaflet-tooltip');
+  await expect(tooltip).toContainText('Kunta: Rovaniemi');
+  await expect(tooltip).toContainText('Alue: Lappi');
+  await expect.poll(() => municipality.evaluate((element) => getComputedStyle(element).fill)).toBe('rgb(100, 116, 139)');
+});
+
 test('homepage map controls and legend start collapsed and share voting colors', async ({ page }) => {
   await load(page);
   const overlay = page.locator('.province-overlay-controls');

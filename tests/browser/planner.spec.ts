@@ -53,7 +53,7 @@ async function open(page: Page) {
 
 async function addMunicipality(page: Page, name: string) {
   await page.getByRole('searchbox', { name: 'Hae kuntaa nimellä' }).fill(name);
-  await page.getByRole('list', { name: 'Kuntaluettelo' }).getByRole('checkbox', { name: new RegExp(`^${name}`) }).check();
+  await page.getByRole('list', { name: 'Kuntaluettelo' }).getByRole('checkbox', { name: new RegExp(`^${name}(?:\\s|$)`) }).check();
 }
 
 test('planner overview, regions, map and observations follow the requested order', async ({ page }) => {
