@@ -124,6 +124,25 @@ test('Writer cannot see or load the Admin club management route', async ({ page 
   expect(state.adminReads).toBe(0);
 });
 
+test('Admin deep link waits for the session before loading private club data', async ({ page }) => {
+  const state = await setup(page);
+  let releaseSession!: () => void;
+  const sessionReady = new Promise<void>((resolve) => { releaseSession = resolve; });
+  await page.route('**/api/planner.php?action=session', async (route) => {
+    await sessionReady;
+    await route.fulfill({ json: { authReady: true, role: 'admin', csrfToken: 'test-csrf-token' } });
+  });
+  await page.goto('/koodi0004/#/alueet/seurahallinta');
+
+  await expect(page.getByRole('heading', { name: 'Seurahallinta on vain Adminille' })).toBeVisible();
+  expect(state.adminReads).toBe(0);
+  releaseSession();
+
+  await expect(page.getByRole('heading', { name: 'Seurahallinta', exact: true })).toBeVisible();
+  await expect(page.getByText('Esimerkkiseura ry')).toBeVisible();
+  expect(state.adminReads).toBe(1);
+});
+
 test('JSON export requires privacy acknowledgement and retains full backup data', async ({ page }) => {
   const state = await setup(page);
   await page.goto('/koodi0004/#/alueet/seurahallinta');
