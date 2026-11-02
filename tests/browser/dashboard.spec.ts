@@ -459,6 +459,9 @@ for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await load(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const regionSummary = page.locator('.matrix-region-table');
+    await regionSummary.focus();
+    await expect(regionSummary).toBeFocused();
     if (width <= 650) {
       const legend = page.locator('.map-key');
       const summary = legend.locator('summary');

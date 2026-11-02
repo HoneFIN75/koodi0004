@@ -78,6 +78,7 @@ test('Admin can create, edit, archive and restore clubs with revision and CSRF p
 
   await expect(page.getByRole('button', { name: 'Seurahallinta' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Seurahallinta' })).toBeVisible();
+  await expect(page).toHaveURL(/#\/alueet\/seurahallinta$/);
   await expect(page.getByText('Esimerkkiseura ry')).toBeVisible();
   const accessibility = await new AxeBuilder({ page }).include('.clubs-admin').analyze();
   expect(accessibility.violations).toEqual([]);
@@ -121,6 +122,7 @@ test('Writer cannot see or load the Admin club management route', async ({ page 
 
   await expect(page.getByRole('navigation', { name: 'Aluesuunnittelun näkymät' }).getByRole('button', { name: 'Seurahallinta' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Seurahallinta on vain Adminille' })).toBeVisible();
+  await expect(page).toHaveURL(/#\/alueet\/seurahallinta$/);
   expect(state.adminReads).toBe(0);
 });
 

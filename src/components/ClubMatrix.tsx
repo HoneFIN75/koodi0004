@@ -205,7 +205,7 @@ export function ClubMatrix({
       <h3 id="matrix-region-title">Yhteenveto alueittain</h3>
       {regionSummary.length === 0
         ? <p className="empty-note">Valitussa skenaariossa ei ole alueita.</p>
-        : <div className="matrix-region-table"><table>
+        : <div className="matrix-region-table" role="region" aria-labelledby="matrix-region-title" tabIndex={0}><table>
           <thead><tr><th>Alue</th><th>Seuroja</th><th>Jäseniä</th><th>Ääniä</th></tr></thead>
           <tbody>{regionSummary.map(({ region, clubs: count, members, votes }) => <tr key={region.id}>
             <th scope="row">{region.name}</th><td>{formatCount(count)}</td><td>{formatCount(members)}</td><td>{formatCount(votes)}</td>

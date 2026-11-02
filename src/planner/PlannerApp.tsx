@@ -140,7 +140,7 @@ export default function PlannerApp() {
     });
   }, [authRequired]);
   useEffect(() => {
-    if (!canAccessAdminViews && (ADMIN_VIEWS.includes(view) || view === 'clubs')) setView('map');
+    if (!canAccessAdminViews && ADMIN_VIEWS.includes(view)) setView('map');
   }, [canAccessAdminViews, view]);
   useEffect(() => {
     let active = true;
