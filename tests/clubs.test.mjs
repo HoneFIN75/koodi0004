@@ -136,11 +136,13 @@ test('composed filters instantly produce the correct statistics', () => {
   ]);
   assert.equal(searchClubs(data, 'aanekoski').length, 1);
   assert.equal(searchClubs(data, 'JYVASKYLA').length, 3);
-  const filtered = filterClubs(data, { query: 'jyvaskyla', maxMembers: 25, votes: 10 });
+  const filtered = filterClubs(data, { query: 'jyvaskyla', minMembers: 10, maxMembers: 25, votes: 10 });
   assert.equal(getTotals(filtered).members, 25);
   assert.equal(getTotals(filtered).clubs, 1);
-  assert.equal(filterClubs(data, { query: '', maxMembers: null, votes: null }).length, 3);
-  assert.equal(filterClubs(data, { query: 'no match', maxMembers: null, votes: null }).length, 0);
+  assert.equal(filterClubs(data, { query: '', minMembers: null, maxMembers: null, votes: null }).length, 3);
+  assert.equal(filterClubs(data, { query: 'no match', minMembers: null, maxMembers: null, votes: null }).length, 0);
+  assert.deepEqual(filterClubs(data, { query: '', minMembers: 25, maxMembers: 100, votes: null }).map((club) => club.jasenmaara), [25, 75]);
+  assert.deepEqual(filterClubs(data, { query: '', minMembers: 30, maxMembers: 60, votes: null }).map((club) => club.jasenmaara), []);
 });
 
 test('marker size is smooth and strictly increasing beyond 999 members', () => {

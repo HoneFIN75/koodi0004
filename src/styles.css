@@ -167,9 +167,10 @@ a { color: inherit; text-decoration: none; }
 .extreme-card button { display: block; max-width: 100%; text-align: left; color: var(--accent-strong); background: none; border: 0; padding: 6px 0 0; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
 .filter-hint { margin-left: auto; color: var(--muted); font-size: 11px; }
 .filter-bar { display: flex; gap: 24px; align-items: end; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--surface-raised); }
-.member-filter { display: grid; gap: 8px; flex: 1; max-width: 400px; font-size: 12px; }
-.member-filter > span { display: flex; justify-content: space-between; gap: 20px; color: var(--muted); }
+.member-filter { display: grid; gap: 6px; flex: 1; max-width: 400px; min-width: 0; margin: 0; padding: 0; border: 0; font-size: 12px; }
+.member-filter legend { display: flex; justify-content: space-between; gap: 20px; width: 100%; padding: 0; color: var(--muted); }
 .member-filter strong { color: var(--text); }
+.member-filter label { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 8px; color: var(--muted); font-size: 10px; }
 .member-filter input { width: 100%; margin: 0; min-height: 28px; accent-color: var(--accent-strong); cursor: pointer; }
 .vote-filter { display: grid; gap: 8px; font-size: 12px; color: var(--muted); }
 .vote-filter select { min-height: 44px; max-width: 100%; padding: 8px 12px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 7px; }
