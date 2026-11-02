@@ -56,6 +56,31 @@ async function addMunicipality(page: Page, name: string) {
   await page.getByRole('list', { name: 'Kuntaluettelo' }).getByRole('checkbox', { name: new RegExp(`^${name}`) }).check();
 }
 
+test('planner overview, regions, map and observations follow the requested order', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await open(page);
+  await expect(page.getByRole('heading', { name: 'Maakunta', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Havainnot', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tarkistukset', exact: true })).toHaveCount(0);
+
+  const layout = await page.evaluate(() => {
+    const bounds = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+    return {
+      summaryBottom: bounds('.province-summary').bottom,
+      competitionTop: bounds('.competition-filters').top,
+      regionListBottom: bounds('.region-list').bottom,
+      mapTop: bounds('.planner-map-layout').top,
+      mapBottom: bounds('.planner-map-layout').bottom,
+      observationsTop: bounds('.observations-panel').top,
+      regionColumns: getComputedStyle(document.querySelector('.region-list ul')!).gridTemplateColumns.split(' ').length,
+    };
+  });
+  expect(layout.summaryBottom).toBeLessThanOrEqual(layout.competitionTop);
+  expect(layout.regionListBottom).toBeLessThanOrEqual(layout.mapTop);
+  expect(layout.observationsTop).toBeGreaterThanOrEqual(layout.mapBottom);
+  expect(layout.regionColumns).toBe(5);
+});
+
 test('province overlay is independent from planner regions and restores saved map settings', async ({ page }) => {
   await open(page);
   await expect(page.locator('.province-overlay-controls')).toHaveJSProperty('open', true);
@@ -131,16 +156,15 @@ test('selected region details do not cause horizontal overflow', async ({ page }
       clientWidth: layout.clientWidth,
       scrollWidth: layout.scrollWidth,
       mapWidth: layout.querySelector('.planner-map-column')?.getBoundingClientRect().width,
-      sidebarWidth: layout.querySelector('.planner-sidebar')?.getBoundingClientRect().width,
     }));
     expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
-    expect(overflow.mapWidth).toBeGreaterThan(overflow.sidebarWidth ?? 0);
+    expect(overflow.mapWidth).toBeGreaterThan(0);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
     if (width === 1440) await page.reload();
   }
 });
 
-test('selected region statistics span below the map and sidebar at desktop and mobile widths', async ({ page }) => {
+test('selected region statistics span below the map at desktop and mobile widths', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();
   await page.getByLabel('Nimi', { exact: true }).fill('Pohjois-Pohjanmaa');
@@ -155,18 +179,18 @@ test('selected region statistics span below the map and sidebar at desktop and m
       const mapLayout = document.querySelector('.planner-map-layout')!;
       const detailContainer = document.querySelector('.region-detail-wide')!;
       const map = mapLayout.querySelector('.planner-map-column')!.getBoundingClientRect();
-      const sidebar = mapLayout.querySelector('.planner-sidebar')!.getBoundingClientRect();
+      const regionList = document.querySelector('.region-list')!.getBoundingClientRect();
       const content = detailContainer.getBoundingClientRect();
       return {
         mapBottom: map.bottom,
-        sidebarBottom: sidebar.bottom,
+        regionListBottom: regionList.bottom,
         detailTop: content.top,
         detailWidth: content.width,
         layoutWidth: mapLayout.getBoundingClientRect().width,
         statsColumnCount: getComputedStyle(detailContainer.querySelector('.stat-grid')!).gridTemplateColumns.split(' ').length,
       };
     });
-    expect(layout.detailTop).toBeGreaterThanOrEqual(Math.max(layout.mapBottom, layout.sidebarBottom));
+    expect(layout.detailTop).toBeGreaterThanOrEqual(Math.max(layout.mapBottom, layout.regionListBottom));
     expect(layout.detailWidth).toBeGreaterThan(layout.layoutWidth * 0.9);
     expect(layout.statsColumnCount).toBe(width > 1280 ? 5 : width > 860 ? 4 : 2);
   }
