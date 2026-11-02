@@ -41,4 +41,5 @@ export interface MunicipalityStat {
 export interface DistributionStat {
   label: string;
   count: number;
+  clubCount?: number;
 }

@@ -103,9 +103,13 @@ test('vote totals are shown by membership band, including zero votes for zero me
   await load(page);
   const chart = page.locator('.chart-card').filter({ has: page.getByRole('heading', { name: 'Äänimäärä jäsenmääräluokittain' }) });
   await expect(chart.locator('.bar-label')).toHaveText([
-    'Ei jäseniä', 'Jäseniä 1–99', 'Jäseniä 100–299', 'Jäseniä 300–499', 'Jäseniä 500+',
+    'Ei jäseniä (1)', 'Jäseniä 1–99 (1)', 'Jäseniä 100–299 (1)', 'Jäseniä 300–499 (0)', 'Jäseniä 500+ (1)',
   ]);
   await expect(chart.locator('.bar-value')).toHaveText(['0', '10', '15', '0', '25']);
+  const membershipChart = page.locator('.chart-card').filter({ has: page.getByRole('heading', { name: 'Jäsenmäärän jakauma' }) });
+  const membershipBarColor = await membershipChart.locator('.bar-track > span').first().evaluate((bar) => getComputedStyle(bar).backgroundColor);
+  const votingBarColor = await chart.locator('.bar-track > span').first().evaluate((bar) => getComputedStyle(bar).backgroundColor);
+  expect(votingBarColor).toBe(membershipBarColor);
 });
 
 test('province comparison and map overlay settings are data-driven and persist', async ({ page }) => {
