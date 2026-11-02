@@ -462,6 +462,12 @@ export default function PlannerApp() {
         ))}
         {authSession.role === 'admin' && <button type="button" className={view === 'clubs' ? 'active' : ''} aria-current={view === 'clubs' ? 'page' : undefined} onClick={() => selectView('clubs')}>Seurahallinta</button>}
       </nav>
+      {view === 'map' && !loading && dataset && analysis && (
+        <section className="planner-card province-summary" aria-labelledby="province-summary-title">
+          <header className="card-header"><div><h2 id="province-summary-title">Maakunta</h2><p>{regions.length} aluetta · {analysis.assignedCodes.size}/{dataset.municipalities.length} kuntaa kohdistettu</p></div></header>
+          <p className="hint">Valitse alue luettelosta tai kartalta, tai napsauta kuntaa nähdäksesi sen seurat ja alueet.</p>
+        </section>
+      )}
       <CompetitionFilters />
       {adminOpen && <CompetitionAnalytics geography={dataset?.municipalities} title="Ylläpidon kilpailutilastot" />}
 
@@ -509,14 +515,12 @@ export default function PlannerApp() {
           {provinceCoverageIssues.length > 0 && <p className="notice" role="status">{provinceCoverageIssues.join(' ')}</p>}
           {view === 'map' && (
             <div className="planner-map-view">
-            <div className={`planner-map-layout${selectedRegion && !editingRegion ? ' has-region-detail' : ''}`}>
-              <aside className="planner-sidebar" aria-label="Alueet ja suodattimet">
-                <RegionList regions={regions} stats={analysis.stats} selectedRegionId={selectedRegionId} onSelect={selectRegion} onCreate={createRegion} readOnly={!canWrite}
-                  onEdit={(id) => { setSelectedRegionId(id); setEditing(true); setSelectedMunicipality(null); }} onDuplicate={duplicateRegion} onDelete={deleteRegion}
-                  onToggle={(region, field) => updateRegion(region.id, { [field]: !region[field] }, `${field === 'visible' ? (region.visible ? 'Piilotettu' : 'Näytetty') : (region.enabled ? 'Poistettu käytöstä' : 'Otettu käyttöön')}: ${region.name}`, field)} />
-                <PlannerFilters filters={filters} regions={regions} maxMembers={Math.max(1, maxMembers)} votingOptions={votingOptions} onChange={setFilters} />
-              </aside>
+            <RegionList regions={regions} stats={analysis.stats} selectedRegionId={selectedRegionId} onSelect={selectRegion} onCreate={createRegion} readOnly={!canWrite}
+              onEdit={(id) => { setSelectedRegionId(id); setEditing(true); setSelectedMunicipality(null); }} onDuplicate={duplicateRegion} onDelete={deleteRegion}
+              onToggle={(region, field) => updateRegion(region.id, { [field]: !region[field] }, `${field === 'visible' ? (region.visible ? 'Piilotettu' : 'Näytetty') : (region.enabled ? 'Poistettu käytöstä' : 'Otettu käyttöön')}: ${region.name}`, field)} />
+            <div className={`planner-map-layout${selectedRegion && !editingRegion ? ' has-region-detail' : ''}${editingRegion || (!selectedRegion && selectedMunicipality) ? ' has-map-panel' : ''}`}>
               <section className="planner-map-column" aria-label="Kartta">
+                <PlannerFilters filters={filters} regions={regions} maxMembers={Math.max(1, maxMembers)} votingOptions={votingOptions} onChange={setFilters} />
                 <div className="map-options" role="group" aria-label="Karttatasot">
                   <label className="checkbox"><input type="checkbox" checked={showClubs} onChange={(event) => setShowClubs(event.target.checked)} /> Seurat</label>
                   <label className="checkbox"><input type="checkbox" checked={highlightUnassigned} onChange={(event) => setHighlightUnassigned(event.target.checked)} /> Korosta kohdistamattomat</label>
@@ -537,7 +541,7 @@ export default function PlannerApp() {
                   {showClubs && <span>{VOTING_POWERS.map((votes) => <span key={votes}><i className="legend-dot" style={{ background: markerColor(votes) }} />{votes}</span>)} ääntä · koko = jäsenmäärä</span>}
                 </div>
               </section>
-              {(!selectedRegion || editingRegion) && <aside className="planner-panel" aria-label="Tiedot">
+              {(editingRegion || (!selectedRegion && selectedMunicipality)) && <aside className="planner-panel" aria-label="Tiedot">
                 {editingRegion && <RegionEditor region={editingRegion} dataset={dataset} aggregates={fullAggregates} membership={membership}
                   onChange={(changes, label, field) => updateRegion(editingRegion.id, changes, label, field)}
                   onMunicipalities={(codes, mode, label) => setMunicipalities(editingRegion.id, codes, mode, label)} onClose={() => setEditing(false)} />}
@@ -547,20 +551,16 @@ export default function PlannerApp() {
                     onRemove={(regionId) => setMunicipalities(regionId, [selectedMunicipality], 'remove', `Poistettu kunta ${dataset.byCode.get(selectedMunicipality)?.name}`)}
                     onSelectRegion={selectRegion} onClose={() => setSelectedMunicipality(null)} />
                 )}
-                {!editingRegion && !selectedRegion && !selectedMunicipality && (
-                  <section className="planner-card">
-                    <header className="card-header"><div><h2>{scenario.name}</h2><p>{regions.length} aluetta · {analysis.assignedCodes.size}/{dataset.municipalities.length} kuntaa kohdistettu</p></div></header>
-                    <p className="hint">Valitse alue luettelosta tai kartalta, tai napsauta kuntaa nähdäksesi sen seurat ja alueet.</p>
-                    <h3>Tarkistukset</h3>
-                    <WarningList warnings={warnings} onSelectRegion={selectRegion} />
-                  </section>
-                )}
               </aside>}
             </div>
             {!editingRegion && selectedRegion && <div className="region-detail-wide">
               <RegionDetail region={selectedRegion} stats={analysis.stats.get(selectedRegion.id)!} explanation={explainCoverage(selectedRegion, analysis.stats.get(selectedRegion.id)!, analysis)} readOnly={!canWrite}
                 warnings={warnings.filter((warning) => warning.regionId === selectedRegion.id)} onEdit={() => setEditing(true)} onDuplicate={() => duplicateRegion(selectedRegion.id)} onClose={() => setSelectedRegionId(null)} />
             </div>}
+            <section className="planner-card observations-panel" aria-labelledby="observations-title">
+              <header className="card-header"><div><h2 id="observations-title">Havainnot</h2><p>Suunnitelman tarkistuksissa esiin nousseet huomiot</p></div></header>
+              <WarningList warnings={warnings} onSelectRegion={selectRegion} />
+            </section>
             </div>
           )}
           {view === 'dashboard' && <><DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} /><CompetitionAnalytics geography={dataset.municipalities} title="Johdon kilpailuanalyysi" /></>}
