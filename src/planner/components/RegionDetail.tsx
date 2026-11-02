@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { Copy, Pencil, X } from 'lucide-react';
 import type { Region } from '../../models/region';
 import { formatArea, formatDensity, formatPercent, type RegionStats } from '../../services/regionAnalytics';
@@ -6,6 +6,8 @@ import type { ValidationWarning } from '../../services/validationService';
 import { StatCard, WarningList, decimalFormat, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
 import { CompetitionAnalytics } from '../../components/CompetitionAnalytics';
+import { SortableTableHeader } from '../../components/SortableTableHeader';
+import { sortTableRows, toggleTableSort, type TableSortState } from '../../services/tableSorting';
 
 interface RegionDetailProps {
   region: Region;
@@ -19,6 +21,14 @@ interface RegionDetailProps {
 }
 
 export function RegionDetail({ region, stats, explanation, warnings, onEdit, onDuplicate, onClose, readOnly = false }: RegionDetailProps) {
+  const [sort, setSort] = useState<TableSortState>({ key: 'name', direction: 'asc' });
+  const clubs = useMemo(() => sortTableRows(stats.clubs, sort, (club, key) => {
+    if (key === 'name') return club.seura;
+    if (key === 'municipality') return club.paikkakunta;
+    if (key === 'members') return club.jasenmaara;
+    return club.aanimaara;
+  }), [sort, stats.clubs]);
+  const changeSort = (key: string) => setSort((current) => toggleTableSort(current, key));
   return (
     <section className="planner-card region-detail" aria-labelledby="region-detail-title" style={{ '--region-color': region.color } as CSSProperties}>
       <header className="card-header">
@@ -73,8 +83,13 @@ export function RegionDetail({ region, stats, explanation, warnings, onEdit, onD
       <details className="detail-list" open={stats.clubCount > 0 && stats.clubCount <= 12}>
         <summary>Seurat ({stats.clubCount})</summary>
         <table className="data-table compact">
-          <thead><tr><th scope="col">Seura</th><th scope="col">Kunta</th><th scope="col" className="numeric">Jäseniä</th><th scope="col" className="numeric">Ääniä</th></tr></thead>
-          <tbody>{stats.clubs.map((club, index) => <tr key={`${club.seura}-${index}`}><td>{club.seura}</td><td>{club.paikkakunta}</td><td className="numeric">{club.jasenmaara ?? '–'}</td><td className="numeric">{club.aanimaara ?? '–'}</td></tr>)}</tbody>
+          <thead><tr>
+            <SortableTableHeader columnKey="name" label="Seura" sortKey={sort.key} direction={sort.direction} onSort={changeSort} />
+            <SortableTableHeader columnKey="municipality" label="Kunta" sortKey={sort.key} direction={sort.direction} onSort={changeSort} />
+            <SortableTableHeader columnKey="members" label="Jäseniä" sortKey={sort.key} direction={sort.direction} onSort={changeSort} className="numeric" />
+            <SortableTableHeader columnKey="votes" label="Ääniä" sortKey={sort.key} direction={sort.direction} onSort={changeSort} className="numeric" />
+          </tr></thead>
+          <tbody>{clubs.map((club, index) => <tr key={`${club.seura}-${index}`}><td>{club.seura}</td><td>{club.paikkakunta}</td><td className="numeric">{club.jasenmaara ?? '–'}</td><td className="numeric">{club.aanimaara ?? '–'}</td></tr>)}</tbody>
         </table>
       </details>
     </section>

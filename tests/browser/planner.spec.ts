@@ -140,6 +140,48 @@ test('planner filters collapse by default and keep competition-year controls ava
   await expect(filters.locator('.pill')).toHaveCount(0);
 });
 
+test('planner tables default to the first column A to Z and toggle to Z to A', async ({ page }) => {
+  await page.route('**/api/clubs.php', (route) => route.fulfill({ json: {
+    metadata: { generatedAt: '2026-01-01T00:00:00Z', recordCount: 2, source: 'test' },
+    data: [
+      { seura: 'Zulu seura', paikkakunta: 'Espoo', latitude: 60.2, longitude: 24.6, jasenmaara: 20, aanimaara: 10 },
+      { seura: 'Alpha seura', paikkakunta: 'Espoo', latitude: 60.3, longitude: 24.7, jasenmaara: 30, aanimaara: 10 },
+    ],
+  } }));
+  await open(page);
+  await page.getByRole('button', { name: 'Uusi alue' }).click();
+  await addMunicipality(page, 'Espoo');
+  await page.getByRole('button', { name: 'Sulje muokkaus' }).click();
+
+  const detail = page.locator('.region-detail');
+  const clubTable = detail.locator('details.detail-list').filter({ hasText: 'Seurat' }).locator('table');
+  await expect(clubTable.locator('thead th button')).toHaveCount(4);
+  const clubHeader = clubTable.getByRole('columnheader', { name: 'Seura' });
+  await expect(clubHeader).toHaveAttribute('aria-sort', 'ascending');
+  await expect(clubTable.locator('tbody tr').first()).toContainText('Alpha seura');
+  await clubHeader.getByRole('button').click();
+  await expect(clubHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect(clubTable.locator('tbody tr').first()).toContainText('Zulu seura');
+
+  await page.getByRole('button', { name: 'Vertailu', exact: true }).click();
+  const comparison = page.getByRole('table', { name: 'Aluevertailu', exact: true });
+  const areaHeader = comparison.getByRole('columnheader', { name: 'Alue' });
+  await expect(areaHeader).toHaveAttribute('aria-sort', 'ascending');
+  await expect(comparison.locator('thead th button')).toHaveCount(18);
+  await areaHeader.getByRole('button').click();
+  await expect(areaHeader).toHaveAttribute('aria-sort', 'descending');
+
+  await page.getByRole('button', { name: /^Kohdistamattomat/ }).click();
+  const unassigned = page.locator('.table-card table');
+  await expect(unassigned.locator('thead th button')).toHaveCount(8);
+  const municipalityHeader = unassigned.locator('thead th').first();
+  await expect(municipalityHeader).toHaveAttribute('aria-sort', 'ascending');
+  const firstMunicipality = await unassigned.locator('tbody tr').first().locator('th').textContent();
+  await municipalityHeader.getByRole('button').click();
+  await expect(municipalityHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect(unassigned.locator('tbody tr').first().locator('th')).not.toHaveText(firstMunicipality ?? '');
+});
+
 test('province overlay is independent from planner regions and restores saved map settings', async ({ page }) => {
   await open(page);
   await expect(page.locator('.province-overlay-controls')).toHaveJSProperty('open', true);

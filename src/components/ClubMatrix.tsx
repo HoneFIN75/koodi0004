@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowDownUp, ArrowUp, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import type { Club } from '../models/club';
 import type { Municipality, Scenario } from '../models/region';
 import { formatCount } from '../services/mapService';
 import { normalizeMunicipalityName, per10000Residents } from '../services/populationService';
+import { SortableTableHeader } from './SortableTableHeader';
+import { sortTableRows, toggleTableSort, type TableSortState } from '../services/tableSorting';
 
 type MatrixValue = string | number | null;
-type SortDirection = 'asc' | 'desc';
 
 interface MatrixRow {
   club: Club;
@@ -49,15 +50,6 @@ const extraLabels: Record<string, string> = {
   coordinator: 'Aluekoordinaattori',
 };
 
-function compareValues(first: MatrixValue, second: MatrixValue, direction: SortDirection): number {
-  if (first === null || first === '') return second === null || second === '' ? 0 : 1;
-  if (second === null || second === '') return -1;
-  const result = typeof first === 'number' && typeof second === 'number'
-    ? first - second
-    : collator.compare(String(first), String(second));
-  return direction === 'asc' ? result : -result;
-}
-
 function MatrixMetric({ label, value, detail }: { label: string; value: MatrixValue; detail?: string }) {
   return <article className="matrix-metric panel">
     <span className="metric-label">{label}</span>
@@ -72,7 +64,8 @@ export function ClubMatrix({
   const [query, setQuery] = useState('');
   const [regionId, setRegionId] = useState('');
   const [scenarioId, setScenarioId] = useState(activeScenarioId);
-  const [sort, setSort] = useState<{ id: string; direction: SortDirection } | null>({ id: 'name', direction: 'asc' });
+  const [sort, setSort] = useState<TableSortState>({ key: 'name', direction: 'asc' });
+  const [regionSort, setRegionSort] = useState<TableSortState>({ key: 'name', direction: 'asc' });
 
   const selectedScenario = scenarios.find((scenario) => scenario.id === scenarioId)
     ?? scenarios.find((scenario) => scenario.id === activeScenarioId)
@@ -122,11 +115,7 @@ export function ClubMatrix({
     const selectedRegion = areas.find((region) => region.id === regionId);
     const matching = rows.filter((row) => (!needle || row.club.seura.toLocaleLowerCase('fi-FI').includes(needle))
       && (!selectedRegion || row.regions.includes(selectedRegion.name)));
-    if (!sort) return matching;
-    const column = columns.find((item) => item.id === sort.id);
-    if (!column) return matching;
-    return [...matching].sort((first, second) => compareValues(column.value(first), column.value(second), sort.direction)
-      || collator.compare(first.club.seura, second.club.seura));
+    return sortTableRows(matching, sort, (row, key) => columns.find((column) => column.id === key)?.value(row) ?? null);
   }, [areas, columns, query, regionId, rows, sort]);
 
   const totals = useMemo(() => filteredRows.reduce((result, row) => ({
@@ -155,18 +144,16 @@ export function ClubMatrix({
         total.votes += row.club.aanimaara ?? 0;
       }
     }
-    const result = [...summary.values()].sort((a, b) => a.region.number - b.region.number);
+    const result = [...summary.values()];
     if (unassigned.clubs) result.push({ region: { id: 'unassigned', name: 'Ei kohdistettu', number: Number.MAX_SAFE_INTEGER }, ...unassigned });
-    return result;
-  }, [areas, filteredRows]);
+    return sortTableRows(result, regionSort, (row, key) => key === 'name' ? row.region.name
+      : key === 'clubs' ? row.clubs
+        : key === 'members' ? row.members
+          : row.votes);
+  }, [areas, filteredRows, regionSort]);
 
-  const changeSort = (id: string) => {
-    setSort((current) => current?.id !== id
-      ? { id, direction: 'asc' }
-      : current.direction === 'asc'
-        ? { id, direction: 'desc' }
-        : { id: 'name', direction: 'asc' });
-  };
+  const changeSort = (key: string) => setSort((current) => toggleTableSort(current, key));
+  const changeRegionSort = (key: string) => setRegionSort((current) => toggleTableSort(current, key));
   const clearFilters = () => {
     setQuery('');
     setRegionId('');
@@ -206,7 +193,12 @@ export function ClubMatrix({
       {regionSummary.length === 0
         ? <p className="empty-note">Valitussa skenaariossa ei ole alueita.</p>
         : <div className="matrix-region-table" role="region" aria-labelledby="matrix-region-title" tabIndex={0}><table>
-          <thead><tr><th>Alue</th><th>Seuroja</th><th>Jäseniä</th><th>Ääniä</th></tr></thead>
+          <thead><tr>
+            <SortableTableHeader columnKey="name" label="Alue" sortKey={regionSort.key} direction={regionSort.direction} onSort={changeRegionSort} />
+            <SortableTableHeader columnKey="clubs" label="Seuroja" sortKey={regionSort.key} direction={regionSort.direction} onSort={changeRegionSort} />
+            <SortableTableHeader columnKey="members" label="Jäseniä" sortKey={regionSort.key} direction={regionSort.direction} onSort={changeRegionSort} />
+            <SortableTableHeader columnKey="votes" label="Ääniä" sortKey={regionSort.key} direction={regionSort.direction} onSort={changeRegionSort} />
+          </tr></thead>
           <tbody>{regionSummary.map(({ region, clubs: count, members, votes }) => <tr key={region.id}>
             <th scope="row">{region.name}</th><td>{formatCount(count)}</td><td>{formatCount(members)}</td><td>{formatCount(votes)}</td>
           </tr>)}</tbody>
@@ -216,12 +208,8 @@ export function ClubMatrix({
     <div className="matrix-table-wrap" role="region" aria-label="Seurojen matriisitaulukko" tabIndex={0}>
       <table className="matrix-table">
         <thead><tr>{columns.map((column) => {
-          const direction = sort?.id === column.id ? sort.direction : null;
-          const ariaSort = direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : 'none';
-          const SortIcon = direction === 'asc' ? ArrowUp : direction === 'desc' ? ArrowDown : ArrowDownUp;
-          return <th key={column.id} scope="col" aria-sort={ariaSort}>
-            <button type="button" onClick={() => changeSort(column.id)}>{column.label}<SortIcon size={14} aria-hidden="true" /></button>
-          </th>;
+          return <SortableTableHeader key={column.id} columnKey={column.id} label={column.label}
+            sortKey={sort.key} direction={sort.direction} onSort={changeSort} />;
         })}</tr></thead>
         <tbody>
           {filteredRows.map((row) => <tr key={row.club.id ?? `${row.club.seura}-${row.club.paikkakunta}`}>
