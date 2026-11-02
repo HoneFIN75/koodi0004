@@ -189,7 +189,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
         onKeyDown={(event) => {
           if (event.key === 'Escape') for (const marker of markers.current.values()) marker.closeTooltip();
         }} />
-      <button className="map-reset" onClick={() => map.current && fitBoundsWithZoom(map.current, finlandBounds, { animate: !reducedMotion.current }, getMapZoomOffset(element.current))}>Näytä Suomi</button>
+      <button className="map-reset" onClick={() => map.current && fitBoundsWithZoom(map.current, finlandBounds, { padding: [24, 24], animate: !reducedMotion.current }, getMapZoomOffset(element.current))}>Näytä Suomi</button>
       {tileError && <p className="tile-error" role="status">Karttapohjan lataus epäonnistui. Seurat ovat silti käytettävissä luettelossa.</p>}
       <MapLegend />
     </div>

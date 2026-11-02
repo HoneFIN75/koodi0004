@@ -295,6 +295,25 @@ test('loading is announced and reduced-motion preferences are respected', async 
   await expect(page.locator('.loading-state')).toHaveCount(0);
 });
 
+test('mobile map fitting keeps cluster targets clear of attribution after load and reset', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await load(page, fixture(smallData.data.map((record, index) => index < 3 ? { ...record, latitude: 59.6 } : record)));
+  const targetsHaveSpace = () => page.evaluate(() => {
+    const canvas = document.querySelector('.map-canvas')!.getBoundingClientRect();
+    const attribution = document.querySelector('.leaflet-control-attribution')!.getBoundingClientRect();
+    const clusters = [...document.querySelectorAll('.club-cluster')];
+    return clusters.length > 0 && clusters.every((cluster) => {
+      const bounds = cluster.getBoundingClientRect();
+      return bounds.top >= canvas.top && bounds.bottom + 8 <= attribution.top
+        && bounds.left >= canvas.left && bounds.right <= canvas.right;
+    });
+  });
+  await expect.poll(targetsHaveSpace).toBe(true);
+  await page.getByRole('button', { name: 'Näytä Suomi' }).click();
+  await expect.poll(targetsHaveSpace).toBe(true);
+});
+
 for (const width of [1440, 390, 320]) {
   test(`responsive, keyboard accessible and WCAG audit at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
