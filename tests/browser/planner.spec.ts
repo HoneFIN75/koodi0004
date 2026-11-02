@@ -72,7 +72,7 @@ async function addMunicipality(page: Page, name: string) {
 test('planner overview, regions, map and observations follow the requested order', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await open(page);
-  await expect(page.getByRole('heading', { name: 'Maakunta', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Skenaario: Nykyrakenne', exact: true })).toBeVisible();
   await expect(page.locator('.observations-panel')).toHaveJSProperty('open', false);
   await expect(page.getByText('Suunnitelman tarkistuksissa esiin nousseet huomiot')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Tarkistukset', exact: true })).toHaveCount(0);
@@ -439,10 +439,13 @@ test('scenarios can be created and switched without leaking regions', async ({ p
   await page.getByLabel('Uuden skenaarion nimi').fill('Ehdotus A');
   await page.getByRole('button', { name: 'Luo skenaario' }).click();
   const selector = page.getByLabel('Skenaario', { exact: true });
-  await expect(selector.locator('option:checked')).toHaveText('Skenaario: Ehdotus A');
+  await expect(selector.locator('option:checked')).toHaveText('Ehdotus A');
   await page.getByRole('navigation', { name: 'Aluesuunnittelun näkymät' }).getByRole('button', { name: 'Kartta' }).click();
+  await expect(page.getByRole('heading', { name: 'Skenaario: Ehdotus A', exact: true })).toBeVisible();
   await expect(page.locator('.region-row')).toHaveCount(0);
-  await selector.selectOption({ label: 'Skenaario: Nykyrakenne' });
+  await selector.selectOption({ label: 'Nykyrakenne' });
+  await expect(selector.locator('option:checked')).toHaveText('Nykyrakenne');
+  await expect(page.getByRole('heading', { name: 'Skenaario: Nykyrakenne', exact: true })).toBeVisible();
   await expect(page.locator('.region-row')).toHaveCount(1);
 });
 
@@ -478,7 +481,7 @@ test('browser data migrates only after explicit confirmation when the server is 
   expect(writes).toHaveLength(0);
 
   await page.getByRole('button', { name: 'Siirrä selaimen suunnitelma palvelimelle' }).click();
-  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Skenaario: Vanha suunnitelma');
+  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Vanha suunnitelma');
   await page.reload();
-  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Skenaario: Vanha suunnitelma');
+  await expect(page.getByLabel('Skenaario', { exact: true }).locator('option:checked')).toHaveText('Vanha suunnitelma');
 });

@@ -404,7 +404,7 @@ export default function PlannerApp() {
         <label className="scenario-switch">
           <span>Skenaario</span>
           <select aria-label="Skenaario" value={scenario.id} onChange={(event) => selectScenario(event.target.value)}>
-            {displayedDocument.scenarios.map((item) => <option key={item.id} value={item.id}>Skenaario: {item.name}</option>)}
+            {displayedDocument.scenarios.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </label>
         {canWrite && <div className="history-buttons">
@@ -468,7 +468,7 @@ export default function PlannerApp() {
       </nav>
       {view === 'map' && !loading && dataset && analysis && (
         <section className="planner-card province-summary" aria-labelledby="province-summary-title">
-          <header className="card-header"><div><h2 id="province-summary-title">Maakunta</h2><p>{regions.length} aluetta · {analysis.assignedCodes.size}/{dataset.municipalities.length} kuntaa kohdistettu</p></div></header>
+          <header className="card-header"><div><h2 id="province-summary-title">Skenaario: {scenario.name}</h2><p>{regions.length} aluetta · {analysis.assignedCodes.size}/{dataset.municipalities.length} kuntaa kohdistettu</p></div></header>
           <p className="hint">Valitse alue luettelosta tai kartalta, tai napsauta kuntaa nähdäksesi sen seurat ja alueet.</p>
         </section>
       )}
