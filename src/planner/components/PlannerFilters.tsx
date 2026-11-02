@@ -1,6 +1,7 @@
 import type React from 'react';
 import { RotateCcw } from 'lucide-react';
 import { PopulationFilters } from '../../components/PopulationFilters';
+import { CompetitionFilters } from '../../components/CompetitionFilters';
 import type { Region } from '../../models/region';
 import { emptyFilters, type PlannerFilters as Filters } from '../../services/regionAnalytics';
 
@@ -9,15 +10,17 @@ interface PlannerFiltersProps {
   regions: Region[];
   maxMembers: number;
   votingOptions: number[];
+  competitionFilterActive: boolean;
   onChange: (filters: Filters) => void;
+  onClear: () => void;
 }
 
-export function PlannerFilters({ filters, regions, maxMembers, votingOptions, onChange }: PlannerFiltersProps) {
-  const active = JSON.stringify(filters) !== JSON.stringify(emptyFilters);
+export function PlannerFilters({ filters, regions, maxMembers, votingOptions, competitionFilterActive, onChange, onClear }: PlannerFiltersProps) {
+  const active = JSON.stringify(filters) !== JSON.stringify(emptyFilters) || competitionFilterActive;
   const upper = filters.maxMembers ?? maxMembers;
   const toggleRegion = (id: string) => onChange({ ...filters, regionIds: filters.regionIds.includes(id) ? filters.regionIds.filter((item) => item !== id) : [...filters.regionIds, id] });
   return (
-    <details className="planner-card filters-card" open>
+    <details className="planner-card filters-card">
       <summary><h2>Suodattimet</h2>{active && <span className="pill">käytössä</span>}</summary>
       <div className="filter-grid">
         <PopulationFilters filters={filters} onChange={(next) => onChange({ ...filters, ...next })} />
@@ -47,7 +50,8 @@ export function PlannerFilters({ filters, regions, maxMembers, votingOptions, on
           </fieldset>
         )}
       </div>
-      {active && <button type="button" className="text-button" onClick={() => onChange(emptyFilters)}><RotateCcw size={14} /> Tyhjennä suodattimet</button>}
+      <CompetitionFilters compact embedded />
+      {active && <button type="button" className="text-button" onClick={onClear}><RotateCcw size={14} /> Tyhjennä suodattimet</button>}
     </details>
   );
 }

@@ -64,20 +64,26 @@ test('planner overview, regions, map and observations follow the requested order
   await expect(page.getByText('Suunnitelman tarkistuksissa esiin nousseet huomiot')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Tarkistukset', exact: true })).toHaveCount(0);
 
+  const filters = page.locator('.filters-card');
+  await expect(filters).toHaveJSProperty('open', false);
+  await expect(filters.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true })).not.toBeVisible();
+  await expect(page.locator('.region-list')).toBeVisible();
+  await expect(filters.locator('.region-filter')).toHaveCount(0);
+  await expect(filters.locator('.region-list')).toHaveCount(0);
+
   const layout = await page.evaluate(() => {
     const bounds = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
     return {
-      summaryBottom: bounds('.province-summary').bottom,
-      competitionTop: bounds('.competition-filters').top,
       regionListBottom: bounds('.region-list').bottom,
+      filtersTop: bounds('.filters-card').top,
       mapTop: bounds('.planner-map-layout').top,
       mapBottom: bounds('.planner-map-layout').bottom,
       observationsTop: bounds('.observations-panel').top,
       regionColumns: getComputedStyle(document.querySelector('.region-list ul')!).gridTemplateColumns.split(' ').length,
     };
   });
-  expect(layout.summaryBottom).toBeLessThanOrEqual(layout.competitionTop);
-  expect(layout.regionListBottom).toBeLessThanOrEqual(layout.mapTop);
+  expect(layout.regionListBottom).toBeLessThanOrEqual(layout.filtersTop);
+  expect(layout.filtersTop).toBeLessThanOrEqual(layout.mapTop);
   expect(layout.observationsTop).toBeGreaterThanOrEqual(layout.mapBottom);
   expect(layout.regionColumns).toBe(5);
 
@@ -89,6 +95,36 @@ test('planner overview, regions, map and observations follow the requested order
   await expect(observations.locator('.warning-list, .validation-ok')).toBeVisible();
   await summary.click();
   await expect(observations).toHaveJSProperty('open', false);
+});
+
+test('planner filters collapse by default and keep competition-year controls available across views', async ({ page }) => {
+  await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: [
+    { 'Kilpailun nimi': 'Espoo Open', Vuosi: 2020, Kunta: 'Espoo' },
+    { 'Kilpailun nimi': 'Helsinki Open', Vuosi: 2021, Kunta: 'Helsinki' },
+  ] }));
+  await open(page);
+
+  const filters = page.locator('.filters-card');
+  await expect(filters).toHaveJSProperty('open', false);
+  await filters.locator(':scope > summary').click();
+  const years = filters.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true });
+  await expect(years).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
+  await years.selectOption('selected');
+  await expect(filters.getByRole('group', { name: 'Valitse kilpailuvuodet' })).toBeVisible();
+  await expect(filters.locator('.pill')).toHaveText('käytössä');
+
+  await page.getByRole('button', { name: 'Kojelauta', exact: true }).click();
+  await expect(page.locator('.filters-card')).toHaveCount(0);
+  const globalYears = page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true });
+  await expect(globalYears).toBeVisible();
+  await expect(globalYears).toHaveValue('selected');
+  await page.getByRole('button', { name: 'Kartta', exact: true }).click();
+  await filters.locator(':scope > summary').click();
+  await filters.getByRole('button', { name: 'Tyhjennä suodattimet' }).click();
+  await expect(filters.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true })).toHaveValue('all');
+  await expect(filters.locator('.pill')).toHaveCount(0);
 });
 
 test('province overlay is independent from planner regions and restores saved map settings', async ({ page }) => {
