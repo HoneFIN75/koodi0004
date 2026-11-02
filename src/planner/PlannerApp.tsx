@@ -468,7 +468,7 @@ export default function PlannerApp() {
       </nav>
       {view === 'map' && !loading && dataset && analysis && (
         <section className="planner-card province-summary" aria-labelledby="province-summary-title">
-          <header className="card-header"><div><h2 id="province-summary-title">Maakunta</h2><p>{regions.length} aluetta · {analysis.assignedCodes.size}/{dataset.municipalities.length} kuntaa kohdistettu</p></div></header>
+          <header className="card-header"><div><h2 id="province-summary-title">Skenaario: {scenario.name}</h2><p>{regions.length} aluetta · {analysis.assignedCodes.size}/{dataset.municipalities.length} kuntaa kohdistettu</p></div></header>
           <p className="hint">Valitse alue luettelosta tai kartalta, tai napsauta kuntaa nähdäksesi sen seurat ja alueet.</p>
         </section>
       )}
