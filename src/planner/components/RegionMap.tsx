@@ -75,7 +75,7 @@ const multiPolygon = (dataset: MunicipalityDataset, codes: string[]): GeoJSON.Fe
 });
 
 function municipalityPathStyle(props: RegionMapProps, code: string): L.PathOptions {
-  const style: L.PathOptions = { color: props.dark ? '#CBD5E1' : '#475569', weight: 0.6, opacity: 0.55, fill: true, fillColor: '#000000', fillOpacity: 0 };
+  const style: L.PathOptions = { className: `municipality-${code}`, color: props.dark ? '#CBD5E1' : '#475569', weight: 0.6, opacity: 0.55, fill: true, fillColor: props.dark ? '#FFFFFF' : '#000000', fillOpacity: 0.01 };
   if (props.populationLayer) Object.assign(style, { fillColor: getPopulationCategory(props.dataset.byCode.get(code)?.population ?? null)?.color ?? '#64748b', fillOpacity: 0.65 });
   if (props.highlightCodes?.has(code)) Object.assign(style, { fillColor: UNASSIGNED_COLOR, fillOpacity: 0.28, color: UNASSIGNED_COLOR, weight: 1.2, opacity: 0.9 });
   if (props.matchCodes?.has(code)) Object.assign(style, { color: '#0284C7', weight: 2.2, opacity: 1 });
@@ -99,7 +99,7 @@ export function RegionMap(props: RegionMapProps) {
   latest.current = props;
   const layers = useRef<{
     map: L.Map; tiles: L.TileLayer; municipalities: L.GeoJSON; fills: L.LayerGroup; outlines: L.LayerGroup; labels: L.LayerGroup; clubs: L.MarkerClusterGroup; provinceOverlay: ReturnType<typeof createProvinceOverlay> | null;
-    renderers: Record<'fill' | 'municipality' | 'outline', L.Canvas>;
+    renderers: { fill: L.Canvas; municipality: L.Renderer; outline: L.Canvas };
   } | null>(null);
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const { dataset } = props;
@@ -109,10 +109,15 @@ export function RegionMap(props: RegionMapProps) {
     const map = L.map(element.current, { zoomSnap: 0.25, minZoom: 4, maxZoom: 18, maxBounds: [[54, 8], [74, 42]], zoomAnimation: !reducedMotion, fadeAnimation: !reducedMotion, attributionControl: true });
     map.fitBounds(FINLAND_BOUNDS);
     const panes = [['provinceOverlay', 405], ['regionFill', 410], ['municipality', 420], ['regionOutline', 430], ['clubs', 440]] as const;
-    for (const [name, zIndex] of panes) map.createPane(name).style.zIndex = String(zIndex);
+    for (const [name, zIndex] of panes) {
+      const pane = map.createPane(name);
+      pane.style.zIndex = String(zIndex);
+      // The noninteractive outline canvas otherwise blocks county hover events underneath it.
+      if (name === 'regionOutline') pane.style.pointerEvents = 'none';
+    }
     const renderers = {
       fill: L.canvas({ pane: 'regionFill', padding: 0.4 }),
-      municipality: L.canvas({ pane: 'municipality', padding: 0.4, tolerance: 2 }),
+      municipality: L.svg({ pane: 'municipality', padding: 0.4 }),
       outline: L.canvas({ pane: 'regionOutline', padding: 0.4 }),
     };
     const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -124,6 +129,7 @@ export function RegionMap(props: RegionMapProps) {
       onEachFeature: (feature, layer) => {
         const code = String(feature.properties?.code);
         if (!(layer instanceof L.Path)) return;
+        layer.options.className = `municipality-${code}`;
         layer.on('click', () => latest.current.onMunicipalityClick(code));
         layer.bindTooltip(() => {
           const current = latest.current;
