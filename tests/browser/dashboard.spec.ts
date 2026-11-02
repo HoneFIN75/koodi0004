@@ -47,6 +47,88 @@ test.beforeEach(async ({ page }) => {
     contentType: 'image/png',
     body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zl1sAAAAASUVORK5CYII=', 'base64'),
   }));
+  await page.route('**/api/planner.php**', (route) => route.request().method() === 'GET'
+    ? route.fulfill({ json: { document: null, backups: [], revision: null } })
+    : route.fulfill({ json: { revision: 'test-revision' } }));
+});
+
+test('club matrix sorts, filters, summarizes and adapts to mobile', async ({ page }) => {
+  const scenarios = {
+    version: 1,
+    activeScenarioId: 'current',
+    scenarios: [
+      {
+        id: 'current', name: 'Nykyjako', description: '', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+        regions: [
+          { id: 'jyvaskyla', number: 1, name: 'Keski-Suomi', shortName: 'KES', description: '', color: '#16a34a', opacity: 1, enabled: true, visible: true, municipalityCodes: ['179'], createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+          { id: 'kouvola', number: 2, name: 'Kaakkois-Suomi', shortName: 'KAA', description: '', color: '#2563eb', opacity: 1, enabled: true, visible: true, municipalityCodes: ['286'], createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+        ],
+      },
+      {
+        id: 'alternate', name: 'Vaihtoehto', description: '', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+        regions: [
+          { id: 'alternate-region', number: 1, name: 'Sisä-Suomi', shortName: 'SIS', description: '', color: '#16a34a', opacity: 1, enabled: true, visible: true, municipalityCodes: ['179', '286'], createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+        ],
+      },
+    ],
+  };
+  await page.route('**/api/planner.php**', (route) => route.fulfill({ json: { document: scenarios, backups: [], revision: 'matrix-revision' } }));
+  await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: [
+    { 'Kilpailun nimi': 'Jyväskylä Open', Vuosi: 2024, Kunta: 'Jyväskylä' },
+    { 'Kilpailun nimi': 'Kouvola Open', Vuosi: 2024, Kunta: 'Kouvola' },
+    { 'Kilpailun nimi': 'Kouvola Open 2', Vuosi: 2025, Kunta: 'Kouvola' },
+  ] }));
+  await load(page, fixture([
+    club(2, { seura: 'Zulu Disc Golf', paikkakunta: 'Jyväskylä', jasenmaara: 100, aanimaara: 15 }),
+    club(0, { seura: 'Alpha Disc Golf', paikkakunta: 'Kouvola', jasenmaara: 25, aanimaara: 10, foundedYear: 1999 }),
+    club(1, { seura: 'Beta Disc Golf', paikkakunta: 'Kouvola', jasenmaara: 0, aanimaara: 0 }),
+  ]));
+
+  const nav = page.getByRole('link', { name: 'Seura matriisi', exact: true });
+  await expect(nav).toHaveAttribute('href', '#seura-matriisi');
+  await nav.click();
+  const matrix = page.locator('#seura-matriisi');
+  await expect(matrix.getByRole('heading', { name: 'Seura matriisi' })).toBeVisible();
+  const metrics = matrix.locator('.matrix-metric');
+  await expect(metrics.nth(0)).toContainText('3');
+  await expect(metrics.nth(1)).toContainText('125');
+  await expect(metrics.nth(2)).toContainText('25');
+  await expect(metrics.nth(3)).toContainText('2');
+  const filters = matrix.locator('.matrix-filters');
+  await expect(filters).toHaveJSProperty('open', false);
+  const table = matrix.locator('.matrix-table');
+  const names = () => table.locator('tbody tr td:first-child').allTextContents();
+  await expect.poll(names).toEqual(['Alpha Disc Golf', 'Beta Disc Golf', 'Zulu Disc Golf']);
+  await expect(table.locator('thead th').filter({ hasText: 'Perustamisvuosi' })).toHaveCount(1);
+  await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText(/1\s?999/);
+  await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText('Kaakkois-Suomi');
+  await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText('Nykyjako');
+  await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText('2');
+
+  const nameHeader = table.getByRole('columnheader', { name: /Seuran nimi/ });
+  await nameHeader.getByRole('button').click();
+  await expect(nameHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect.poll(names).toEqual(['Zulu Disc Golf', 'Beta Disc Golf', 'Alpha Disc Golf']);
+  await nameHeader.getByRole('button').click();
+  await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending');
+  await expect.poll(names).toEqual(['Alpha Disc Golf', 'Beta Disc Golf', 'Zulu Disc Golf']);
+
+  await filters.locator(':scope > summary').click();
+  await filters.getByRole('searchbox', { name: 'Seuran nimi' }).fill('alpha');
+  await expect(table.locator('tbody tr')).toHaveCount(1);
+  await expect(matrix.locator('.matrix-result-count')).toContainText('1 / 3');
+  await filters.getByRole('searchbox', { name: 'Seuran nimi' }).fill('');
+  await filters.getByLabel('Alue').selectOption('kouvola');
+  await expect(table.locator('tbody tr')).toHaveCount(2);
+  await filters.getByLabel('Skenaario').selectOption('alternate');
+  await expect(table.locator('tbody tr').first()).toContainText('Sisä-Suomi');
+  await expect(table.locator('tbody tr').first()).toContainText('Vaihtoehto');
+
+  const header = table.locator('thead th').first();
+  await expect(header).toHaveCSS('position', 'sticky');
+  await page.setViewportSize({ width: 320, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await matrix.locator('.matrix-table-wrap').evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
 });
 
 test('population is shared across routes, supports municipality comparisons and filters club maps', async ({ page }) => {
@@ -377,6 +459,9 @@ for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await load(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const regionSummary = page.locator('.matrix-region-table');
+    await regionSummary.focus();
+    await expect(regionSummary).toBeFocused();
     if (width <= 650) {
       const legend = page.locator('.map-key');
       const summary = legend.locator('summary');
