@@ -24,6 +24,23 @@ async function load(page: Page, data = smallData) {
   await expect(page.locator('.map-title p')).toContainText(`${data.data.length} /`);
 }
 
+test('map and club list are 20% taller across responsive layouts', async ({ page }) => {
+  await load(page, fixture(Array.from({ length: 30 }, (_, index) => club(index))));
+  const map = page.locator('.map-canvas');
+  const list = page.locator('.club-results');
+
+  await expect(map).toHaveJSProperty('offsetHeight', 672);
+  await expect(list).toHaveJSProperty('offsetHeight', 672);
+
+  await page.setViewportSize({ width: 900, height: 900 });
+  await expect(map).toHaveJSProperty('offsetHeight', 624);
+  await expect(list).toHaveJSProperty('offsetHeight', 624);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(map).toHaveJSProperty('offsetHeight', 552);
+  await expect(list).toHaveJSProperty('offsetHeight', 384);
+});
+
 test.beforeEach(async ({ page }) => {
   // Deterministic local tests do not depend on or request the public tile service.
   await page.route('https://*.tile.openstreetmap.org/**', (route) => route.fulfill({
@@ -276,6 +293,25 @@ test('loading is announced and reduced-motion preferences are respected', async 
   await expect(clubMetrics).toHaveCount(9);
   await expect(page.locator('.leaflet-fade-anim')).toHaveCount(0);
   await expect(page.locator('.loading-state')).toHaveCount(0);
+});
+
+test('mobile map fitting keeps cluster targets clear of attribution after load and reset', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await load(page, fixture(smallData.data.map((record, index) => index < 3 ? { ...record, latitude: 59.6 } : record)));
+  const targetsHaveSpace = () => page.evaluate(() => {
+    const canvas = document.querySelector('.map-canvas')!.getBoundingClientRect();
+    const attribution = document.querySelector('.leaflet-control-attribution')!.getBoundingClientRect();
+    const clusters = [...document.querySelectorAll('.club-cluster')];
+    return clusters.length > 0 && clusters.every((cluster) => {
+      const bounds = cluster.getBoundingClientRect();
+      return bounds.top >= canvas.top && bounds.bottom + 8 <= attribution.top
+        && bounds.left >= canvas.left && bounds.right <= canvas.right;
+    });
+  });
+  await expect.poll(targetsHaveSpace).toBe(true);
+  await page.getByRole('button', { name: 'Näytä Suomi' }).click();
+  await expect.poll(targetsHaveSpace).toBe(true);
 });
 
 for (const width of [1440, 390, 320]) {
