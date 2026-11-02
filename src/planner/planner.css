@@ -127,7 +127,11 @@
 .filters-card summary h2 { margin: 0; font: 700 16px Manrope, sans-serif; }
 .filters-card summary::after { content: '▾'; margin-left: auto; color: var(--muted); }
 .filters-card:not([open]) summary::after { content: '▸'; }
-.filter-grid { display: grid; gap: 12px; margin-top: 12px; }
+.filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 12px; margin-top: 12px; }
+.filter-grid > .population-filters, .filter-grid > .region-filter { grid-column: 1 / -1; }
+.filter-grid > .population-filters { margin: 0; }
+.filters-card .competition-filters-embedded { margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid var(--border); }
+.filters-card .competition-filters-embedded .competition-controls { align-items: flex-end; gap: 10px 14px; }
 .field { display: grid; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 500; border: 0; padding: 0; margin: 0; min-width: 0; }
 .field legend { padding: 0; margin-bottom: 6px; }
 .field.inline { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 12px; }

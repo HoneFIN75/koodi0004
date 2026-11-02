@@ -57,7 +57,7 @@ function download(content: BlobPart, type: string, name: string) {
 }
 
 export default function PlannerApp() {
-  const { index: competitionIndex, yearFilter, error: competitionError } = useCompetitionData();
+  const { index: competitionIndex, yearFilter, setYearFilter, error: competitionError } = useCompetitionData();
   const competitionContext = useMemo(() => ({ index: competitionIndex, yearFilter }), [competitionIndex, yearFilter]);
   const [clubs, setClubs] = useState<Database | null>(null);
   const [dataset, setDataset] = useState<MunicipalityDataset | null>(null);
@@ -468,7 +468,7 @@ export default function PlannerApp() {
           <p className="hint">Valitse alue luettelosta tai kartalta, tai napsauta kuntaa nähdäksesi sen seurat ja alueet.</p>
         </section>
       )}
-      <CompetitionFilters />
+      {view !== 'map' && <CompetitionFilters />}
       {adminOpen && <CompetitionAnalytics geography={dataset?.municipalities} title="Ylläpidon kilpailutilastot" />}
 
       {migrationAvailable && canWrite && (
@@ -520,7 +520,7 @@ export default function PlannerApp() {
               onToggle={(region, field) => updateRegion(region.id, { [field]: !region[field] }, `${field === 'visible' ? (region.visible ? 'Piilotettu' : 'Näytetty') : (region.enabled ? 'Poistettu käytöstä' : 'Otettu käyttöön')}: ${region.name}`, field)} />
             <div className={`planner-map-layout${selectedRegion && !editingRegion ? ' has-region-detail' : ''}${editingRegion || (!selectedRegion && selectedMunicipality) ? ' has-map-panel' : ''}`}>
               <section className="planner-map-column" aria-label="Kartta">
-                <PlannerFilters filters={filters} regions={regions} maxMembers={Math.max(1, maxMembers)} votingOptions={votingOptions} onChange={setFilters} />
+                <PlannerFilters filters={filters} regions={regions} maxMembers={Math.max(1, maxMembers)} votingOptions={votingOptions} competitionFilterActive={yearFilter.mode !== 'all'} onChange={setFilters} onClear={() => { setFilters(emptyFilters); setYearFilter({ mode: 'all' }); }} />
                 <div className="map-options" role="group" aria-label="Karttatasot">
                   <label className="checkbox"><input type="checkbox" checked={showClubs} onChange={(event) => setShowClubs(event.target.checked)} /> Seurat</label>
                   <label className="checkbox"><input type="checkbox" checked={highlightUnassigned} onChange={(event) => setHighlightUnassigned(event.target.checked)} /> Korosta kohdistamattomat</label>

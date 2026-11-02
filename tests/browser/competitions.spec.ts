@@ -38,6 +38,7 @@ test('region statistics, coverage and trends update when years, municipality ass
   await page.getByRole('button', { name: 'Sulje muokkaus' }).click();
   const detail = page.locator('.region-detail');
   await expect(detail.locator('.stat-card').filter({ hasText: 'Kilpailuja · valitut vuodet' })).toContainText('3');
+  await page.locator('.filters-card > summary').click();
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('selected');
   await page.getByRole('group', { name: 'Valitse kilpailuvuodet' }).getByLabel('2020').check();
   await expect(detail.locator('.stat-card').filter({ hasText: 'Kilpailuja · valitut vuodet' })).toContainText('2');
@@ -82,7 +83,7 @@ test('homepage shows compact competition KPIs and the dynamic full data period',
   await expect(metrics.nth(2)).toContainText('2 kilpailua / kunta');
 });
 
-test('year selection is shared across views, scopes and exports, without competition map controls', async ({ page }) => {
+test('year selection is shared across views, scopes and exports, with map options kept separate', async ({ page }) => {
   await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: records }));
   await page.goto('./');
   const total = page.getByTestId('competition-total');
@@ -120,6 +121,7 @@ test('year selection is shared across views, scopes and exports, without competi
   await expect(page.locator('.map-options')).toHaveCount(0);
   await page.getByRole('button', { name: 'Kartta', exact: true }).click();
   await expect(page.locator('.map-options')).not.toContainText('Kilpailu');
+  await page.locator('.filters-card > summary').click();
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('range');
   await page.getByRole('combobox', { name: 'Alkuvuosi', exact: true }).selectOption('2021');
   await page.getByRole('combobox', { name: 'Loppuvuosi', exact: true }).selectOption('2022');

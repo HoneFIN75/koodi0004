@@ -3,11 +3,11 @@ import { describeCompetitionYears } from '../services/competitionService';
 import { refreshCompetitions } from '../state/competitionStore';
 import { useCompetitionData } from '../state/useCompetitions';
 
-export function CompetitionFilters({ compact = false }: { compact?: boolean }) {
+export function CompetitionFilters({ compact = false, embedded = false }: { compact?: boolean; embedded?: boolean }) {
   const { index, yearFilter, setYearFilter, error, refreshing, updatedAt } = useCompetitionData();
   const years = [...new Set([...(index?.years ?? []), ...(yearFilter.mode === 'selected' ? yearFilter.years : yearFilter.mode === 'range' ? [yearFilter.from, yearFilter.to] : [])])].sort((a, b) => a - b);
   const latest = years[years.length - 1];
-  return <section className={`competition-filters panel planner-card${compact ? ' competition-filters-compact' : ''}`} aria-label="Kilpailujen vuosisuodatus">
+  return <section className={`competition-filters${embedded ? ' competition-filters-embedded' : ' panel planner-card'}${compact ? ' competition-filters-compact' : ''}`} aria-label="Kilpailujen vuosisuodatus">
     <div className="competition-controls">
       <label>Kilpailujen vuodet
         <select value={yearFilter.mode} disabled={!index} onChange={(event) => {
