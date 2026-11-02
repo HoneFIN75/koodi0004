@@ -27,9 +27,13 @@ interface MapViewProps {
 const finlandBounds: L.LatLngTuple[] = [[59.6, 19], [70.2, 32]];
 const mapZoomOffset = 0.25;
 
-function fitBoundsWithZoom(map: L.Map, bounds: L.LatLngBoundsExpression, options: L.FitBoundsOptions = {}) {
+function fitBoundsWithZoom(map: L.Map, bounds: L.LatLngBoundsExpression, options: L.FitBoundsOptions = {}, zoomOffset = mapZoomOffset) {
   map.fitBounds(bounds, options);
-  map.setZoom(map.getZoom() + mapZoomOffset, { animate: options.animate });
+  map.setZoom(map.getZoom() + zoomOffset, { animate: options.animate });
+}
+
+function getMapZoomOffset(element: HTMLDivElement | null) {
+  return element && element.clientWidth > 650 ? mapZoomOffset : 0;
 }
 
 export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor, municipalities, provinces, provinceSettings, onProvinceSettingsChange }: MapViewProps) {
@@ -49,7 +53,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
       fadeAnimation: !reducedMotion.current,
       markerZoomAnimation: !reducedMotion.current,
     });
-    fitBoundsWithZoom(instance, finlandBounds, { padding: [20, 20] });
+    fitBoundsWithZoom(instance, finlandBounds, { padding: [20, 20] }, getMapZoomOffset(element.current));
     L.control.zoom({ position: 'bottomright' }).addTo(instance);
     const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -121,7 +125,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
     for (const club of allClubs) {
       if (hasLocation(club)) bounds.extend([club.latitude, club.longitude]);
     }
-    fitBoundsWithZoom(instance, bounds, { padding: [24, 24], animate: false });
+    fitBoundsWithZoom(instance, bounds, { padding: [24, 24], animate: false }, getMapZoomOffset(element.current));
   }, [allClubs]);
 
   useEffect(() => {
@@ -185,7 +189,7 @@ export function MapView({ clubs, allClubs, selectedClub, onSelect, populationFor
         onKeyDown={(event) => {
           if (event.key === 'Escape') for (const marker of markers.current.values()) marker.closeTooltip();
         }} />
-      <button className="map-reset" onClick={() => map.current && fitBoundsWithZoom(map.current, finlandBounds, { animate: !reducedMotion.current })}>Näytä Suomi</button>
+      <button className="map-reset" onClick={() => map.current && fitBoundsWithZoom(map.current, finlandBounds, { animate: !reducedMotion.current }, getMapZoomOffset(element.current))}>Näytä Suomi</button>
       {tileError && <p className="tile-error" role="status">Karttapohjan lataus epäonnistui. Seurat ovat silti käytettävissä luettelossa.</p>}
       <MapLegend />
     </div>
