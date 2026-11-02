@@ -101,10 +101,11 @@ test('club matrix sorts, filters, summarizes and adapts to mobile', async ({ pag
   await expect.poll(names).toEqual(['Alpha Disc Golf', 'Beta Disc Golf', 'Zulu Disc Golf']);
   await expect(table.locator('thead th button')).toHaveCount(await table.locator('thead th').count());
   await expect(table.locator('thead th').first()).toHaveAttribute('aria-sort', 'ascending');
+  await expect(table.getByRole('columnheader', { name: /Skenaario/ })).toHaveCount(0);
+  await expect(table.getByRole('columnheader', { name: /Jäseniä \/ 10 000 asukasta/ })).toHaveCount(0);
   await expect(table.locator('thead th').filter({ hasText: 'Perustamisvuosi' })).toHaveCount(1);
   await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText(/1\s?999/);
   await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText('Kaakkois-Suomi');
-  await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText('Nykyjako');
   await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText('2');
 
   const nameHeader = table.getByRole('columnheader', { name: /Seuran nimi/ });
@@ -131,7 +132,7 @@ test('club matrix sorts, filters, summarizes and adapts to mobile', async ({ pag
   await expect(table.locator('tbody tr')).toHaveCount(2);
   await filters.getByLabel('Skenaario').selectOption('alternate');
   await expect(table.locator('tbody tr').first()).toContainText('Sisä-Suomi');
-  await expect(table.locator('tbody tr').first()).toContainText('Vaihtoehto');
+  await expect(table.locator('tbody tr').first()).not.toContainText('Vaihtoehto');
   await filters.getByLabel('Skenaario').selectOption('current');
 
   const header = table.locator('thead th').first();
