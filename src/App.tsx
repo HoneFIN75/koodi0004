@@ -30,7 +30,7 @@ import { useCompetitionData, useCompetitionStatistics } from './state/useCompeti
 const numberFormat = new Intl.NumberFormat('fi-FI');
 const emptyClubs: Club[] = [];
 const emptyMunicipalities: NonNullable<MunicipalityDataset['municipalities']> = [];
-const initialFilters: Filters = { query: '', maxMembers: null, votes: null };
+const initialFilters: Filters = { query: '', minMembers: null, maxMembers: null, votes: null };
 
 function describeCompetitionPeriod(years: readonly number[]) {
   if (years.length === 0) return 'Vuosiaineistoa ei saatavilla';

@@ -90,12 +90,37 @@ test('all filters update markers, totals, distributions and empty state', async 
   await expect(page.locator('.map-title p')).toContainText('1 / 4');
   await expect(page.locator('.chart-card').filter({ has: page.getByRole('heading', { name: 'Äänimäärä jäsenmääräluokittain' }) })
     .locator('.bar-row').filter({ hasText: 'Jäseniä 100–299' }).locator('.bar-value')).toHaveText('15');
-  await page.getByRole('slider', { name: /Jäsenmäärä/ }).fill('25');
+  await page.getByRole('slider', { name: 'Jäsenmäärä enintään' }).fill('25');
   await expect(page.locator('.map-title p')).toContainText('0 / 4');
   await expect(page.locator('.club-results')).toContainText('Ei suodattimia vastaavia seuroja');
   await expect(page.locator('.club-marker')).toHaveCount(0);
   await expect(page.locator('.club-cluster')).toHaveCount(0);
   await page.getByRole('button', { name: 'Tyhjennä suodattimet' }).click();
+  await expect(page.locator('.map-title p')).toContainText('4 / 4');
+});
+
+test('minimum and maximum membership sliders constrain the same interval', async ({ page }) => {
+  await load(page);
+  const minimum = page.getByRole('slider', { name: 'Jäsenmäärä vähintään' });
+  const maximum = page.getByRole('slider', { name: 'Jäsenmäärä enintään' });
+  await minimum.fill('25');
+  await expect(page.locator('.map-title p')).toContainText('3 / 4');
+  await expect(page.locator('.member-filter legend')).toContainText('25 – 1\u00a0000');
+
+  await maximum.fill('100');
+  await expect(page.locator('.map-title p')).toContainText('2 / 4');
+  await expect(page.locator('.member-filter legend')).toContainText('25 – 100');
+
+  await minimum.fill('1000');
+  await expect(page.locator('.map-title p')).toContainText('1 / 4');
+  await expect(page.locator('.member-filter legend')).toContainText('1\u00a0000 – 1\u00a0000');
+
+  await maximum.fill('0');
+  await expect(page.locator('.map-title p')).toContainText('1 / 4');
+  await expect(page.locator('.member-filter legend')).toContainText('0 – 0');
+
+  await minimum.fill('0');
+  await maximum.fill('1000');
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
 });
 
