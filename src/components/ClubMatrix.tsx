@@ -3,7 +3,7 @@ import { RotateCcw } from 'lucide-react';
 import type { Club } from '../models/club';
 import type { Municipality, Scenario } from '../models/region';
 import { formatCount } from '../services/mapService';
-import { normalizeMunicipalityName, per10000Residents } from '../services/populationService';
+import { normalizeMunicipalityName } from '../services/populationService';
 import { SortableTableHeader } from './SortableTableHeader';
 import { sortTableRows, toggleTableSort, type TableSortState } from '../services/tableSorting';
 
@@ -13,7 +13,6 @@ interface MatrixRow {
   club: Club;
   municipality: Municipality | null;
   regions: string[];
-  scenario: string;
   competitions: number | null;
 }
 
@@ -85,7 +84,6 @@ export function ClubMatrix({
       club,
       municipality,
       regions,
-      scenario: selectedScenario?.name ?? '',
       competitions: municipality
         ? competitionCounts.get(normalizeMunicipalityName(municipality.name)) ?? 0
         : null,
@@ -99,10 +97,8 @@ export function ClubMatrix({
     { id: 'votes', label: 'Äänimäärä', value: ({ club }) => club.aanimaara },
     { id: 'municipality', label: 'Kotikaupunki', value: ({ club }) => club.paikkakunta },
     { id: 'area', label: 'Alue', value: ({ regions }) => regions.length ? regions.join(', ') : 'Ei kohdistettu' },
-    { id: 'scenario', label: 'Skenaario', value: ({ scenario }) => scenario || null },
     { id: 'population', label: 'Kunnan väkiluku 2025', value: ({ municipality }) => municipality?.population ?? null },
     { id: 'competitions', label: 'Kilpailuja kotikunnassa', value: ({ competitions }) => competitions },
-    { id: 'per-capita', label: 'Jäseniä / 10 000 asukasta', value: ({ club, municipality }) => per10000Residents(club.jasenmaara, municipality?.population ?? null) },
     ...extraKeys.map((key) => ({
       id: `detail:${key}`,
       label: extraLabels[key] ?? key,
