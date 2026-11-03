@@ -101,7 +101,7 @@ Nykyinen staattinen SPA + PHP + JSON-ratkaisu on perusteltu nykyisille aineistom
 
 Auditoinnissa vahvistui **24 merkityksellistä löydöstä**; listaa ei täydennetä näyttöä vailla olevilla havainnoilla. Severity tarkoittaa vaikutusta tässä repositoriossa: Korkea = korjaa ennen kuin luottaa kyseiseen toimintaan, Keskitaso = priorisoitu parannus, Matala = rajattu ylläpidettävyys-/kasvuriski.
 
-### F-01 — Aluesuunnitelman migraation E2E-testi epäonnistuu paikallisessa toistossa
+### F-01 — Aluesuunnitelman migraation E2E-testi epäonnistuu paikallisessa toistossa - Status: Done 3.11.2026
 
 - **Severity / kategoria:** Keskitaso — Testaus ja toimitusvarmuus
 - **Tarkka sijainti:** `tests/browser/planner.spec.ts:517–545`; `src/App.tsx:128–130`; `src/planner/PlannerApp.tsx:151–153`
