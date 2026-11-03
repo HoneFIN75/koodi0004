@@ -1,9 +1,17 @@
+import type { ReactNode } from 'react';
 import { Layers, Map as MapIcon, MapPinned, Scale, Users, Vote, Flag, Shapes, Maximize2, Minimize2 } from 'lucide-react';
 import type { MunicipalityDataset, Region } from '../../models/region';
 import { formatArea, formatPercent, type ScenarioAnalysis } from '../../services/regionAnalytics';
 import type { ValidationWarning } from '../../services/validationService';
 import { BarChart, StatCard, WarningList, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
+
+function DashboardChart({ title, children }: { title: string; children: ReactNode }) {
+  return <details className="planner-card dashboard-chart" open>
+    <summary aria-label={`Näytä tai piilota: ${title}`}><span aria-hidden="true">⌄</span></summary>
+    <div>{children}</div>
+  </details>;
+}
 
 interface DashboardViewProps {
   analysis: ScenarioAnalysis;
@@ -28,7 +36,9 @@ export function DashboardView({ analysis, regions, dataset, scenarioCount, scena
       <header className="view-header">
         <div><p className="eyebrow">JOHDON KOJELAUTA</p><h2>{scenarioName}</h2><p>{filtered ? 'Seuraluvut on laskettu suodatetusta aineistosta.' : 'Luvut lasketaan reaaliaikaisesti seura-aineistosta ja kuntarajoista.'}</p></div>
       </header>
-      <div className="stat-grid">
+      <details className="planner-card dashboard-disclosure" open>
+        <summary>Tunnusluvut</summary>
+        <div className="stat-grid">
         <StatCard label="Kilpailuja valittuina vuosina" value={formatCount(analysis.totals.competitionCount)} />
         <StatCard label="Alueiden kattamat kilpailut" value={formatCount(analysis.totals.assignedCompetitions)} detail="päällekkäiset kunnat kerran" />
         <StatCard label="Kohdistamattomien kuntien kilpailut" value={formatCount(analysis.totals.unassignedCompetitions)} />
@@ -46,15 +56,18 @@ export function DashboardView({ analysis, regions, dataset, scenarioCount, scena
         <StatCard icon={Maximize2} label="Suurin alue" value={largest ? largest.region.name : '–'} detail={largest ? `${formatArea(largest.stats.areaKm2)} · ${formatPercent(largest.stats.areaShare)}` : undefined} />
         <StatCard icon={Minimize2} label="Pienin alue" value={smallest ? smallest.region.name : '–'} detail={smallest ? `${formatArea(smallest.stats.areaKm2)} · ${formatPercent(smallest.stats.areaShare)}` : undefined} />
         <StatCard icon={Scale} label="Varoituksia" value={warnings.filter((warning) => warning.severity === 'warning').length} tone={warnings.length ? 'warning' : undefined} detail={`${warnings.filter((warning) => warning.severity === 'info').length} huomiota`} />
-      </div>
+        </div>
+      </details>
       <div className="chart-grid">
-        <section className="planner-card"><BarChart title="Kilpailuja alueittain · valitut vuodet" rows={[...active].filter(({ stats }) => stats.competitionCount !== null).sort((a, b) => (b.stats.competitionCount ?? 0) - (a.stats.competitionCount ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.competitionCount ?? 0, color: region.color }))} /><p className="hint">Aluekohtaisesti päällekkäisyys sallitaan; valtakunnallinen summa laskee kilpailun kerran. Seurasuodattimet eivät rajaa kilpailuja.</p></section>
-        <section className="planner-card"><BarChart title="Väestö 2025 alueittain" rows={[...active].filter(({ stats }) => stats.population !== null).sort((a, b) => (b.stats.population ?? 0) - (a.stats.population ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.population ?? 0, color: region.color, display: formatCount(stats.population) }))} /></section>
-        <section className="planner-card"><BarChart title="Jäseniä / 10 000 asukasta" rows={[...active].filter(({ stats }) => stats.membersPer10000 !== null).sort((a, b) => (b.stats.membersPer10000 ?? 0) - (a.stats.membersPer10000 ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.membersPer10000 ?? 0, color: region.color, display: formatCount(stats.membersPer10000) }))} /><p className="hint">Väestö koskee koko aluetta; seuraluvut seuraavat suodatusta. Päällekkäisillä alueilla sama väestö näkyy kummassakin aluepalkissa.</p></section>
-        <section className="planner-card"><BarChart title="Kattavuusjakauma: osuus Suomen pinta-alasta" rows={byArea.map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.areaShare * 100, color: region.color, display: formatPercent(stats.areaShare) }))} emptyText="Ei käytössä olevia alueita, joissa on kuntia." /></section>
-        <section className="planner-card"><BarChart title="Jäsenet alueittain" rows={[...active].sort((a, b) => b.stats.members - a.stats.members).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.members, color: region.color, display: integerFormat.format(stats.members) }))} /></section>
-        <section className="planner-card"><BarChart title="Äänimäärä alueittain" rows={[...active].sort((a, b) => b.stats.votes - a.stats.votes).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.votes, color: region.color, display: integerFormat.format(stats.votes) }))} /></section>
-        <section className="planner-card"><BarChart title="Seuroja / 1 000 km²" rows={[...active].sort((a, b) => b.stats.clubsPerKm2 - a.stats.clubsPerKm2).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.clubsPerKm2 * 1000, color: region.color }))} /></section>
+        <DashboardChart title="Kilpailuja alueittain · valitut vuodet">
+          <BarChart title="Kilpailuja alueittain · valitut vuodet" rows={[...active].filter(({ stats }) => stats.competitionCount !== null).sort((a, b) => (b.stats.competitionCount ?? 0) - (a.stats.competitionCount ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.competitionCount ?? 0, color: region.color }))} /><p className="hint">Aluekohtaisesti päällekkäisyys sallitaan; valtakunnallinen summa laskee kilpailun kerran. Seurasuodattimet eivät rajaa kilpailuja.</p>
+        </DashboardChart>
+        <DashboardChart title="Väestö 2025 alueittain"><BarChart title="Väestö 2025 alueittain" rows={[...active].filter(({ stats }) => stats.population !== null).sort((a, b) => (b.stats.population ?? 0) - (a.stats.population ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.population ?? 0, color: region.color, display: formatCount(stats.population) }))} /></DashboardChart>
+        <DashboardChart title="Jäseniä / 10 000 asukasta"><BarChart title="Jäseniä / 10 000 asukasta" rows={[...active].filter(({ stats }) => stats.membersPer10000 !== null).sort((a, b) => (b.stats.membersPer10000 ?? 0) - (a.stats.membersPer10000 ?? 0)).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.membersPer10000 ?? 0, color: region.color, display: formatCount(stats.membersPer10000) }))} /><p className="hint">Väestö koskee koko aluetta; seuraluvut seuraavat suodatusta. Päällekkäisillä alueilla sama väestö näkyy kummassakin aluepalkissa.</p></DashboardChart>
+        <DashboardChart title="Kattavuusjakauma: osuus Suomen pinta-alasta"><BarChart title="Kattavuusjakauma: osuus Suomen pinta-alasta" rows={byArea.map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.areaShare * 100, color: region.color, display: formatPercent(stats.areaShare) }))} emptyText="Ei käytössä olevia alueita, joissa on kuntia." /></DashboardChart>
+        <DashboardChart title="Jäsenet alueittain"><BarChart title="Jäsenet alueittain" rows={[...active].sort((a, b) => b.stats.members - a.stats.members).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.members, color: region.color, display: integerFormat.format(stats.members) }))} /></DashboardChart>
+        <DashboardChart title="Äänimäärä alueittain"><BarChart title="Äänimäärä alueittain" rows={[...active].sort((a, b) => b.stats.votes - a.stats.votes).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.votes, color: region.color, display: integerFormat.format(stats.votes) }))} /></DashboardChart>
+        <DashboardChart title="Seuroja / 1 000 km²"><BarChart title="Seuroja / 1 000 km²" rows={[...active].sort((a, b) => b.stats.clubsPerKm2 - a.stats.clubsPerKm2).map(({ region, stats }) => ({ id: region.id, label: label(region), value: stats.clubsPerKm2 * 1000, color: region.color }))} /></DashboardChart>
       </div>
       {analysis.totals.unmatchedCompetitionMunicipalities.length > 0 && <p className="notice" role="alert">Kuntarajoihin kohdistumattomat kilpailukunnat: {analysis.totals.unmatchedCompetitionMunicipalities.join(', ')}. Niiden kilpailut sisältyvät valtakunnallisiin lukuihin, eivät aluelukuihin.</p>}
       <section className="planner-card">

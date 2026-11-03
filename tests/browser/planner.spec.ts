@@ -119,14 +119,13 @@ test('planner filters collapse by default and keep competition-year controls ava
 
   const filters = page.locator('.filters-card');
   await expect(filters).toHaveJSProperty('open', false);
-  await filters.locator(':scope > summary').click();
-  const years = filters.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true });
+  const years = page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true });
   await expect(years).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
   await years.selectOption('selected');
-  await expect(filters.getByRole('group', { name: 'Valitse kilpailuvuodet' })).toBeVisible();
-  await expect(filters.locator('.pill')).toHaveText('käytössä');
+  await expect(page.getByRole('group', { name: 'Valitse kilpailuvuodet' })).toBeVisible();
+  await expect(filters.locator('.pill')).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Kojelauta', exact: true }).click();
   await expect(page.locator('.filters-card')).toHaveCount(0);
@@ -135,8 +134,10 @@ test('planner filters collapse by default and keep competition-year controls ava
   await expect(globalYears).toHaveValue('selected');
   await page.getByRole('button', { name: 'Kartta', exact: true }).click();
   await filters.locator(':scope > summary').click();
+  await filters.getByRole('searchbox', { name: 'Seuran nimi' }).fill('testi');
   await filters.getByRole('button', { name: 'Tyhjennä suodattimet' }).click();
-  await expect(filters.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true })).toHaveValue('all');
+  await expect(globalYears).toHaveValue('selected');
+  await globalYears.selectOption('all');
   await expect(filters.locator('.pill')).toHaveCount(0);
 });
 

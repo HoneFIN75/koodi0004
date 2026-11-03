@@ -3,7 +3,6 @@ import { RotateCcw } from 'lucide-react';
 import type { Club } from '../models/club';
 import type { Municipality, Scenario } from '../models/region';
 import { formatCount } from '../services/mapService';
-import { normalizeMunicipalityName } from '../services/populationService';
 import { SortableTableHeader } from './SortableTableHeader';
 import { sortTableRows, toggleTableSort, type TableSortState } from '../services/tableSorting';
 
@@ -13,7 +12,6 @@ interface MatrixRow {
   club: Club;
   municipality: Municipality | null;
   regions: string[];
-  competitions: number | null;
 }
 
 interface MatrixColumn {
@@ -27,7 +25,6 @@ interface ClubMatrixProps {
   municipalityByClub: ReadonlyMap<Club, Municipality | null>;
   scenarios: readonly Scenario[];
   activeScenarioId: string;
-  competitionCounts: ReadonlyMap<string, number>;
   scenarioLoading: boolean;
   scenarioError: string | null;
 }
@@ -58,7 +55,7 @@ function MatrixMetric({ label, value, detail }: { label: string; value: MatrixVa
 }
 
 export function ClubMatrix({
-  clubs, municipalityByClub, scenarios, activeScenarioId, competitionCounts, scenarioLoading, scenarioError,
+  clubs, municipalityByClub, scenarios, activeScenarioId, scenarioLoading, scenarioError,
 }: ClubMatrixProps) {
   const [query, setQuery] = useState('');
   const [regionId, setRegionId] = useState('');
@@ -84,11 +81,8 @@ export function ClubMatrix({
       club,
       municipality,
       regions,
-      competitions: municipality
-        ? competitionCounts.get(normalizeMunicipalityName(municipality.name)) ?? 0
-        : null,
     };
-  }), [clubs, competitionCounts, municipalityByClub, selectedScenario]);
+  }), [clubs, municipalityByClub, selectedScenario]);
 
   const extraKeys = useMemo(() => [...new Set(clubs.flatMap((club) => Object.keys(club.details)))].sort((a, b) => collator.compare(a, b)), [clubs]);
   const columns = useMemo<MatrixColumn[]>(() => [
@@ -98,7 +92,6 @@ export function ClubMatrix({
     { id: 'municipality', label: 'Kotikaupunki', value: ({ club }) => club.paikkakunta },
     { id: 'area', label: 'Alue', value: ({ regions }) => regions.length ? regions.join(', ') : 'Ei kohdistettu' },
     { id: 'population', label: 'Kunnan väkiluku 2025', value: ({ municipality }) => municipality?.population ?? null },
-    { id: 'competitions', label: 'Kilpailuja kotikunnassa', value: ({ competitions }) => competitions },
     ...extraKeys.map((key) => ({
       id: `detail:${key}`,
       label: extraLabels[key] ?? key,

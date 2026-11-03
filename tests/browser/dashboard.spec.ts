@@ -159,7 +159,7 @@ test('all dashboard data tables sort from the first column and toggle each headi
   ] }));
   await load(page);
   const population = page.locator('.population-table table');
-  await expect(population.locator('thead th button')).toHaveCount(7);
+  await expect(population.locator('thead th button')).toHaveCount(5);
   const municipalityHeader = population.getByRole('columnheader', { name: /Kunta/ });
   await expect(municipalityHeader).toHaveAttribute('aria-sort', 'ascending');
   const municipalityNames = () => population.locator('tbody tr th').allTextContents();
@@ -171,27 +171,10 @@ test('all dashboard data tables sort from the first column and toggle each headi
   await expect(municipalityHeader).toHaveAttribute('aria-sort', 'ascending');
   await expect.poll(municipalityNames).toEqual(alphabeticRows);
 
-  const analytics = page.getByRole('region', { name: 'Suomen kilpailutoiminta', exact: true });
-  const yearTable = analytics.locator('table').first();
-  await expect(yearTable.locator('thead th button')).toHaveCount(6);
-  const yearHeader = yearTable.getByRole('columnheader', { name: 'Vuosi' });
-  await expect(yearTable.locator('tbody tr th').allTextContents()).resolves.toEqual(['2020', '2021', '2022']);
-  await yearHeader.getByRole('button').click();
-  await expect(yearHeader).toHaveAttribute('aria-sort', 'descending');
-  await expect(yearTable.locator('tbody tr th').allTextContents()).resolves.toEqual(['2022', '2021', '2020']);
-
-  const ranking = analytics.locator('details table');
-  await expect(ranking.locator('thead th button')).toHaveCount(7);
-  const rankHeader = ranking.getByRole('columnheader', { name: 'Sijoitus' });
-  await expect(rankHeader).toHaveAttribute('aria-sort', 'ascending');
-  const rankingRows = () => ranking.locator('tbody tr th').allTextContents();
-  const municipalityRankingHeader = ranking.getByRole('columnheader', { name: 'Kunta' });
-  await municipalityRankingHeader.getByRole('button').click();
-  await expect(municipalityRankingHeader).toHaveAttribute('aria-sort', 'ascending');
-  await expect.poll(rankingRows).toEqual(['Espoo', 'Helsinki', 'Turku']);
-  await municipalityRankingHeader.getByRole('button').click();
-  await expect(municipalityRankingHeader).toHaveAttribute('aria-sort', 'descending');
-  await expect.poll(rankingRows).toEqual(['Turku', 'Helsinki', 'Espoo']);
+  await expect(page.locator('.competition-map-section')).toContainText('Missä kilpailuja järjestetään?');
+  await expect(page.getByTestId('competition-total')).toHaveText('5');
+  await expect(page.getByRole('combobox', { name: 'Kunta', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Kilpailun nimi')).toBeVisible();
 });
 
 test('population is shared across routes, supports municipality comparisons and filters club maps', async ({ page }) => {
@@ -421,7 +404,7 @@ test('coincident clubs cluster and expand with keyboard navigation', async ({ pa
   await cluster.focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('.club-marker')).toHaveCount(3);
-  await expect(page.locator('.leaflet-overlay-pane path:not(.province-fill):not(.province-border)')).toHaveCount(3);
+  await expect(page.locator('.map-section .leaflet-overlay-pane path:not(.province-fill):not(.province-border)')).toHaveCount(3);
   await expect(cluster).toHaveAttribute('tabindex', '-1');
   await expect(cluster).toHaveAttribute('aria-hidden', 'true');
 });
@@ -490,11 +473,12 @@ test('loading is announced and reduced-motion preferences are respected', async 
   await expect(page.locator('.loading-state')).toBeVisible();
   const clubMetrics = page.locator('.dashboard-metric-sections .metric-card');
   await expect(clubMetrics).toHaveCount(0);
-  await expect(page.getByRole('region', { name: 'Kilpailujen yhteenveto', exact: true }).locator('.metric-card')).toHaveCount(3);
+  await expect(page.locator('.competition-map-section')).toBeVisible();
+  await expect(page.getByTestId('competition-total')).toBeVisible();
   release();
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
   await expect(clubMetrics).toHaveCount(9);
-  await expect(page.locator('.leaflet-fade-anim')).toHaveCount(0);
+  await expect(page.locator('.map-section .leaflet-fade-anim')).toHaveCount(0);
   await expect(page.locator('.loading-state')).toHaveCount(0);
 });
 
@@ -503,8 +487,8 @@ test('mobile map fitting keeps cluster targets clear of attribution after load a
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await load(page, fixture(smallData.data.map((record, index) => index < 3 ? { ...record, latitude: 59.6 } : record)));
   const targetsHaveSpace = () => page.evaluate(() => {
-    const canvas = document.querySelector('.map-canvas')!.getBoundingClientRect();
-    const attribution = document.querySelector('.leaflet-control-attribution')!.getBoundingClientRect();
+    const canvas = document.querySelector('.map-section .map-canvas')!.getBoundingClientRect();
+    const attribution = document.querySelector('.map-section .leaflet-control-attribution')!.getBoundingClientRect();
     const clusters = [...document.querySelectorAll('.club-cluster')];
     return clusters.length > 0 && clusters.every((cluster) => {
       const bounds = cluster.getBoundingClientRect();
@@ -513,7 +497,7 @@ test('mobile map fitting keeps cluster targets clear of attribution after load a
     });
   });
   await expect.poll(targetsHaveSpace).toBe(true);
-  await page.getByRole('button', { name: 'Näytä Suomi' }).click();
+  await page.locator('.map-section').getByRole('button', { name: 'Näytä Suomi' }).click();
   await expect.poll(targetsHaveSpace).toBe(true);
 });
 

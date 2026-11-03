@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import type { Municipality } from '../models/region';
-import { getMunicipalityRank, getPopulationCategory, matchesPopulation, normalizeMunicipalityName, per10000Residents, populationCategories, populationService, summarizePopulation, type PopulationFilters as Filters } from '../services/populationService';
+import { getMunicipalityRank, getPopulationCategory, matchesPopulation, normalizeMunicipalityName, populationCategories, populationService, summarizePopulation, type PopulationFilters as Filters } from '../services/populationService';
 import { PopulationFilters } from './PopulationFilters';
 import { formatCount } from '../services/mapService';
-import { useCompetitionStatistics } from '../state/useCompetitions';
 import { SortableTableHeader } from './SortableTableHeader';
 import { sortTableRows, toggleTableSort, type TableSortState } from '../services/tableSorting';
 
@@ -16,11 +15,8 @@ export function PopulationExplorer({ municipalities }: { municipalities: Municip
   const summary = useMemo(() => summarizePopulation(municipalities), [municipalities]);
   const filtered = useMemo(() => summary.sorted.filter((item) => matchesPopulation(item.population, filters)
     && [item.name, item.nameSv ?? ''].some((name) => normalizeMunicipalityName(name).includes(normalizeMunicipalityName(query)))), [summary, filters, query]);
-  const competitions = useCompetitionStatistics({ municipalityNames: filtered.map((item) => item.name) }, municipalities);
-  const competitionCounts = useMemo(() => new Map(competitions?.municipalities.map((item) => [normalizeMunicipalityName(item.name), item])), [competitions]);
   const rows = useMemo(() => sortTableRows(filtered.map((item) => ({
     item,
-    count: competitions ? competitionCounts.get(normalizeMunicipalityName(item.name))?.count ?? 0 : null,
     share: summary.total && item.population !== null ? item.population / summary.total * 100 : null,
   })), sort, (row, key) => {
     if (key === 'name') return row.item.name;
@@ -28,9 +24,8 @@ export function PopulationExplorer({ municipalities }: { municipalities: Municip
     if (key === 'rank') return getMunicipalityRank(row.item.name);
     if (key === 'category') return getPopulationCategory(row.item.population)?.label;
     if (key === 'share') return row.share;
-    if (key === 'competitions') return row.count;
-    return per10000Residents(row.count, row.item.population);
-  }), [competitionCounts, competitions, filtered, sort, summary.total]);
+    return null;
+  }), [filtered, sort, summary.total]);
   const categories = populationCategories.map((category) => ({
     ...category,
     count: filtered.filter((item) => getPopulationCategory(item.population)?.id === category.id).length,
@@ -51,19 +46,16 @@ export function PopulationExplorer({ municipalities }: { municipalities: Municip
       <label>Näytettäviä kuntia<select value={limit} onChange={(event) => setLimit(Number(event.target.value))}>{[10, 20, 50, 0].map((count) => <option key={count} value={count}>{count === 0 ? 'Kaikki' : count}</option>)}</select></label>
     </div>
     <p role="status">{filtered.length} kuntaa rajauksessa · {formatCount(summarizePopulation(filtered).total)} asukasta.</p>
-    <p>Rajauksen kilpailutoiminta aktiivisina kilpailuvuosina: {formatCount(competitions?.total ?? null)} kilpailua · {competitions?.municipalityCount ?? '–'} aktiivista kuntaa.</p>
-    <div className="population-table" tabIndex={0} role="region" aria-label="Vieritettävä kuntien väestötaulukko"><table className="data-table"><caption>Kuntien väestö- ja kilpailutiedot</caption>
+    <div className="population-table" tabIndex={0} role="region" aria-label="Vieritettävä kuntien väestötaulukko"><table className="data-table"><caption>Kuntien väestötiedot</caption>
       <thead><tr>
         <SortableTableHeader columnKey="name" label="Kunta" sortKey={sort.key} direction={sort.direction} onSort={(key) => setSort((current) => toggleTableSort(current, key))} />
         <SortableTableHeader columnKey="population" label="Väestö 2025" sortKey={sort.key} direction={sort.direction} onSort={(key) => setSort((current) => toggleTableSort(current, key))} />
         <SortableTableHeader columnKey="rank" label="Suomen sijoitus" sortKey={sort.key} direction={sort.direction} onSort={(key) => setSort((current) => toggleTableSort(current, key))} />
         <SortableTableHeader columnKey="category" label="Väestöluokka" sortKey={sort.key} direction={sort.direction} onSort={(key) => setSort((current) => toggleTableSort(current, key))} />
         <SortableTableHeader columnKey="share" label="Osuus Suomesta" sortKey={sort.key} direction={sort.direction} onSort={(key) => setSort((current) => toggleTableSort(current, key))} />
-        <SortableTableHeader columnKey="competitions" label="Kilpailuja · valitut vuodet" sortKey={sort.key} direction={sort.direction} onSort={(key) => setSort((current) => toggleTableSort(current, key))} />
-        <SortableTableHeader columnKey="density" label="Kilpailuja / 10 000 as." sortKey={sort.key} direction={sort.direction} onSort={(key) => setSort((current) => toggleTableSort(current, key))} />
       </tr></thead>
-      <tbody>{rows.slice(0, limit || rows.length).map(({ item, count, share }) => {
-        return <tr key={item.code}><th scope="row">{item.name}</th><td>{formatCount(item.population)}</td><td>{getMunicipalityRank(item.name) ?? 'Ei tietoa'}</td><td>{getPopulationCategory(item.population)?.label ?? 'Ei tietoa'}</td><td>{share !== null ? `${share.toLocaleString('fi-FI', { maximumFractionDigits: 2 })} %` : 'Ei tietoa'}</td><td>{formatCount(count)}</td><td>{formatCount(per10000Residents(count, item.population))}</td></tr>;
+      <tbody>{rows.slice(0, limit || rows.length).map(({ item, share }) => {
+        return <tr key={item.code}><th scope="row">{item.name}</th><td>{formatCount(item.population)}</td><td>{getMunicipalityRank(item.name) ?? 'Ei tietoa'}</td><td>{getPopulationCategory(item.population)?.label ?? 'Ei tietoa'}</td><td>{share !== null ? `${share.toLocaleString('fi-FI', { maximumFractionDigits: 2 })} %` : 'Ei tietoa'}</td></tr>;
       })}</tbody>
     </table></div>
     <h3>Väestöluokkien jakauma rajauksessa</h3>
@@ -71,6 +63,5 @@ export function PopulationExplorer({ municipalities }: { municipalities: Municip
     <h3>Kuntien väestövertailu</h3>
     <div className="population-controls">{comparison.map((code, index) => <label key={index}>Vertailukunta {index + 1}<select value={code} onChange={(event) => setComparison(index === 0 ? [event.target.value, comparison[1]] : [comparison[0], event.target.value])}><option value="">Valitse kunta</option>{municipalities.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}</select></label>)}</div>
     {selected[0] && selected[1] && <p role="status">{selected[0].name}: {formatCount(selected[0].population)} · {selected[1].name}: {formatCount(selected[1].population)}. Väestöero: {selected[0].population !== null && selected[1].population !== null ? formatCount(Math.abs(selected[0].population - selected[1].population)) : 'Ei tietoa'} asukasta.</p>}
-    {selected[0] && selected[1] && <p>Kilpailuja valittuina vuosina (väestörajauksen mukaiset kunnat): {selected.map((item) => item ? `${item.name}: ${!filtered.includes(item) ? 'ei rajauksessa' : competitions ? competitionCounts.get(normalizeMunicipalityName(item.name))?.count ?? 0 : 'ei tietoa'}` : '').join(' · ')}.</p>}
   </section>;
 }

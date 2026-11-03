@@ -88,7 +88,7 @@ test('navigation and browser history connect the dashboard, source page and plan
   await page.goto('./');
   await expect(page.locator('.map-title p')).toContainText('2 / 2');
   await page.getByRole('textbox', { name: 'Hae seuraa tai kuntaa' }).fill('Seura A');
-  await page.locator('.dashboard-competition-overview').getByRole('combobox', { name: 'Kilpailujen vuodet' }).selectOption('selected');
+  await page.locator('.competition-map-section').getByRole('combobox', { name: 'Kilpailujen vuodet' }).selectOption('selected');
   await expect(page.locator('.map-title p')).toContainText('1 / 2');
   await page.getByRole('link', { name: 'Sovellus ja datalähteet', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Sovellus ja datalähteet' })).toBeVisible();
@@ -107,7 +107,7 @@ test('navigation and browser history connect the dashboard, source page and plan
   await page.goForward();
   await expect(page.locator('#tilastot')).toBeInViewport();
   await page.getByRole('link', { name: 'Sovellus ja datalähteet', exact: true }).click();
-  await page.getByRole('link', { name: 'Kartta', exact: true }).click();
+  await page.getByRole('link', { name: 'Seurat', exact: true }).click();
   await expect(page.locator('#kartta')).toBeInViewport();
 });
 
