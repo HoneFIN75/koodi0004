@@ -104,9 +104,13 @@ The `Validate dashboard` workflow runs service tests and production browser chec
 
 Additional scalar JSON fields are retained and automatically rendered in the detail panel. `district`, `region`, `website`, `email`, and `foundedYear` have Finnish display labels. Only valid HTTP(S) websites and email addresses become links; other values remain safe text. Add display labels in `ClubDetail.tsx` without changing data loading.
 
-## Data sources (`#/datalahteet`)
+## Application overview and data sources (`#/datalahteet`)
 
-The standalone **Datalähteet** page documents the six application datasets in Finnish, including provenance, contents, uses, limitations, and public/private contact handling. It is accessible from the main navigation and planner header, supports direct links and browser history, and shares the dashboard's theme and responsive layout.
+The standalone **Sovellus ja datalähteet** page introduces Seurakartta before documenting its six datasets in Finnish. The overview covers purpose, audiences, features, a five-step user journey, modules with production access roles, and user benefits. Its curated content in `src/data/applicationOverview.ts` is based on `sovelluksen-esittely.md`; update both when capabilities or roles change. `ApplicationOverview.tsx` renders reusable overview sections, including the integration summary, without a Markdown runtime dependency.
+
+The existing `#/datalahteet` route is preserved for old links. The main navigation, planner link and browser title use the combined page name. In-page shortcuts scroll and focus section headings without replacing the hash route or resetting expanded source cards. Existing source descriptions, provenance, limitations, public/private contact handling, counts and retry behavior remain available at the end of the page. The overview remains readable even when live datasets fail to load.
+
+The page shares the dashboard theme and responsive layout. Its accessibility test waits for the final body background after switching themes before measuring contrast, including a deliberately slowed transition regression case; an intermediate animated color must not be mistaken for the final theme's contrast.
 
 `src/data/dataSources.ts` holds the typed source definitions and optional source system, update frequency, record count, last-update timestamp, and owner metadata. Unknown metadata is displayed as **Ei saatavilla**; refresh/check frequency is not presented as source-update frequency.
 

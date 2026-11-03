@@ -44,11 +44,11 @@ test.beforeEach(async ({ page }) => {
   }));
 });
 
-test('standalone source documentation has accessible cards, live unfiltered counts and source timestamps', async ({ page }) => {
+test('combined overview preserves accessible source cards, live counts and source timestamps', async ({ page }) => {
   await page.goto('#/datalahteet');
-  await expect(page).toHaveTitle('Datalähteet — Suomen frisbeegolfseurat');
-  await expect(page.getByRole('heading', { level: 1, name: 'Datalähteet' })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Päänavigaatio' }).getByRole('link', { name: 'Datalähteet' })).toHaveAttribute('aria-current', 'page');
+  await expect(page).toHaveTitle('Sovellus ja datalähteet — Suomen frisbeegolfseurat');
+  await expect(page.getByRole('heading', { level: 1, name: 'Sovellus ja datalähteet' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Päänavigaatio' }).getByRole('link', { name: 'Sovellus ja datalähteet' })).toHaveAttribute('aria-current', 'page');
   const cards = page.locator('.data-source-card');
   await expect(cards).toHaveCount(6);
   await expect(cards.first()).toHaveJSProperty('open', false);
@@ -69,13 +69,18 @@ test('standalone source documentation has accessible cards, live unfiltered coun
   await expect(competitionMetadata).toContainText('2024–2025');
   await expect(page.getByRole('heading', { name: 'Kunnat ja kartta', exact: true })).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.addStyleTag({ content: 'body { transition-duration: 2s; }' });
   await page.getByRole('button', { name: 'Vaihda vaaleaan tilaan' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(243, 245, 240)');
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
-  for (const width of [320, 390, 650, 768, 950, 1024, 1440]) {
+  for (const width of [320, 390, 650, 768, 950, 1024, 1100, 1200, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await expect(page.getByRole('link', { name: 'Datalähteet', exact: true })).toBeVisible();
+    const navigationLink = page.getByRole('link', { name: 'Sovellus ja datalähteet', exact: true });
+    await expect(navigationLink).toBeVisible();
+    expect(await navigationLink.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   }
 });
 
@@ -85,25 +90,54 @@ test('navigation and browser history connect the dashboard, source page and plan
   await page.getByRole('textbox', { name: 'Hae seuraa tai kuntaa' }).fill('Seura A');
   await page.locator('.dashboard-competition-overview').getByRole('combobox', { name: 'Kilpailujen vuodet' }).selectOption('selected');
   await expect(page.locator('.map-title p')).toContainText('1 / 2');
-  await page.getByRole('link', { name: 'Datalähteet', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Datalähteet' })).toBeVisible();
+  await page.getByRole('link', { name: 'Sovellus ja datalähteet', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Sovellus ja datalähteet' })).toBeVisible();
   await expect(summaryValue(page, 'Seurojen määrä')).toHaveText('2');
   await expect(summaryValue(page, 'Kilpailujen määrä')).toHaveText('3');
   await page.reload();
   await expect(summaryValue(page, 'Seurojen määrä')).toHaveText('2');
   await page.getByRole('link', { name: 'Aluesuunnittelu', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'ALUESUUNNITTELU' })).toBeVisible();
-  await page.getByRole('link', { name: 'Datalähteet', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Datalähteet' })).toBeVisible();
+  await page.getByRole('link', { name: 'Sovellus ja datalähteet', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Sovellus ja datalähteet' })).toBeVisible();
   await page.getByRole('link', { name: 'Tilastot', exact: true }).click();
   await expect(page.locator('#tilastot')).toBeInViewport();
   await page.goBack();
-  await expect(page.getByRole('heading', { level: 1, name: 'Datalähteet' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Sovellus ja datalähteet' })).toBeVisible();
   await page.goForward();
   await expect(page.locator('#tilastot')).toBeInViewport();
-  await page.getByRole('link', { name: 'Datalähteet', exact: true }).click();
+  await page.getByRole('link', { name: 'Sovellus ja datalähteet', exact: true }).click();
   await page.getByRole('link', { name: 'Kartta', exact: true }).click();
   await expect(page.locator('#kartta')).toBeInViewport();
+});
+
+test('overview precedes sources and section shortcuts preserve route and card state', async ({ page }) => {
+  await page.goto('#/datalahteet');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+  const headings = await page.getByRole('heading', { level: 2 }).allTextContents();
+  expect(headings).toEqual([
+    'Yhteinen näkymä seurakenttään', 'Sovelluksen yleiskuva', 'Mitä sovelluksella voi tehdä',
+    'Keskeiset moduulit', 'Hyödyt käyttäjälle', 'Datalähteet',
+  ]);
+  await expect(page.locator('.application-module-grid article')).toHaveCount(13);
+  const modules = page.getByRole('region', { name: 'Keskeiset moduulit', exact: true });
+  for (const title of ['Seurahallinta', 'Varmuuskopiot', 'Tuonti ja vienti']) {
+    await expect(modules.getByRole('article').filter({ has: page.getByRole('heading', { name: title, exact: true }) })).toContainText('Admin');
+  }
+  await expect(page.locator('.application-process > li')).toHaveCount(5);
+  await expect(page.getByRole('region', { name: 'Integraatiot ja palvelut' })).toContainText('Sovelluksen PHP-rajapinnat');
+  await page.getByRole('button', { name: 'Siirry datalähteisiin' }).click();
+  await expect(page.locator('#data-sources-title')).toBeInViewport();
+  await expect(page.locator('#data-sources-title')).toBeFocused();
+  expect(new URL(page.url()).hash).toBe('#/datalahteet');
+  const card = page.locator('.data-source-card').first();
+  await card.locator('summary').click();
+  await page.getByRole('navigation', { name: 'Sivun sisältö' }).getByRole('button', { name: 'Yleiskuva', exact: true }).click();
+  await expect(page.locator('#application-overview-title')).toBeFocused();
+  await page.getByRole('navigation', { name: 'Sivun sisältö' }).getByRole('button', { name: 'Datalähteet', exact: true }).click();
+  await expect(card).toHaveJSProperty('open', true);
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1, name: 'Sovellus ja datalähteet' })).toBeVisible();
 });
 
 test('unavailable sources remain unknown and independent source retries recover', async ({ page }) => {
@@ -118,6 +152,7 @@ test('unavailable sources remain unknown and independent source retries recover'
   }
   await expect(summaryValue(page, 'Kuntien määrä')).toHaveText('308');
   await expect(page.locator('.data-source-card')).toHaveCount(6);
+  await expect(page.getByRole('heading', { name: 'Sovelluksen yleiskuva', exact: true })).toBeVisible();
 
   await page.route('**/api/clubs.php', (route) => route.fulfill({ json: clubs }));
   await page.unroute('**/jsondb/regions.json');
