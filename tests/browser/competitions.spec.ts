@@ -74,12 +74,21 @@ test('competition counts are a controllable layer on the existing homepage club 
   const controls = page.locator('.dashboard-map-controls');
   await expect(controls).not.toHaveAttribute('open', '');
   await expect(mapSection.locator('.map-canvas')).toBeVisible();
-  await expect(page.getByTestId('competition-total')).toBeHidden();
+  const competitionMetrics = page.locator('.dashboard-competition-metrics');
+  await expect(competitionMetrics).toBeVisible();
+  await expect(page.getByTestId('competition-total')).toHaveText('4');
+  expect(await competitionMetrics.evaluate((element) => Boolean(
+    element.compareDocumentPosition(document.querySelector('.dashboard-map-controls')!)
+      & Node.DOCUMENT_POSITION_FOLLOWING,
+  ))).toBe(true);
+  await expect(controls.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true })).toBeHidden();
   await controls.locator(':scope > summary').focus();
   await page.keyboard.press('Enter');
   await expect(controls).toHaveAttribute('open', '');
+  await expect(controls.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true })).toBeVisible();
   await page.keyboard.press('Enter');
   await expect(controls).not.toHaveAttribute('open', '');
+  await expect(page.getByTestId('competition-total')).toBeVisible();
   await openMapControls(page);
   await expect(page.getByTestId('competition-total')).toHaveText('4');
   await expect(mapSection.locator('.map-canvas')).toBeVisible();
@@ -185,7 +194,7 @@ test('load failures, stale refresh, invalid data, empty selection and retry rema
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('selected');
   await page.getByRole('group', { name: 'Valitse kilpailuvuodet' }).getByLabel('2024').uncheck();
   await expect(page.getByTestId('competition-total')).toHaveText('0');
-  await expect(page.locator('.dashboard-competition-overview')).toContainText('Ei valittuja vuosia');
+  await expect(page.locator('.dashboard-competition-metrics')).toContainText('Ei valittuja vuosia');
   response = [];
   await page.getByRole('button', { name: 'Päivitä kilpailuaineisto' }).click();
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('all');
@@ -196,8 +205,9 @@ test('competition controls are keyboard accessible and fit mobile in both themes
   await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: records }));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('./');
-  await openMapControls(page);
   await expect(page.getByTestId('competition-total')).toHaveText('5');
+  await expect(page.locator('.dashboard-competition-metrics')).toBeVisible();
+  await openMapControls(page);
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('selected');
   const checkbox = page.getByRole('group', { name: 'Valitse kilpailuvuodet' }).getByLabel('2020');
   await checkbox.focus();
