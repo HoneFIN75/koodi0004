@@ -21,7 +21,7 @@ export function SiteHeader({ page = 'dashboard' }: { page?: 'dashboard' | 'dataS
         <a href="#tilastot">Tilastot</a>
         <a href="#seura-matriisi">Seura matriisi</a>
         <a href="#/alueet"><span className="nav-long">Aluesuunnittelu</span><span className="nav-short">Alueet</span></a>
-        <a className={!onDashboard ? 'active' : undefined} aria-current={!onDashboard ? 'page' : undefined} href="#/datalahteet">Datalähteet</a>
+        <a className={!onDashboard ? 'active' : undefined} aria-current={!onDashboard ? 'page' : undefined} href="#/datalahteet">Sovellus ja datalähteet</a>
       </nav>
       <button className="theme-toggle" onClick={() => setDarkMode((mode) => !mode)} aria-label={darkMode ? 'Vaihda vaaleaan tilaan' : 'Vaihda tummaan tilaan'}>
         {darkMode ? <Sun size={17} /> : <Moon size={17} />}<span>{darkMode ? 'Vaihda vaaleaan tilaan' : 'Vaihda tummaan tilaan'}</span>

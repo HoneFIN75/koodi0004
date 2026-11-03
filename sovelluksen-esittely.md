@@ -33,7 +33,7 @@ Kirjoittaja- ja Admin-tunnukset ovat yhteiskäyttöisiä rooleja, eivät henkil�
 | Maakuntavertailu | Vertaa maakuntia muun muassa seurojen, jäsenten, äänien, kilpailujen, väestön, pinta-alan ja tiheyksien avulla. | Laajempien alueiden erot näkyvät yhdessä näkymässä. |
 | Aluesuunnittelu | Alueita voi luoda, muokata, kopioida, ottaa käyttöön tai poistaa käytöstä. Kunnat valitaan kartalta tai luettelosta; alueet voivat olla päällekkäisiä. | Useita kuntiin perustuvia aluevaihtoehtoja voi rakentaa ja tarkastella joustavasti. |
 | Skenaariot, tarkistukset ja varmuuskopiot | Skenaariot säilyttävät erilliset alueratkaisut. Sovellus näyttää suunnitelman kattavuus- ja tasapainotarkistuksia, tallentaa muutoksia automaattisesti ja tukee palautusta varmuuskopiosta. | Vaihtoehtoja voi vertailla ja kehittää ilman, että aiempi suunnitelma katoaa huomaamatta. |
-| Raportit ja tietojen hallinta | Aluesuunnitelmia ja analyysejä voi tuoda ja viedä JSON-, CSV- ja XLSX-muodoissa. Admin voi hallita seuratietoja sekä tuoda ja viedä seurarekisterin JSON-muodossa. | Tuloksia voi jatkokäsitellä ja seuratietoja ylläpitää sovelluksen omissa hallintatoiminnoissa. |
+| Raportit ja tietojen hallinta | Admin voi tuoda aluesuunnitelmia JSON-muodossa ja viedä suunnitelmia ja raportteja JSON-, CSV- ja XLSX-muodoissa sekä tuoda ja viedä seurarekisterin JSON-muodossa. Kilpailuanalyysin CSV-vienti on julkinen. | Tuloksia voi jatkokäsitellä ja seuratietoja ylläpitää sovelluksen omissa hallintatoiminnoissa. |
 | Datalähteiden dokumentaatio | Kuvaa aineistojen sisällön, käytön, tunnetun alkuperän ja rajaukset. | Käyttäjä voi arvioida, mistä analyysit muodostuvat ja mitä niistä ei voi päätellä. |
 
 ## Mitä sovelluksella voi tehdä
@@ -53,7 +53,7 @@ Kirjoittaja- ja Admin-tunnukset ovat yhteiskäyttöisiä rooleja, eivät henkil�
 2. **Tutki lukuja:** tarkastele jäsen- ja äänivaltatilastoja, kilpailutoimintaa, väestöä tai maakuntien välisiä eroja. Kilpailutilastoihin voi valita kaikki vuodet, yksittäisiä vuosia tai vuosivälin.
 3. **Siirry suunnitteluun tarvittaessa:** avaa Aluesuunnittelu ja tarkastele nykyistä aluejakoa. Suunnitelman katselu on julkista; muokkaamiseen tarvitaan Kirjoittaja- tai Admin-tunnus.
 4. **Rakenna ja arvioi vaihtoehto:** muokkaa alueita, määritä kuntien sijoittuminen ja tarkista kattavuus sekä suunnitelman huomautukset. Tallenna vaihtoehdot omiksi skenaarioikseen.
-5. **Jaa tai jatkokäsittele tuloksia:** vertaile alueita ja vie suunnitelma tai raportti sopivassa tiedostomuodossa. Palauta tarvittaessa aiempi tilanne varmuuskopiosta.
+5. **Jaa tai jatkokäsittele tuloksia:** vertaile alueita. Admin voi viedä suunnitelmia ja raportteja sekä palauttaa aiemman tilanteen varmuuskopiosta. Kilpailuanalyysin CSV-vienti on julkinen.
 
 ## Tärkeimmät näkymät ja moduulit
 
@@ -67,10 +67,11 @@ Kirjoittaja- ja Admin-tunnukset ovat yhteiskäyttöisiä rooleja, eivät henkil�
 | Aluesuunnittelun kartta ja alueet | Kuntien, seurojen ja suunniteltujen alueiden yhteinen karttanäkymä sekä alueiden muokkaus. | Kaikki näkevät; Kirjoittaja ja Admin muokkaavat |
 | Aluesuunnittelun kojelauta ja vertailu | Skenaarion tunnusluvut, suunnitelman tarkistukset ja alueiden vertailu. | Kaikki näkevät; Kirjoittaja ja Admin muokkaavat |
 | Kohdistamattomat kunnat | Näyttää kunnat, jotka eivät kuulu yhteenkään käytössä olevaan alueeseen. | Kaikki näkevät; Kirjoittaja ja Admin muokkaavat |
-| Skenaariot ja varmuuskopiot | Vaihtoehtoisten aluesuunnitelmien ja aiempien tilannekuvien hallinta. | Kaikki näkevät; muokkaamiseen Kirjoittaja tai Admin |
-| Tuonti ja vienti | Aluesuunnitelmien siirto ja raporttien muodostaminen. | Kaikki näkevät; muokkaamiseen Kirjoittaja tai Admin |
+| Skenaariot | Vaihtoehtoisten aluesuunnitelmien hallinta. | Kaikki näkevät; muokkaamiseen Kirjoittaja tai Admin |
+| Varmuuskopiot | Aiempien suunnittelutilanteiden vertailu ja palauttaminen. | Admin |
+| Tuonti ja vienti | Aluesuunnitelmien JSON-tuonti ja raporttien vienti JSON-, CSV- ja XLSX-muodoissa. | Admin |
 | Seurahallinta | Seuratietojen ja yhteystietojen ylläpito sekä rekisterin tuonti ja vienti. | Admin |
-| Datalähteet | Sovelluksen aineistojen alkuperän, sisällön ja rajoitteiden kuvaus. | Kaikki kävijät |
+| Sovellus ja datalähteet | Sovelluksen yleiskuva sekä aineistojen alkuperän, sisällön ja rajoitteiden kuvaus. | Kaikki kävijät |
 
 ## Tietojen hallinta
 

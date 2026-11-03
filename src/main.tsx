@@ -24,12 +24,12 @@ function Root() {
     return () => window.removeEventListener('hashchange', onChange);
   }, []);
   useEffect(() => {
-    const title = route === 'planner' ? 'Aluesuunnittelu' : route === 'dataSources' ? 'Datalähteet' : 'Seurakartta';
+    const title = route === 'planner' ? 'Aluesuunnittelu' : route === 'dataSources' ? 'Sovellus ja datalähteet' : 'Seurakartta';
     document.title = `${title} — Suomen frisbeegolfseurat`;
   }, [route]);
   if (route === 'dashboard') return <App />;
   return (
-    <Suspense fallback={<div className="loading-state" role="status"><span className="loading-spinner" />{route === 'planner' ? 'Ladataan aluesuunnittelua…' : 'Ladataan datalähteitä…'}</div>}>
+    <Suspense fallback={<div className="loading-state" role="status"><span className="loading-spinner" />{route === 'planner' ? 'Ladataan aluesuunnittelua…' : 'Ladataan sovelluksen esittelyä ja datalähteitä…'}</div>}>
       {route === 'planner' ? <PlannerApp /> : <DataSourcesPage />}
     </Suspense>
   );
