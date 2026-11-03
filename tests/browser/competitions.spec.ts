@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const competition = (name: string, year: number, municipality: string) => ({ 'Kilpailun nimi': name, Vuosi: year, Kunta: municipality });
@@ -7,6 +7,11 @@ const records = [
   competition('Helsinki Open', 2021, 'Helsinki'), competition('Espoo Open', 2022, 'Espoo'),
   competition('Turku Open', 2024, 'Turku'),
 ];
+
+async function openMapControls(page: Page) {
+  await page.locator('.dashboard-map-controls > summary').click();
+  await expect(page.locator('.dashboard-map-controls')).toHaveAttribute('open', '');
+}
 
 test.beforeEach(async ({ page }) => {
   let document: unknown = null;
@@ -66,9 +71,19 @@ test('competition counts are a controllable layer on the existing homepage club 
   await expect(page.getByRole('heading', { level: 1, name: /Suomen seurat/ })).toBeVisible();
   await expect(page.locator('.competition-map-section')).toHaveCount(0);
   const mapSection = page.locator('.map-section');
+  const controls = page.locator('.dashboard-map-controls');
+  await expect(controls).not.toHaveAttribute('open', '');
+  await expect(mapSection.locator('.map-canvas')).toBeVisible();
+  await expect(page.getByTestId('competition-total')).toBeHidden();
+  await controls.locator(':scope > summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(controls).toHaveAttribute('open', '');
+  await page.keyboard.press('Enter');
+  await expect(controls).not.toHaveAttribute('open', '');
+  await openMapControls(page);
   await expect(page.getByTestId('competition-total')).toHaveText('4');
   await expect(mapSection.locator('.map-canvas')).toBeVisible();
-  const competitionLayer = page.getByLabel('Kilpailumäärät kunnittain');
+  const competitionLayer = controls.getByLabel('Kilpailumäärät kunnittain');
   await expect(competitionLayer).not.toBeChecked();
   await expect(mapSection.locator('.competition-layer-municipality')).toHaveCount(0);
   await competitionLayer.check();
@@ -78,7 +93,9 @@ test('competition counts are a controllable layer on the existing homepage club 
   await expect(mapSection.locator('.competition-layer-legend')).toContainText('Kilpailurivejä kunnittain');
   await expect(mapSection.locator('.club-marker')).toHaveCount(1);
   await page.reload();
-  await expect(page.getByLabel('Kilpailumäärät kunnittain')).toBeChecked();
+  await expect(controls).not.toHaveAttribute('open', '');
+  await openMapControls(page);
+  await expect(controls.getByLabel('Kilpailumäärät kunnittain')).toBeChecked();
   await expect(page.locator('.map-section .competition-layer-municipality')).not.toHaveCount(0);
 
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet' }).selectOption('selected');
@@ -90,13 +107,15 @@ test('competition counts are a controllable layer on the existing homepage club 
   await competitionLayer.uncheck();
   await expect(mapSection.locator('.competition-layer-municipality')).toHaveCount(0);
   await page.reload();
-  await expect(page.getByLabel('Kilpailumäärät kunnittain')).not.toBeChecked();
+  await openMapControls(page);
+  await expect(controls.getByLabel('Kilpailumäärät kunnittain')).not.toBeChecked();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
 test('one competition year filter controls the homepage and regional planning views', async ({ page }) => {
   await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: records }));
   await page.goto('./');
+  await openMapControls(page);
   const total = page.getByTestId('competition-total');
   await expect(total).toHaveText('5');
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('selected');
@@ -130,6 +149,7 @@ test('polling reloads changed content and discovers new years without a page rel
   });
   await page.clock.install();
   await page.goto('./');
+  await openMapControls(page);
   await expect(page.getByTestId('competition-total')).toHaveText('5');
   current = [...records, competition('Future', 2031, 'New municipality')];
   await page.clock.fastForward(60_001);
@@ -148,6 +168,7 @@ test('load failures, stale refresh, invalid data, empty selection and retry rema
   let status = 503;
   await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ status, json: response }));
   await page.goto('./');
+  await openMapControls(page);
   await expect(page.getByRole('alert')).toContainText('HTTP 503');
   await expect(page.getByTestId('competition-total')).toHaveCount(0);
   status = 200;
@@ -175,6 +196,7 @@ test('competition controls are keyboard accessible and fit mobile in both themes
   await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: records }));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('./');
+  await openMapControls(page);
   await expect(page.getByTestId('competition-total')).toHaveText('5');
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('selected');
   const checkbox = page.getByRole('group', { name: 'Valitse kilpailuvuodet' }).getByLabel('2020');
@@ -183,7 +205,7 @@ test('competition controls are keyboard accessible and fit mobile in both themes
   await expect(checkbox).toBeChecked();
   for (const theme of ['dark', 'light']) {
     await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
-    const accessibility = await new AxeBuilder({ page }).include('.dashboard-competition-overview').include('.map-section').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+    const accessibility = await new AxeBuilder({ page }).include('.dashboard-map-controls').include('.map-section').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
     expect(accessibility.violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   }

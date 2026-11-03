@@ -22,6 +22,8 @@ async function load(page: Page, data = smallData) {
   await page.route('**/api/clubs.php', (route) => route.fulfill({ json: data }));
   await page.goto('/koodi0004/');
   await expect(page.locator('.map-title p')).toContainText(`${data.data.length} /`);
+  await page.locator('.dashboard-map-controls > summary').click();
+  await expect(page.locator('.dashboard-map-controls')).toHaveAttribute('open', '');
 }
 
 test('map and club list are 20% taller across responsive layouts', async ({ page }) => {
@@ -171,10 +173,11 @@ test('all dashboard data tables sort from the first column and toggle each headi
   await expect(municipalityHeader).toHaveAttribute('aria-sort', 'ascending');
   await expect.poll(municipalityNames).toEqual(alphabeticRows);
 
+  const mapControls = page.locator('.dashboard-map-controls');
   await expect(page.locator('.dashboard-competition-overview')).toContainText('Kilpailut');
   await expect(page.getByTestId('competition-total')).toHaveText('5');
   await expect(page.locator('.dashboard-competition-overview')).toBeVisible();
-  await expect(page.locator('.map-section').getByLabel('Kilpailumäärät kunnittain')).not.toBeChecked();
+  await expect(mapControls.getByLabel('Kilpailumäärät kunnittain')).not.toBeChecked();
 });
 
 test('population is shared across routes, supports municipality comparisons and filters club maps', async ({ page }) => {
@@ -473,6 +476,10 @@ test('loading is announced and reduced-motion preferences are respected', async 
   await expect(page.locator('.loading-state')).toBeVisible();
   const clubMetrics = page.locator('.dashboard-metric-sections .metric-card');
   await expect(clubMetrics).toHaveCount(0);
+  const mapControls = page.locator('.dashboard-map-controls');
+  await expect(mapControls).toBeVisible();
+  await expect(mapControls).not.toHaveAttribute('open', '');
+  await mapControls.locator(':scope > summary').click();
   await expect(page.locator('.dashboard-competition-overview')).toBeVisible();
   await expect(page.getByTestId('competition-total')).toBeVisible();
   release();

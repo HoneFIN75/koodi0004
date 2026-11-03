@@ -87,6 +87,7 @@ test('combined overview preserves accessible source cards, live counts and sourc
 test('navigation and browser history connect the dashboard, source page and planner', async ({ page }) => {
   await page.goto('./');
   await expect(page.locator('.map-title p')).toContainText('2 / 2');
+  await page.locator('.dashboard-map-controls > summary').click();
   await page.getByRole('textbox', { name: 'Hae seuraa tai kuntaa' }).fill('Seura A');
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet' }).selectOption('selected');
   await expect(page.locator('.map-title p')).toContainText('1 / 2');

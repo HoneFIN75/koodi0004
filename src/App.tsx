@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, BarChart3, MapPin, Search, Trophy, Users, Vote, type LucideIcon } from 'lucide-react';
+import { AlertCircle, BarChart3, ChevronDown, MapPin, Search, Trophy, Users, Vote, type LucideIcon } from 'lucide-react';
 import { SiteHeader } from './components/SiteHeader';
 import { clubRepository } from './data/clubRepository';
 import { municipalityRepository } from './data/municipalityRepository';
@@ -211,19 +211,6 @@ export default function App() {
       {provinceError && <p className="data-warning" role="alert">Maakuntatietoja ei voitu ladata: {provinceError} <button onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></p>}
       {provinceCoverageIssues.length > 0 && <p className="data-warning" role="status">{provinceCoverageIssues.join(' ')}</p>}
       {!database && !error && <div className="loading-state" role="status"><span className="loading-spinner" />Ladataan seuroja ja rakennetaan tilannekuvaa…</div>}
-      <section className="dashboard-competition-overview panel" aria-label="Kilpailujen yhteenveto">
-        <div className="dashboard-competition-heading">
-          <div><h2>Kilpailut</h2><p>Aineistovuodet {describeCompetitionPeriod(competitionIndex?.years ?? [])}</p></div>
-          <CompetitionFilters compact />
-        </div>
-        <p className="dashboard-competition-scope" role="status">Avainluvut · {describeCompetitionYears(competitionYearFilter)}</p>
-        {!competitionStatistics && <p role="status">Ladataan kilpailutilastoja…</p>}
-        {competitionStatistics && <div className="dashboard-metrics-grid">
-          <MetricCard icon={Trophy} label="KILPAILURIVEJÄ" value={competitionStatistics.total} suffix="riviä" testId="competition-total" />
-          <MetricCard icon={MapPin} label="KILPAILUKUNTIA" value={competitionStatistics.municipalityCount} suffix={competitionStatistics.municipalityCount === 1 ? 'kunta' : 'kuntaa'} />
-          <MetricCard icon={BarChart3} label="RIVEJÄ / AKTIIVINEN KUNTA" value={competitionStatistics.averagePerMunicipality} suffix="riviä / kunta" />
-        </div>}
-      </section>
       {database && <>
       {database.warnings.length > 0 && <div className="data-warning" role="status"><AlertCircle size={20} /><div><strong>Aineiston huomautukset</strong>{database.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div></div>}
       {clubs.length === 0 && <p className="data-warning" role="status">Tietokannassa ei ole vielä seuroja. Kartta ja tilastot päivittyvät aineiston mukana.</p>}
@@ -254,18 +241,48 @@ export default function App() {
           </div>
         </section>
       </div>
+      </>}
 
-      <section className="map-section panel" id="kartta">
-        <div className="map-toolbar">
-          <div className="map-title"><div className="section-icon"><MapPin size={18} /></div><div><h2>Seurojen sijainnit</h2><p role="status" aria-live="polite">{filteredClubs.length} / {clubs.length} seuraa · {mappedCount} kartalla</p></div></div>
-          <label className="search-box"><Search size={17} /><input value={filters.query} onChange={(event) => onFilterChange({ ...filters, query: event.target.value })} placeholder="Hae seuraa tai kuntaa..." aria-label="Hae seuraa tai kuntaa" />{filters.query && <button onClick={() => onFilterChange({ ...filters, query: '' })} aria-label="Tyhjennä haku">×</button>}</label>
-          <span className="filter-hint">Suodatus päivittää myös tilastot</span>
+      <details className="dashboard-map-controls panel">
+        <summary>
+          <span className="dashboard-map-controls-icon"><MapPin size={19} /></span>
+          <span className="dashboard-map-controls-copy">
+            <strong>Seurojen kartta ja kilpailut</strong>
+            <span>{database ? `${filteredClubs.length} / ${clubs.length} seuraa` : error ? 'Seuratietoja ei saatavilla' : 'Ladataan seuradataa…'} · Kilpailuvuodet: {describeCompetitionYears(competitionYearFilter)}</span>
+          </span>
+          <ChevronDown size={20} className="dashboard-map-controls-chevron" aria-hidden="true" />
+        </summary>
+        <div className="dashboard-map-controls-content">
+          <section className="dashboard-competition-overview" aria-label="Kilpailujen yhteenveto">
+            <div className="dashboard-competition-heading">
+              <div><h2>Kilpailut</h2><p>Aineistovuodet {describeCompetitionPeriod(competitionIndex?.years ?? [])}</p></div>
+              <CompetitionFilters compact />
+            </div>
+            <p className="dashboard-competition-scope" role="status">Avainluvut · {describeCompetitionYears(competitionYearFilter)}</p>
+            {!competitionStatistics && <p role="status">Ladataan kilpailutilastoja…</p>}
+            {competitionStatistics && <div className="dashboard-metrics-grid">
+              <MetricCard icon={Trophy} label="KILPAILURIVEJÄ" value={competitionStatistics.total} suffix="riviä" testId="competition-total" />
+              <MetricCard icon={MapPin} label="KILPAILUKUNTIA" value={competitionStatistics.municipalityCount} suffix={competitionStatistics.municipalityCount === 1 ? 'kunta' : 'kuntaa'} />
+              <MetricCard icon={BarChart3} label="RIVEJÄ / AKTIIVINEN KUNTA" value={competitionStatistics.averagePerMunicipality} suffix="riviä / kunta" />
+            </div>}
+          </section>
+          <div className="dashboard-map-filter-section">
+            <div className="map-toolbar">
+              <div className="map-title"><div className="section-icon"><MapPin size={18} /></div><div><h2>Seurojen sijainnit</h2><p role="status" aria-live="polite">{filteredClubs.length} / {clubs.length} seuraa · {mappedCount} kartalla</p></div></div>
+              <label className="search-box"><Search size={17} /><input value={filters.query} onChange={(event) => onFilterChange({ ...filters, query: event.target.value })} placeholder="Hae seuraa tai kuntaa..." aria-label="Hae seuraa tai kuntaa" />{filters.query && <button onClick={() => onFilterChange({ ...filters, query: '' })} aria-label="Tyhjennä haku">×</button>}</label>
+              <span className="filter-hint">Suodatus päivittää myös tilastot</span>
+            </div>
+            <ClubFilters filters={filters} maxMembers={maxMembers} votingOptions={votingOptions} onChange={onFilterChange} />
+            <div className="dashboard-map-layer-options" role="group" aria-label="Karttatasot">
+              <label><input type="checkbox" checked={showCompetitions} onChange={(event) => setShowCompetitions(event.target.checked)} /> Kilpailumäärät kunnittain</label>
+              <span>Väritys laskee aineistorivit valittuina vuosina.</span>
+            </div>
+          </div>
         </div>
-        <ClubFilters filters={filters} maxMembers={maxMembers} votingOptions={votingOptions} onChange={onFilterChange} />
-        <div className="dashboard-map-layer-options" role="group" aria-label="Karttatasot">
-          <label><input type="checkbox" checked={showCompetitions} onChange={(event) => setShowCompetitions(event.target.checked)} /> Kilpailumäärät kunnittain</label>
-          <span>Väritys laskee aineistorivit valittuina vuosina.</span>
-        </div>
+      </details>
+
+      {database && <>
+      <section className="map-section panel" id="kartta" aria-label="Seurojen sijainnit kartalla">
         <div className="map-layout">
           <MapView clubs={filteredClubs} allClubs={clubs} selectedClub={selectedClub} onSelect={setSelectedClub} populationFor={populationFor}
             municipalities={municipalities} provinces={provinces} provinceSettings={provinceSettings} onProvinceSettingsChange={setProvinceSettings} showCompetitions={showCompetitions} />
