@@ -111,7 +111,7 @@ Auditoinnissa vahvistui **24 merkityksellistä löydöstä**; listaa ei täydenn
 - **Korjaus:** rakenna fixture niin, että IndexedDB on alustettu ennen planner-storen ensikäynnistystä; lisää eksplisiittinen odotus/valmiustila ja toista sama testitapa useita kertoja.
 - **Arvioitu työmäärä:** 0,5–1 työpäivä.
 
-### F-02 — Seuradatan päivitysaikaleima kuvaa kyselyä, ei aineiston muutosta
+### F-02 — Seuradatan päivitysaikaleima kuvaa kyselyä, ei aineiston muutosta - Status: Done 3.11.2026
 
 - **Severity / kategoria:** Keskitaso — Data ja luotettavuus
 - **Tarkka sijainti:** `server/clubs-api.php:216–223`; `src/data/clubRepository.ts:52–56, 125`; `src/services/dataSourceService.ts:23–31`; `src/pages/DataSourcesPage.tsx:33–39`
