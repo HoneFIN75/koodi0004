@@ -201,6 +201,28 @@ test('province overlay is independent from planner regions and restores saved ma
   await expect(page.getByRole('button', { name: 'Uusi alue' })).toBeVisible();
 });
 
+test('competition counts are a planner map layer and replace population coloring', async ({ page }) => {
+  await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: [
+    { 'Kilpailun nimi': 'Espoo 1', Vuosi: 2020, Kunta: 'Espoo' },
+    { 'Kilpailun nimi': 'Espoo 2', Vuosi: 2020, Kunta: 'Espoo' },
+    { 'Kilpailun nimi': 'Helsinki Open', Vuosi: 2021, Kunta: 'Helsinki' },
+  ] }));
+  await open(page);
+  const competitionLayer = page.getByLabel('Kilpailumäärät kunnittain');
+  await competitionLayer.check();
+  await expect(page.locator('.planner-map-frame .competition-layer-legend')).toBeVisible();
+  await expect(page.locator('.leaflet-municipality-pane path.municipality-049')).toHaveAttribute('fill', /#d9eee2|#a8d7b6|#76bd91|#4b9e70|#28734d/);
+  await expect(page.getByLabel('Väestökartta 2025')).not.toBeChecked();
+  await page.reload();
+  await open(page);
+  await expect(page.getByLabel('Kilpailumäärät kunnittain')).toBeChecked();
+  await expect(page.locator('.planner-map-frame .competition-layer-legend')).toBeVisible();
+  await page.getByLabel('Väestökartta 2025').check();
+  await expect(page.getByLabel('Kilpailumäärät kunnittain')).not.toBeChecked();
+  await expect(page.locator('.planner-map-frame .competition-layer-legend')).toHaveCount(0);
+  await expect(page.locator('.planner-map-frame .population-map-legend')).toBeVisible();
+});
+
 test('planner map hovers directly on a municipality and highlights its region', async ({ page }) => {
   await open(page);
   await page.getByRole('button', { name: 'Uusi alue' }).click();

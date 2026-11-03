@@ -22,6 +22,7 @@ import { aggregateByMunicipality, analyzeScenario, assignClubs, emptyFilters, ex
 import { validateScenario } from '../services/validationService';
 import { VOTING_POWERS } from '../services/membershipRules.ts';
 import { markerColor } from '../services/mapService';
+import { getCompetitionCounts, getCompetitionMaximum } from '../services/competitionMapService.ts';
 import { plannerStore } from '../state/plannerStore';
 import { usePlanner } from '../state/usePlanner';
 import { BackupManager } from './components/BackupManager';
@@ -54,6 +55,7 @@ interface PlannerMapPreferences {
   showClubs: boolean;
   showBaseMap: boolean;
   populationLayer: boolean;
+  showCompetitions: boolean;
   highlightUnassigned: boolean;
 }
 
@@ -61,6 +63,7 @@ const defaultMapPreferences: PlannerMapPreferences = {
   showClubs: true,
   showBaseMap: true,
   populationLayer: false,
+  showCompetitions: false,
   highlightUnassigned: false,
 };
 
@@ -75,6 +78,7 @@ function readMapPreferences(): PlannerMapPreferences {
       showClubs: typeof values.showClubs === 'boolean' ? values.showClubs : defaultMapPreferences.showClubs,
       showBaseMap: typeof values.showBaseMap === 'boolean' ? values.showBaseMap : defaultMapPreferences.showBaseMap,
       populationLayer: typeof values.populationLayer === 'boolean' ? values.populationLayer : defaultMapPreferences.populationLayer,
+      showCompetitions: typeof values.showCompetitions === 'boolean' ? values.showCompetitions : defaultMapPreferences.showCompetitions,
       highlightUnassigned: typeof values.highlightUnassigned === 'boolean' ? values.highlightUnassigned : defaultMapPreferences.highlightUnassigned,
     };
   } catch {
@@ -107,7 +111,7 @@ export default function PlannerApp() {
   const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
   const [mapPreferences, setMapPreferences] = useState(readMapPreferences);
   const [mapPreferenceError, setMapPreferenceError] = useState(false);
-  const { highlightUnassigned, showClubs, showBaseMap, populationLayer } = mapPreferences;
+  const { highlightUnassigned, showClubs, showBaseMap, populationLayer, showCompetitions } = mapPreferences;
   const [dark, setDark] = useState(() => { try { return localStorage.getItem(THEME_KEY) !== 'light'; } catch { return true; } });
   const [authSession, setAuthSession] = useState<AuthSession>({ authReady: false, role: null, csrfToken: '' });
   const [authLoading, setAuthLoading] = useState(true);
@@ -244,6 +248,14 @@ export default function PlannerApp() {
     return map;
   }, [regions]);
   const mapRegions = useMemo(() => regions.filter((region) => region.enabled && region.visible && (filters.regionIds.length === 0 || filters.regionIds.includes(region.id))), [regions, filters.regionIds]);
+  const competitionCounts = useMemo(() => {
+    const countsByName = getCompetitionCounts(competitionIndex, yearFilter);
+    return new Map(dataset?.municipalities.map((municipality) => [
+      municipality.code,
+      countsByName.get(normalizeName(municipality.name)) ?? 0,
+    ]) ?? []);
+  }, [competitionIndex, yearFilter, dataset]);
+  const competitionMaximum = getCompetitionMaximum(competitionCounts);
   const unassignedCodes = useMemo(() => highlightUnassigned && analysis ? new Set(analysis.unassigned.map((row) => row.municipality.code)) : null, [highlightUnassigned, analysis]);
   const matchCodes = useMemo(() => {
     const needle = normalizeName(filters.municipalityQuery);
@@ -567,22 +579,29 @@ export default function PlannerApp() {
                   <label className="checkbox"><input type="checkbox" checked={showClubs} onChange={(event) => setMapPreferences((current) => ({ ...current, showClubs: event.target.checked }))} /> Seurat</label>
                   <label className="checkbox"><input type="checkbox" checked={highlightUnassigned} onChange={(event) => setMapPreferences((current) => ({ ...current, highlightUnassigned: event.target.checked }))} /> Korosta kohdistamattomat</label>
                   <label className="checkbox"><input type="checkbox" checked={showBaseMap} onChange={(event) => setMapPreferences((current) => ({ ...current, showBaseMap: event.target.checked }))} /> Taustakartta</label>
-                  <label className="checkbox"><input type="checkbox" checked={populationLayer} onChange={(event) => setMapPreferences((current) => ({ ...current, populationLayer: event.target.checked }))} /> Väestökartta 2025</label>
+                  <label className="checkbox"><input type="checkbox" checked={populationLayer} onChange={(event) => setMapPreferences((current) => ({
+                    ...current, populationLayer: event.target.checked, showCompetitions: event.target.checked ? false : current.showCompetitions,
+                  }))} /> Väestökartta 2025</label>
+                  <label className="checkbox"><input type="checkbox" checked={showCompetitions} onChange={(event) => setMapPreferences((current) => ({
+                    ...current, showCompetitions: event.target.checked, populationLayer: event.target.checked ? false : current.populationLayer,
+                  }))} /> Kilpailumäärät kunnittain</label>
                   <button type="button" className="text-button" onClick={() => setMapPreferences(defaultMapPreferences)}>Palauta tasojen oletukset</button>
                   <span className="map-status" role="status" aria-live="polite">{filtered.length} / {placements.length} seuraa{filtersActive ? ' (suodatettu)' : ''}</span>
                 </div>
                 {mapPreferenceError && <p className="notice" role="status">Karttatasojen asetuksia ei voitu tallentaa tähän selaimeen.</p>}
-                <ProvinceOverlayControls settings={provinceSettings} provinces={provinces} onChange={setProvinceSettings} />
+                <ProvinceOverlayControls settings={provinceSettings} provinces={provinces} onChange={setProvinceSettings} choroplethActive={showCompetitions} />
                 {provinceError && <p className="notice" role="alert">Maakuntataso ei ole käytettävissä: {provinceError}</p>}
                 {editingRegion && <p className="edit-banner" role="status"><ColorDot color={editingRegion.color} /><span>Valintatila: napsauta kuntia lisätäksesi tai poistaaksesi ne alueesta <strong>{editingRegion.name}</strong>.</span></p>}
                 <RegionMap dataset={dataset} provinces={provinces} provinceSettings={provinceSettings} regions={mapRegions} membership={membership} editingRegion={editingRegion} selectedRegionId={selectedRegionId} selectedMunicipalityCode={selectedMunicipality}
                   highlightCodes={unassignedCodes} matchCodes={matchCodes} aggregates={fullAggregates} placements={filtered} showClubs={showClubs} showBaseMap={showBaseMap} dark={dark}
-                  populationLayer={populationLayer} onMunicipalityClick={onMunicipalityClick} onRegionSelect={selectRegion} />
+                  populationLayer={populationLayer} showCompetitions={showCompetitions} competitionCounts={competitionCounts} competitionMaximum={competitionMaximum}
+                  onMunicipalityClick={onMunicipalityClick} onRegionSelect={selectRegion} />
                 <div className="map-legend-bar" aria-label="Selite">
                   <span><i className="legend-swatch outline" /> Alueen raja</span>
                   <span><i className="legend-swatch dashed" /> Päällekkäinen alue</span>
                   {highlightUnassigned && <span><i className="legend-swatch unassigned" /> Kohdistamaton kunta</span>}
                   {showClubs && <span>{VOTING_POWERS.map((votes) => <span key={votes}><i className="legend-dot" style={{ background: markerColor(votes) }} />{votes}</span>)} ääntä · koko = jäsenmäärä</span>}
+                  {showCompetitions && <span>Värit = kilpailurivejä valittuina vuosina</span>}
                 </div>
               </section>
               {(editingRegion || (!selectedRegion && selectedMunicipality)) && <aside className="planner-panel" aria-label="Tiedot">

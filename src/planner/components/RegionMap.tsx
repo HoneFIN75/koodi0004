@@ -9,9 +9,11 @@ import type { ProvinceDataset, ProvinceOverlaySettings } from '../../models/prov
 import { outlineSegments } from '../../services/geoService';
 import { createProvinceOverlay } from '../../services/provinceOverlay.ts';
 import { createMunicipalityTooltip, formatCount, markerColor, markerRadius } from '../../services/mapService';
+import { getCompetitionColor } from '../../services/competitionMapService.ts';
 import { getMunicipalityRank, getPopulationCategory, populationCategories, summarizePopulation } from '../../services/populationService';
 import type { ClubPlacement, MunicipalityAggregate } from '../../services/regionAnalytics';
 import { readableTextColor } from '../../services/regionColors';
+import { CompetitionLayerLegend } from '../../components/CompetitionLayerLegend.tsx';
 
 export const FINLAND_BOUNDS: L.LatLngBoundsExpression = [[59.45, 19.1], [70.15, 31.6]];
 const UNASSIGNED_COLOR = '#E11D48';
@@ -30,6 +32,9 @@ interface RegionMapProps {
   showClubs: boolean;
   showBaseMap: boolean;
   populationLayer: boolean;
+  showCompetitions: boolean;
+  competitionCounts: Map<string, number>;
+  competitionMaximum: number;
   dark: boolean;
   provinces: ProvinceDataset | null;
   provinceSettings: ProvinceOverlaySettings;
@@ -77,6 +82,7 @@ const multiPolygon = (dataset: MunicipalityDataset, codes: string[]): GeoJSON.Fe
 function municipalityPathStyle(props: RegionMapProps, code: string): L.PathOptions {
   const style: L.PathOptions = { className: `municipality-${code}`, color: props.dark ? '#CBD5E1' : '#475569', weight: 0.6, opacity: 0.55, fill: true, fillColor: props.dark ? '#FFFFFF' : '#000000', fillOpacity: 0.01 };
   if (props.populationLayer) Object.assign(style, { fillColor: getPopulationCategory(props.dataset.byCode.get(code)?.population ?? null)?.color ?? '#64748b', fillOpacity: 0.65 });
+  if (props.showCompetitions) Object.assign(style, { fillColor: getCompetitionColor(props.competitionCounts.get(code) ?? 0, props.competitionMaximum), fillOpacity: 1 });
   if (props.highlightCodes?.has(code)) Object.assign(style, { fillColor: UNASSIGNED_COLOR, fillOpacity: 0.28, color: UNASSIGNED_COLOR, weight: 1.2, opacity: 0.9 });
   if (props.matchCodes?.has(code)) Object.assign(style, { color: '#0284C7', weight: 2.2, opacity: 1 });
   if (props.editingRegion?.municipalityCodes.includes(code)) Object.assign(style, { color: props.editingRegion.color, weight: 2.4, opacity: 1, fillColor: props.editingRegion.color, fillOpacity: 0.22 });
@@ -103,6 +109,7 @@ export function RegionMap(props: RegionMapProps) {
   } | null>(null);
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const { dataset } = props;
+  const effectiveProvinceSettings = props.showCompetitions ? { ...props.provinceSettings, showRegions: false } : props.provinceSettings;
 
   useEffect(() => {
     if (!element.current) return undefined;
@@ -138,6 +145,7 @@ export function RegionMap(props: RegionMapProps) {
           const regions = current.membership.get(code) ?? [];
           return createMunicipalityTooltip(municipality?.name ?? code, regions.length ? regions.map((region) => region.name).join(', ') : 'Ei kuulu alueeseen', [
             municipality?.province ? `Maakunta: ${municipality.province}` : '',
+            current.showCompetitions ? `Kilpailurivejä valittuina vuosina: ${formatCount(current.competitionCounts.get(code) ?? 0)}` : '',
             `Väestö 2025: ${formatCount(municipality?.population ?? null)} · sijoitus ${municipality ? getMunicipalityRank(municipality.name) ?? 'ei tietoa' : 'ei tietoa'}`,
             getPopulationCategory(municipality?.population ?? null)?.label ?? 'Väestötieto puuttuu',
             `Seuroja ${aggregate?.clubs.length ?? 0} · jäseniä ${aggregate?.members ?? 0} · ääniä ${aggregate?.votes ?? 0}`,
@@ -168,22 +176,22 @@ export function RegionMap(props: RegionMapProps) {
       },
     }).addTo(map);
     const provinceOverlay = props.provinces
-      ? createProvinceOverlay(dataset, props.provinces, props.provinceSettings, 'provinceOverlay')
+      ? createProvinceOverlay(dataset, props.provinces, effectiveProvinceSettings, 'provinceOverlay')
       : null;
-    if (provinceOverlay && props.provinceSettings.showRegions) provinceOverlay.addTo(map);
+    if (provinceOverlay && effectiveProvinceSettings.showRegions) provinceOverlay.addTo(map);
     layers.current = { map, tiles, municipalities, fills, outlines, labels, clubs, provinceOverlay, renderers };
     const observer = new ResizeObserver(() => map.invalidateSize());
     observer.observe(element.current);
     return () => { observer.disconnect(); map.remove(); layers.current = null; };
-  }, [dataset, props.provinces, reducedMotion]);
+  }, [dataset, props.provinces, reducedMotion, props.showCompetitions]);
 
   useEffect(() => {
     const current = layers.current;
     if (!current?.provinceOverlay) return;
-    current.provinceOverlay.updateSettings(props.provinceSettings);
-    if (props.provinceSettings.showRegions) current.provinceOverlay.addTo(current.map);
+    current.provinceOverlay.updateSettings(effectiveProvinceSettings);
+    if (effectiveProvinceSettings.showRegions) current.provinceOverlay.addTo(current.map);
     else current.provinceOverlay.remove();
-  }, [props.provinceSettings, props.provinces]);
+  }, [props.provinceSettings, props.provinces, props.showCompetitions]);
 
   useEffect(() => {
     const current = layers.current;
@@ -204,7 +212,7 @@ export function RegionMap(props: RegionMapProps) {
     for (const region of ordered) {
       if (region.municipalityCodes.length === 0) continue;
       const selected = region.id === selectedRegionId;
-      if (!props.populationLayer) L.geoJSON({ type: 'FeatureCollection', features: multiPolygon(dataset, region.municipalityCodes) } as GeoJSON.FeatureCollection, {
+      if (!props.populationLayer && !props.showCompetitions) L.geoJSON({ type: 'FeatureCollection', features: multiPolygon(dataset, region.municipalityCodes) } as GeoJSON.FeatureCollection, {
         pane: 'regionFill', renderer: current.renderers.fill, interactive: false,
         style: { stroke: false, fillColor: region.color, fillOpacity: Math.min(1, region.opacity + (selected ? 0.12 : 0)) },
       } as VectorGeoJSONOptions).addTo(current.fills);
@@ -235,7 +243,7 @@ export function RegionMap(props: RegionMapProps) {
       }).bindTooltip(tooltipElement(region.name, [`Väestö 2025: ${formatCount(population)}`]))
         .on('click', () => onRegionSelect(region.id)).addTo(current.labels);
     }
-  }, [regions, dataset, selectedRegionId, onRegionSelect, props.populationLayer]);
+  }, [regions, dataset, selectedRegionId, onRegionSelect, props.populationLayer, props.showCompetitions]);
 
   useEffect(() => {
     const current = layers.current;
@@ -245,7 +253,7 @@ export function RegionMap(props: RegionMapProps) {
       (layer as L.Path).setStyle(municipalityPathStyle(props, code));
       if (layer.isTooltipOpen()) layer.getTooltip()?.update();
     });
-  }, [props.editingRegion, props.selectedMunicipalityCode, props.highlightCodes, props.matchCodes, props.dark, props.populationLayer, dataset]);
+  }, [props.editingRegion, props.selectedMunicipalityCode, props.highlightCodes, props.matchCodes, props.dark, props.populationLayer, props.showCompetitions, props.competitionCounts, props.competitionMaximum, dataset]);
 
   const { placements, showClubs } = props;
   useEffect(() => {
@@ -304,6 +312,7 @@ export function RegionMap(props: RegionMapProps) {
       <div ref={element} className="planner-map" role="region" aria-label="Aluekartta. Kuntia voi valita myös kuntaluettelosta." />
       <button type="button" className="map-reset" onClick={() => layers.current?.map.flyToBounds(FINLAND_BOUNDS, { animate: !reducedMotion })}>Koko Suomi</button>
       {props.populationLayer && <div className="population-map-legend" aria-label="Väestökartan selite"><strong>Kunnan väestö 2025</strong>{populationCategories.map((item) => <span key={item.id}><i style={{ background: item.color }} />{item.label} ≥ {formatCount(item.min)}</span>)}<span><i style={{ background: '#64748b' }} />Ei tietoa</span></div>}
+      {props.showCompetitions && <CompetitionLayerLegend maximum={props.competitionMaximum} />}
     </div>
   );
 }

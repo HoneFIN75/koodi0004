@@ -57,42 +57,40 @@ test('region statistics, coverage and trends update when years, municipality ass
   await expect(page.getByRole('table', { name: 'Aluevertailu', exact: true })).toContainText('Kilpailuja · valitut vuodet');
 });
 
-test('homepage competition map filters records and shows municipality details and trend', async ({ page }) => {
+test('competition counts are a controllable layer on the existing homepage club map', async ({ page }) => {
   await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: [
     competition('Duplicate', 2020, 'Espoo'), competition('Duplicate', 2020, 'Espoo'),
     competition('Helsinki Open', 2021, 'Helsinki'), competition('Espoo Open', 2021, 'Espoo'),
   ] }));
   await page.goto('./');
-  await expect(page.getByRole('heading', { level: 1, name: /KILPAILUTOIMINTA SUOMESSA/ })).toBeVisible();
-  const mapSection = page.locator('.competition-map-section');
-  const summary = page.locator('.competition-summary');
+  await expect(page.getByRole('heading', { level: 1, name: /Suomen seurat/ })).toBeVisible();
+  await expect(page.locator('.competition-map-section')).toHaveCount(0);
+  const mapSection = page.locator('.map-section');
   await expect(page.getByTestId('competition-total')).toHaveText('4');
-  await expect(summary.locator('dd').nth(1)).toHaveText('2');
-  await expect(summary).toContainText('2020');
-  await expect(summary).toContainText('2021');
-  await mapSection.getByRole('combobox', { name: 'Kilpailujen vuodet' }).selectOption('selected');
+  await expect(mapSection.locator('.map-canvas')).toBeVisible();
+  const competitionLayer = page.getByLabel('Kilpailumäärät kunnittain');
+  await expect(competitionLayer).not.toBeChecked();
+  await expect(mapSection.locator('.competition-layer-municipality')).toHaveCount(0);
+  await competitionLayer.check();
+  const espoo = mapSection.locator('.competition-layer-municipality[aria-label^="Espoo,"]');
+  await expect(espoo).toHaveAttribute('aria-label', 'Espoo, 3 kilpailuriviä');
+  await expect(mapSection.locator('.competition-layer-legend')).toBeVisible();
+  await expect(mapSection.locator('.competition-layer-legend')).toContainText('Kilpailurivejä kunnittain');
+  await expect(mapSection.locator('.club-marker')).toHaveCount(1);
+  await page.reload();
+  await expect(page.getByLabel('Kilpailumäärät kunnittain')).toBeChecked();
+  await expect(page.locator('.map-section .competition-layer-municipality')).not.toHaveCount(0);
+
+  await page.getByRole('combobox', { name: 'Kilpailujen vuodet' }).selectOption('selected');
   const selectedYears = page.getByRole('group', { name: 'Valitse kilpailuvuodet' });
   await selectedYears.getByLabel('2021').uncheck();
   await selectedYears.getByLabel('2020').check();
   await expect(page.getByTestId('competition-total')).toHaveText('2');
-  await page.getByRole('combobox', { name: 'Kunta', exact: true }).fill('Espoo');
-  await page.getByRole('searchbox', { name: 'Kilpailun nimi' }).fill('Duplicate');
-  await expect(page.getByTestId('competition-total')).toHaveText('2');
-  const espoo = page.locator('.competition-municipality[aria-label^="Espoo,"]');
-  await espoo.focus();
-  await page.keyboard.press('Enter');
-  const details = page.locator('.competition-municipality-details');
-  await expect(details).toContainText('Espoo');
-  await expect(details).toContainText('2');
-  await expect(details).toContainText('Eri kilpailunimiä');
-  await expect(page.locator('.competition-trend')).toContainText('2020');
-  await expect(page.locator('.leaflet-popup-content')).toContainText('Kuntatiedot');
-
-  await page.locator('.competition-map-layer-control').locator('summary').click();
-  await page.locator('.competition-map-layer-control').getByLabel('Yhteenveto').uncheck();
-  await expect(summary).toHaveCount(0);
+  await expect(espoo).toHaveAttribute('aria-label', 'Espoo, 2 kilpailuriviä');
+  await competitionLayer.uncheck();
+  await expect(mapSection.locator('.competition-layer-municipality')).toHaveCount(0);
   await page.reload();
-  await expect(page.locator('.competition-summary')).toHaveCount(0);
+  await expect(page.getByLabel('Kilpailumäärät kunnittain')).not.toBeChecked();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
@@ -115,7 +113,7 @@ test('one competition year filter controls the homepage and regional planning vi
   await expect(page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true })).toHaveValue('selected');
   await expect(page.locator('.map-options')).toHaveCount(0);
   await page.getByRole('button', { name: 'Kartta', exact: true }).click();
-  await expect(page.locator('.map-options')).not.toContainText('Kilpailu');
+  await expect(page.locator('.map-options')).toHaveCount(1);
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('range');
   await page.getByRole('combobox', { name: 'Alkuvuosi', exact: true }).selectOption('2021');
   await page.getByRole('combobox', { name: 'Loppuvuosi', exact: true }).selectOption('2022');
@@ -151,7 +149,7 @@ test('load failures, stale refresh, invalid data, empty selection and retry rema
   await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ status, json: response }));
   await page.goto('./');
   await expect(page.getByRole('alert')).toContainText('HTTP 503');
-  await expect(page.getByTestId('competition-total')).toHaveText('0');
+  await expect(page.getByTestId('competition-total')).toHaveCount(0);
   status = 200;
   await page.getByRole('button', { name: 'Päivitä kilpailuaineisto' }).click();
   await expect(page.getByTestId('competition-total')).toHaveText('5');
@@ -166,14 +164,14 @@ test('load failures, stale refresh, invalid data, empty selection and retry rema
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('selected');
   await page.getByRole('group', { name: 'Valitse kilpailuvuodet' }).getByLabel('2024').uncheck();
   await expect(page.getByTestId('competition-total')).toHaveText('0');
-  await expect(page.locator('.competition-map-section')).toContainText('Valitussa rajauksessa ei ole kilpailuja');
+  await expect(page.locator('.dashboard-competition-overview')).toContainText('Ei valittuja vuosia');
   response = [];
   await page.getByRole('button', { name: 'Päivitä kilpailuaineisto' }).click();
   await page.getByRole('combobox', { name: 'Kilpailujen vuodet', exact: true }).selectOption('all');
   await expect(page.getByTestId('competition-total')).toHaveText('0');
 });
 
-test('competition views are keyboard accessible and fit mobile in both themes', async ({ page }) => {
+test('competition controls are keyboard accessible and fit mobile in both themes', async ({ page }) => {
   await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: records }));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('./');
@@ -185,7 +183,7 @@ test('competition views are keyboard accessible and fit mobile in both themes', 
   await expect(checkbox).toBeChecked();
   for (const theme of ['dark', 'light']) {
     await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
-    const accessibility = await new AxeBuilder({ page }).include('.competition-map-section').include('.competition-filters').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+    const accessibility = await new AxeBuilder({ page }).include('.dashboard-competition-overview').include('.map-section').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
     expect(accessibility.violations).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   }
