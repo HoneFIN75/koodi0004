@@ -24,6 +24,7 @@ export interface MunicipalityDataset {
   totalAreaKm2: number;
   source: string | null;
   license: string | null;
+  generatedAt?: string | null;
 }
 
 export interface Region {

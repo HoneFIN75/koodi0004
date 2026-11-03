@@ -5,27 +5,32 @@ import './styles.css';
 import { startCompetitionRefresh } from './state/competitionStore';
 
 const PlannerApp = lazy(() => import('./planner/PlannerApp'));
-const isPlannerRoute = () => window.location.hash.startsWith('#/alueet');
+const DataSourcesPage = lazy(() => import('./pages/DataSourcesPage'));
+const getRoute = () => window.location.hash.startsWith('#/alueet') ? 'planner'
+  : window.location.hash === '#/datalahteet' ? 'dataSources' : 'dashboard';
 
 function Root() {
   useEffect(startCompetitionRefresh, []);
-  const [planner, setPlanner] = useState(isPlannerRoute);
+  const [route, setRoute] = useState(getRoute);
   useEffect(() => {
-    let previousRoute = isPlannerRoute();
+    let previousRoute = getRoute();
     const onChange = () => {
-      const nextRoute = isPlannerRoute();
-      setPlanner(nextRoute);
+      const nextRoute = getRoute();
+      setRoute(nextRoute);
       if (nextRoute !== previousRoute) window.scrollTo(0, 0);
       previousRoute = nextRoute;
     };
     window.addEventListener('hashchange', onChange);
     return () => window.removeEventListener('hashchange', onChange);
   }, []);
-  useEffect(() => { document.title = planner ? 'Aluesuunnittelu — Suomen frisbeegolfseurat' : 'Seurakartta — Suomen frisbeegolfseurat'; }, [planner]);
-  if (!planner) return <App />;
+  useEffect(() => {
+    const title = route === 'planner' ? 'Aluesuunnittelu' : route === 'dataSources' ? 'Datalähteet' : 'Seurakartta';
+    document.title = `${title} — Suomen frisbeegolfseurat`;
+  }, [route]);
+  if (route === 'dashboard') return <App />;
   return (
-    <Suspense fallback={<div className="loading-state" role="status"><span className="loading-spinner" />Ladataan aluesuunnittelua…</div>}>
-      <PlannerApp />
+    <Suspense fallback={<div className="loading-state" role="status"><span className="loading-spinner" />{route === 'planner' ? 'Ladataan aluesuunnittelua…' : 'Ladataan datalähteitä…'}</div>}>
+      {route === 'planner' ? <PlannerApp /> : <DataSourcesPage />}
     </Suspense>
   );
 }
