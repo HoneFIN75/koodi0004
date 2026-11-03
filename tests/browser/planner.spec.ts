@@ -520,8 +520,12 @@ test('browser data migrates only after explicit confirmation when the server is 
     activeScenarioId: 'legacy-scenario',
     scenarios: [{ id: 'legacy-scenario', name: 'Vanha suunnitelma', description: '', regions: [], createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
   };
-  await page.goto('/koodi0004/');
-  await page.evaluate(async (document) => {
+  await page.route('**/planner-migration-fixture', (route) => route.fulfill({
+    contentType: 'text/html',
+    body: '<!doctype html><html><head></head><body></body></html>',
+  }));
+  await page.goto('/koodi0004/planner-migration-fixture');
+  const storedName = await page.evaluate(async (document) => {
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open('koodi0004-region-planner', 1);
       request.onupgradeneeded = () => request.result.createObjectStore('kv');
@@ -534,8 +538,17 @@ test('browser data migrates only after explicit confirmation when the server is 
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error);
     });
+    const stored = await new Promise<typeof document | undefined>((resolve, reject) => {
+      const transaction = database.transaction('kv', 'readonly');
+      const request = transaction.objectStore('kv').get('region-planner:document');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
     database.close();
+    return stored?.scenarios[0]?.name;
   }, legacyDocument);
+  expect(storedName).toBe('Vanha suunnitelma');
+  await page.unroute('**/planner-migration-fixture');
   const writes: string[] = [];
   page.on('request', (request) => {
     if (request.url().includes('/api/planner.php') && request.method() === 'PUT') writes.push(request.method());
