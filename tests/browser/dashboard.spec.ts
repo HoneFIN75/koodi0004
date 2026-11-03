@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const fixture = (data: unknown[], recordCount = data.length) => ({
-  metadata: { generatedAt: '2026-01-01T00:00:00Z', recordCount, source: 'test' },
+  metadata: { generatedAt: '2026-01-01T00:00:00Z', lastUpdatedAt: '2025-12-31T10:00:00Z', recordCount, source: 'test' },
   data,
 });
 const club = (index: number, overrides: Record<string, unknown> = {}) => ({
@@ -25,6 +25,11 @@ async function load(page: Page, data = smallData) {
   await page.locator('.dashboard-map-controls > summary').click();
   await expect(page.locator('.dashboard-map-controls')).toHaveAttribute('open', '');
 }
+
+test('homepage displays the persisted club update time, not the response time', async ({ page }) => {
+  await load(page);
+  await expect(page.locator('.hero-aside small')).toContainText('2025');
+});
 
 test('map and club list are 20% taller across responsive layouts', async ({ page }) => {
   await load(page, fixture(Array.from({ length: 30 }, (_, index) => club(index))));

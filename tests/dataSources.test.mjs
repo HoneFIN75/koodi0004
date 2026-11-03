@@ -12,7 +12,7 @@ const emptySnapshot = { clubs: null, competitions: null, municipalities: null, p
 
 test('source counts use loaded records, not source metadata or selected competition years', async () => {
   const clubs = parseDatabase({
-    metadata: { generatedAt: '2026-01-01T00:00:00Z', source: 'test', recordCount: 999 },
+    metadata: { generatedAt: '2026-01-03T00:00:00Z', lastUpdatedAt: '2026-01-01T00:00:00Z', source: 'test', recordCount: 999 },
     data: [{ seura: 'Seura', paikkakunta: 'Helsinki', jasenmaara: 42 }],
   });
   const competitions = indexCompetitions(parseCompetitions([

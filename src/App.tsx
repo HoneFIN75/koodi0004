@@ -203,7 +203,7 @@ export default function App() {
           <h1>Suomen seurat,<br /><span>yhdellä kartalla.</span></h1>
           <p>Jäsenmäärät ja äänivalta näkyviin. Tutki, vertaile ja löydä seuratoiminnan koko kuva.</p>
         </div>
-        <div className="hero-aside"><div className="hero-number">{database ? numberFormat.format(totals.clubs) : '—'}</div><span>seuraa mukana</span><div className="hero-line" /><small>DATA PÄIVITETTY<br />{database?.metadata.generatedAt ? new Date(database.metadata.generatedAt).toLocaleDateString('fi-FI') : 'Ei tietoa'}</small></div>
+        <div className="hero-aside"><div className="hero-number">{database ? numberFormat.format(totals.clubs) : '—'}</div><span>seuraa mukana</span><div className="hero-line" /><small>DATA PÄIVITETTY<br />{database?.metadata.lastUpdatedAt ? new Date(database.metadata.lastUpdatedAt).toLocaleDateString('fi-FI') : 'Ei tietoa'}</small></div>
       </section>
 
       {error && <div className="error-banner" role="alert"><AlertCircle size={20} /><div><strong>Aineistoa ei voitu ladata</strong><span>{error}</span><button className="clear-filters" onClick={() => setAttempt((value) => value + 1)}>Yritä uudelleen</button></div></div>}

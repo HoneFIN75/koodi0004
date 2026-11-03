@@ -25,6 +25,7 @@ export type LocatedClub = Club & { latitude: number; longitude: number };
 export interface Database {
   metadata: {
     generatedAt: string | null;
+    lastUpdatedAt: string | null;
     recordCount: number | null;
     source: string | null;
   };

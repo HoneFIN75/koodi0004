@@ -64,8 +64,20 @@ test('invalid structure throws; invalid dates and counts are reported', () => {
   for (const input of [null, [], {}, { data: {} }]) assert.throws(() => parseDatabase(input));
   const database = parseDatabase(payload([], { generatedAt: 'bad', recordCount: -1 }));
   assert.equal(database.metadata.generatedAt, null);
+  assert.equal(database.metadata.lastUpdatedAt, null);
   assert.equal(database.metadata.recordCount, null);
   assert.equal(database.warnings.length, 1);
+});
+
+test('parses source update time separately and never invents it', () => {
+  const database = parseDatabase(payload([], {
+    generatedAt: '2026-01-03T00:00:00Z',
+    lastUpdatedAt: '2026-01-01T00:00:00Z',
+  }));
+  assert.equal(database.metadata.generatedAt, '2026-01-03T00:00:00Z');
+  assert.equal(database.metadata.lastUpdatedAt, '2026-01-01T00:00:00Z');
+  assert.equal(parseDatabase(payload([], { lastUpdatedAt: 'invalid' })).metadata.lastUpdatedAt, null);
+  assert.equal(parseDatabase(payload([])).metadata.lastUpdatedAt, null);
 });
 
 test('preserves extensible scalar details but not nested data', () => {
