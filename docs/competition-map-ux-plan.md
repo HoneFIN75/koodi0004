@@ -79,46 +79,44 @@ The only intentional overlap is reference geography and, in planning, competitio
 
 ## Information architecture and interaction proposal
 
-1. **Seurakartta — operational**: lead with `Kilpailutoiminta Suomessa`, the competition choropleth, the shared competition year control, municipality and competition-name search, a small summary, and an optional selected-municipality trend. Keep unsupported/unknown geography visible as a note and searchable list rather than silently dropping it.
-2. **Aluesuunnittelu — strategic**: keep scenario editing, custom region coverage, assigned/unassigned areas, comparison, and region-level competition aggregates. Do not repeat municipality rankings or a national competition dashboard here.
+1. **Seurakartta — operational**: preserve the existing homepage and club map. Add competition counts as an independently switchable municipality-fill layer on that map, with a legend and the shared competition-year filter. Keep club markers visually above the fill layer.
+2. **Aluesuunnittelu — strategic**: preserve the existing planning map and its region, club, and population features. Add the same optional competition-count municipality fill using the shared year filter. When enabled, competition coloring replaces population and region fills; region outlines, municipality selection, and club markers remain available.
 3. **Seuratoiminta and population analysis**: retain the existing club, membership, and population features under their own labels and context. They are separate datasets and must not be presented as competition-derived measures.
 4. **Reports and administration**: retain detailed tables and CSV export in one report/admin surface; do not make a second operational dashboard.
 
 ### Filter architecture
 
-Keep the existing shared `YearFilter` store as the sole source of truth for competition-year selection. Render `CompetitionFilters` once in each active product view and remove its nested copy from the planner's general club/population filter disclosure. Competition name and municipality search belong to the homepage map because they scope the record geography; planner club, population, and region filters remain independent and must not be described as filtering competition counts.
+Keep the existing shared `YearFilter` store as the sole source of truth for competition-year selection. Render `CompetitionFilters` once on the homepage and once in Aluesuunnittelu. The layer-visibility toggle is separate from the year filter. Club, population, and region filters remain independent and must not be described as filtering competition counts.
 
 ### Layer and visualization architecture
 
-Treat the competition choropleth, municipality outlines, and basemap as independent map layers. Keep region assignment, region outlines/fills, club markers, population fill, province overlay, and unassigned highlighting as planning layers. Conflicting thematic fills should not be active at once; the planner's population coloring already suppresses regional fills. Use explicit layer labels, legends that update with active layers, a reset extent action, and a restore-defaults action. Persist only presentation preferences (layer visibility and panel visibility), not filters or planning data, unless product owners request otherwise.
+Treat competition counts as an optional thematic fill layer on each existing map, not as a separate map or route. Municipality boundaries, basemaps, and club markers remain independent. In Aluesuunnittelu, competition coloring is mutually exclusive with population and region fills; region outlines and club markers stay visible. Hide province fills and borders while competition coloring is active to prevent competing overlays. Use the same color ramp and legend on both maps, report source-row counts in municipality tooltips, and persist the visibility toggle as a presentation preference.
 
-For panels, use progressive disclosure: summary first, selected municipality details on demand, and the yearly trend in a collapsible panel. Every control must have a Finnish label and keyboard focus state. A narrow viewport should stack the map and its summary rather than shrink the map into an unusable column.
+Keep the existing homepage summary and planning panels in their current locations. Every new layer control must have a Finnish label and keyboard focus state. On narrow viewports, retain the existing map layout and move the competition legend below the map rather than covering map controls.
 
 ## Wireframe recommendation
 
-**Homepage, desktop:** page title and purpose → compact year control → main Finland municipality map (about two-thirds width) with search/layer controls → `Yhteenveto` and selected `Kuntatiedot` in a side column → collapsible municipality trend below or within the side column → clearly separated club section.
+**Homepage, desktop:** existing Seurakartta page and summary → existing club map with an independent `Kilpailumäärät kunnittain` layer toggle and year filter → existing club list and controls.
 
-**Homepage, mobile:** title → year control and two searches → full-width map with compact layer disclosure → summary → selected municipality details/trend → club section. Avoid fixed sidebars and horizontal scrolling.
+**Homepage, mobile:** preserve the existing stacked map layout; keep the competition toggle and year filter adjacent to the club map and place its legend below the map when enabled.
 
-**Aluesuunnittelu:** scenario and shared competition-year control → planning map with independent region/club/population layers → region or municipality detail → regional comparison and coverage dashboard. The map is a planning canvas, not a second municipality-activity dashboard.
+**Aluesuunnittelu:** preserve the planning map and controls; add the same optional competition layer next to its existing population and club toggles. Keep regional outlines and planning interactions available while the competition fill is active.
 
 ## Component hierarchy and implementation plan
 
 ```text
 Root
 ├── Seurakartta (App)
-│   ├── CompetitionMapView
-│   │   ├── CompetitionFilters
-│   │   ├── CompetitionLayerControls
-│   │   ├── CompetitionMap
-│   │   ├── CompetitionSummary
-│   │   ├── MunicipalityDetails
-│   │   └── MunicipalityTrend
-│   └── Seuratoiminta
+│   ├── Seurakartta summary and filters
+│   └── MapView
+│       ├── Club markers
+│       ├── Optional competition-count municipality fill
+│       └── Shared map controls and legends
 └── Aluesuunnittelu (PlannerApp)
     ├── Shared CompetitionFilters
     ├── PlannerFilters (clubs / population / regions)
     ├── RegionMap and planning layers
+    │   └── Optional competition-count municipality fill
     ├── RegionDetails
     └── Regional Dashboard / Comparison
 ```
@@ -127,9 +125,9 @@ The first implementation should use the existing competition repository, shared 
 
 ## Final recommendations
 
-- Make the operational competition map the homepage's first map and keep the existing club map clearly separated as club functionality.
+- Do not add a standalone competition map. Add the competition-count layer only to the existing homepage and planning maps.
 - Preserve record-based counts exactly as stored. Distinguish records from unique title strings and do not silently deduplicate exact triplets.
 - Show 2019 as unavailable and avoid presenting partial-year comparisons as complete.
-- Keep `Maarianhamina` visible on the competition map; mark population-based measures unavailable until its population-dataset name is reconciled.
+- Keep `Maarianhamina` visible in both competition layers; mark population-based measures unavailable until its population-dataset name is reconciled.
 - Keep regional competition aggregates in Aluesuunnittelu, but consolidate repeated national competition analysis and filters.
 - Add future club, membership, course, or scenario layers only after their data sources and join keys have been validated.

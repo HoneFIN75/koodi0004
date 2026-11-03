@@ -17,8 +17,7 @@ export function SiteHeader({ page = 'dashboard' }: { page?: 'dashboard' | 'dataS
         <span>SEURA<span className="brand-light">KARTTA</span>{' '}<small>SUOMEN FRISBEEGOLFSEURAT</small></span>
       </a>
       <nav className="top-nav" aria-label="Päänavigaatio">
-        <a className={onDashboard ? 'active' : undefined} aria-current={onDashboard ? 'page' : undefined} href="#kilpailutoiminta">Kilpailut</a>
-        <a href="#kartta">Seurat</a>
+        <a className={onDashboard ? 'active' : undefined} href="#kartta">Kartta</a>
         <a href="#tilastot">Tilastot</a>
         <a href="#seura-matriisi">Seura matriisi</a>
         <a href="#/alueet"><span className="nav-long">Aluesuunnittelu</span><span className="nav-short">Alueet</span></a>

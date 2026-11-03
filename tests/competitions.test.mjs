@@ -6,6 +6,7 @@ import { COMPETITION_FILE } from '../src/models/competition.ts';
 import { createCompetitionRepository } from '../src/data/competitionRepository.ts';
 import { compareCompetitionYears, competitionCountForMunicipalities, filterCompetitions, getCompetitionStatistics, indexCompetitions, parseCompetitions, selectedCompetitionYears } from '../src/services/competitionService.ts';
 import { parseMunicipalities } from '../src/data/municipalityRepository.ts';
+import { getCompetitionColor, getCompetitionCounts, getCompetitionLegend, getCompetitionMaximum } from '../src/services/competitionMapService.ts';
 import { analyzeScenario } from '../src/services/regionAnalytics.ts';
 import { createDocument, createRegion } from '../src/services/plannerDocument.ts';
 import { exportCompetitionCsv, exportCsv, exportJson, exportXlsx } from '../src/services/exportService.ts';
@@ -17,6 +18,16 @@ const records = [row('Same name', 2020, 'Espoo'), row('Same name', 2020, 'Espoo'
 const index = indexCompetitions(parseCompetitions(records));
 const all = { mode: 'all' };
 const dataset = parseMunicipalities(JSON.parse(await readFile(new URL('../public/geo/kunnat.geojson', import.meta.url), 'utf8')));
+
+test('competition map counts and color legend follow the shared year filter', () => {
+  const counts = getCompetitionCounts(index, { mode: 'selected', years: [2020] });
+  assert.equal(counts.get('espoo'), 2);
+  assert.equal(counts.get('helsinki'), undefined);
+  assert.equal(getCompetitionMaximum(counts), 2);
+  assert.notEqual(getCompetitionColor(1, 2), getCompetitionColor(2, 2));
+  assert.deepEqual(getCompetitionLegend(2).map((item) => item.label), ['0', '1', '2']);
+  assert.deepEqual(getCompetitionLegend(0).map((item) => item.label), ['0']);
+});
 
 test('the supplied dataset is consumed unchanged, including duplicate rows and future years', async () => {
   const payload = JSON.parse(await readFile(new URL(`../${COMPETITION_FILE}`, import.meta.url), 'utf8'));
