@@ -5,7 +5,6 @@ import { formatArea, formatDensity, formatPercent, type RegionStats } from '../.
 import type { ValidationWarning } from '../../services/validationService';
 import { StatCard, WarningList, decimalFormat, integerFormat } from './ui';
 import { formatCount } from '../../services/mapService';
-import { CompetitionAnalytics } from '../../components/CompetitionAnalytics';
 import { SortableTableHeader } from '../../components/SortableTableHeader';
 import { sortTableRows, toggleTableSort, type TableSortState } from '../../services/tableSorting';
 
@@ -79,7 +78,6 @@ export function RegionDetail({ region, stats, explanation, warnings, onEdit, onD
         <ul className="chip-list">{stats.municipalities.map((municipality) => <li key={municipality.code}>{municipality.name} · {formatCount(municipality.population)} as.</li>)}</ul>
         {stats.missingCodes.length > 0 && <p className="field-error">Tuntemattomat kuntakoodit: {stats.missingCodes.join(', ')}</p>}
       </details>
-      <CompetitionAnalytics geography={stats.municipalities} scope={{ municipalityNames: stats.municipalities.map((item) => item.name) }} title="Alueen kilpailutrendit" />
       <details className="detail-list" open={stats.clubCount > 0 && stats.clubCount <= 12}>
         <summary>Seurat ({stats.clubCount})</summary>
         <table className="data-table compact">

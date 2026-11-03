@@ -15,12 +15,13 @@ const METRICS: { key: ProvinceMetrics; label: string; format: (value: number | n
   { key: 'areaKm2', label: 'Pinta-ala (km²)', format: (value) => decimalFormat.format(value ?? 0) },
 ];
 
-export function ProvinceComparison({ rows }: { rows: ProvinceStatistics[] }) {
+export function ProvinceComparison({ rows, includeCompetitions = false }: { rows: ProvinceStatistics[]; includeCompetitions?: boolean }) {
   const [metric, setMetric] = useState<ProvinceMetrics>('members');
   const [direction, setDirection] = useState<'desc' | 'asc'>('desc');
   const [limit, setLimit] = useState('10');
   const [query, setQuery] = useState('');
-  const currentMetric = METRICS.find((item) => item.key === metric)!;
+  const metrics = includeCompetitions ? METRICS : METRICS.filter((item) => item.key !== 'competitions' && item.key !== 'competitionDensity');
+  const currentMetric = metrics.find((item) => item.key === metric) ?? METRICS[0];
   const visible = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase('fi-FI');
     return [...rows].filter((row) => row.province.name.toLocaleLowerCase('fi-FI').includes(needle))
@@ -38,7 +39,7 @@ export function ProvinceComparison({ rows }: { rows: ProvinceStatistics[] }) {
       <div className="panel-heading"><div><h3>Maakuntavertailu</h3><p>Vertaa maakuntia valitulla mittarilla</p></div></div>
       <div className="province-comparison-controls">
         <label>Mittari<select value={metric} onChange={(event) => setMetric(event.target.value as ProvinceMetrics)}>
-          {METRICS.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}
+          {metrics.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}
         </select></label>
         <label>Järjestys<select value={direction} onChange={(event) => setDirection(event.target.value as 'asc' | 'desc')}>
           <option value="desc">Suurimmasta pienimpään</option><option value="asc">Pienimmästä suurimpaan</option>

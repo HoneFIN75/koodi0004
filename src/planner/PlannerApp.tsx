@@ -48,6 +48,39 @@ const VIEWS: { id: View; label: string }[] = [
 ];
 const ADMIN_VIEWS: View[] = ['backups', 'data'];
 const THEME_KEY = 'seurakartta-theme';
+const MAP_PREFERENCES_KEY = 'seurakartta-planner-map';
+
+interface PlannerMapPreferences {
+  showClubs: boolean;
+  showBaseMap: boolean;
+  populationLayer: boolean;
+  highlightUnassigned: boolean;
+}
+
+const defaultMapPreferences: PlannerMapPreferences = {
+  showClubs: true,
+  showBaseMap: true,
+  populationLayer: false,
+  highlightUnassigned: false,
+};
+
+function readMapPreferences(): PlannerMapPreferences {
+  try {
+    const saved = localStorage.getItem(MAP_PREFERENCES_KEY);
+    if (!saved) return defaultMapPreferences;
+    const parsed: unknown = JSON.parse(saved);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return defaultMapPreferences;
+    const values = parsed as Record<string, unknown>;
+    return {
+      showClubs: typeof values.showClubs === 'boolean' ? values.showClubs : defaultMapPreferences.showClubs,
+      showBaseMap: typeof values.showBaseMap === 'boolean' ? values.showBaseMap : defaultMapPreferences.showBaseMap,
+      populationLayer: typeof values.populationLayer === 'boolean' ? values.populationLayer : defaultMapPreferences.populationLayer,
+      highlightUnassigned: typeof values.highlightUnassigned === 'boolean' ? values.highlightUnassigned : defaultMapPreferences.highlightUnassigned,
+    };
+  } catch {
+    return defaultMapPreferences;
+  }
+}
 
 function download(content: BlobPart, type: string, name: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -58,7 +91,7 @@ function download(content: BlobPart, type: string, name: string) {
 }
 
 export default function PlannerApp() {
-  const { index: competitionIndex, yearFilter, setYearFilter, error: competitionError } = useCompetitionData();
+  const { index: competitionIndex, yearFilter, error: competitionError } = useCompetitionData();
   const competitionContext = useMemo(() => ({ index: competitionIndex, yearFilter }), [competitionIndex, yearFilter]);
   const [clubs, setClubs] = useState<Database | null>(null);
   const [dataset, setDataset] = useState<MunicipalityDataset | null>(null);
@@ -72,10 +105,9 @@ export default function PlannerApp() {
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
-  const [highlightUnassigned, setHighlightUnassigned] = useState(false);
-  const [showClubs, setShowClubs] = useState(true);
-  const [showBaseMap, setShowBaseMap] = useState(true);
-  const [populationLayer, setPopulationLayer] = useState(false);
+  const [mapPreferences, setMapPreferences] = useState(readMapPreferences);
+  const [mapPreferenceError, setMapPreferenceError] = useState(false);
+  const { highlightUnassigned, showClubs, showBaseMap, populationLayer } = mapPreferences;
   const [dark, setDark] = useState(() => { try { return localStorage.getItem(THEME_KEY) !== 'light'; } catch { return true; } });
   const [authSession, setAuthSession] = useState<AuthSession>({ authReady: false, role: null, csrfToken: '' });
   const [authLoading, setAuthLoading] = useState(true);
@@ -165,6 +197,14 @@ export default function PlannerApp() {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch { /* storage unavailable */ }
   }, [dark]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(MAP_PREFERENCES_KEY, JSON.stringify(mapPreferences));
+      setMapPreferenceError(false);
+    } catch {
+      setMapPreferenceError(true);
+    }
+  }, [mapPreferences]);
   useEffect(() => {
     const flush = () => { void plannerStore.getState().flush(); };
     const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
@@ -467,15 +507,13 @@ export default function PlannerApp() {
         ))}
         {authSession.role === 'admin' && <button type="button" className={view === 'clubs' ? 'active' : ''} aria-current={view === 'clubs' ? 'page' : undefined} onClick={() => selectView('clubs')}>Seurahallinta</button>}
       </nav>
+      <CompetitionFilters />
       {view === 'map' && !loading && dataset && analysis && (
         <section className="planner-card province-summary" aria-labelledby="province-summary-title">
           <header className="card-header"><div><h2 id="province-summary-title">Skenaario: {scenario.name}</h2><p>{regions.length} aluetta · {analysis.assignedCodes.size}/{dataset.municipalities.length} kuntaa kohdistettu</p></div></header>
           <p className="hint">Valitse alue luettelosta tai kartalta, tai napsauta kuntaa nähdäksesi sen seurat ja alueet.</p>
         </section>
       )}
-      {view !== 'map' && <CompetitionFilters />}
-      {adminOpen && <CompetitionAnalytics geography={dataset?.municipalities} title="Ylläpidon kilpailutilastot" />}
-
       {migrationAvailable && canWrite && (
         <section className="planner-card">
           <h2 className="card-title">Palvelin ei sisällä vielä suunnitelmaa</h2>
@@ -524,14 +562,16 @@ export default function PlannerApp() {
               onToggle={(region, field) => updateRegion(region.id, { [field]: !region[field] }, `${field === 'visible' ? (region.visible ? 'Piilotettu' : 'Näytetty') : (region.enabled ? 'Poistettu käytöstä' : 'Otettu käyttöön')}: ${region.name}`, field)} />
             <div className={`planner-map-layout${selectedRegion && !editingRegion ? ' has-region-detail' : ''}${editingRegion || (!selectedRegion && selectedMunicipality) ? ' has-map-panel' : ''}`}>
               <section className="planner-map-column" aria-label="Kartta">
-                <PlannerFilters filters={filters} regions={regions} maxMembers={Math.max(1, maxMembers)} votingOptions={votingOptions} competitionFilterActive={yearFilter.mode !== 'all'} onChange={setFilters} onClear={() => { setFilters(emptyFilters); setYearFilter({ mode: 'all' }); }} />
+                <PlannerFilters filters={filters} regions={regions} maxMembers={Math.max(1, maxMembers)} votingOptions={votingOptions} onChange={setFilters} onClear={() => setFilters(emptyFilters)} />
                 <div className="map-options" role="group" aria-label="Karttatasot">
-                  <label className="checkbox"><input type="checkbox" checked={showClubs} onChange={(event) => setShowClubs(event.target.checked)} /> Seurat</label>
-                  <label className="checkbox"><input type="checkbox" checked={highlightUnassigned} onChange={(event) => setHighlightUnassigned(event.target.checked)} /> Korosta kohdistamattomat</label>
-                  <label className="checkbox"><input type="checkbox" checked={showBaseMap} onChange={(event) => setShowBaseMap(event.target.checked)} /> Taustakartta</label>
-                  <label className="checkbox"><input type="checkbox" checked={populationLayer} onChange={(event) => setPopulationLayer(event.target.checked)} /> Väestökartta 2025</label>
+                  <label className="checkbox"><input type="checkbox" checked={showClubs} onChange={(event) => setMapPreferences((current) => ({ ...current, showClubs: event.target.checked }))} /> Seurat</label>
+                  <label className="checkbox"><input type="checkbox" checked={highlightUnassigned} onChange={(event) => setMapPreferences((current) => ({ ...current, highlightUnassigned: event.target.checked }))} /> Korosta kohdistamattomat</label>
+                  <label className="checkbox"><input type="checkbox" checked={showBaseMap} onChange={(event) => setMapPreferences((current) => ({ ...current, showBaseMap: event.target.checked }))} /> Taustakartta</label>
+                  <label className="checkbox"><input type="checkbox" checked={populationLayer} onChange={(event) => setMapPreferences((current) => ({ ...current, populationLayer: event.target.checked }))} /> Väestökartta 2025</label>
+                  <button type="button" className="text-button" onClick={() => setMapPreferences(defaultMapPreferences)}>Palauta tasojen oletukset</button>
                   <span className="map-status" role="status" aria-live="polite">{filtered.length} / {placements.length} seuraa{filtersActive ? ' (suodatettu)' : ''}</span>
                 </div>
+                {mapPreferenceError && <p className="notice" role="status">Karttatasojen asetuksia ei voitu tallentaa tähän selaimeen.</p>}
                 <ProvinceOverlayControls settings={provinceSettings} provinces={provinces} onChange={setProvinceSettings} />
                 {provinceError && <p className="notice" role="alert">Maakuntataso ei ole käytettävissä: {provinceError}</p>}
                 {editingRegion && <p className="edit-banner" role="status"><ColorDot color={editingRegion.color} /><span>Valintatila: napsauta kuntia lisätäksesi tai poistaaksesi ne alueesta <strong>{editingRegion.name}</strong>.</span></p>}
@@ -572,9 +612,9 @@ export default function PlannerApp() {
             </details>
             </div>
           )}
-          {view === 'dashboard' && <><DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} /><CompetitionAnalytics geography={dataset.municipalities} title="Johdon kilpailuanalyysi" /></>}
-          {view === 'compare' && <><ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} /><ProvinceComparison rows={provinceStatistics} /><CompetitionAnalytics geography={dataset.municipalities} title="Kilpailujen vuosivertailu" /></>}
-          {view === 'unassigned' && <UnassignedView analysis={analysis} regions={regions} onShowOnMap={() => { setHighlightUnassigned(true); setSelectedRegionId(null); setEditing(false); setView('map'); }}
+          {view === 'dashboard' && <DashboardView analysis={analysis} regions={regions} dataset={dataset} scenarioCount={document_.scenarios.length} scenarioName={scenario.name} warnings={warnings} filtered={filtersActive} onSelectRegion={selectRegion} />}
+          {view === 'compare' && <><ComparisonView regions={regions} analysis={analysis} onSelectRegion={selectRegion} /><ProvinceComparison rows={provinceStatistics} includeCompetitions /></>}
+          {view === 'unassigned' && <UnassignedView analysis={analysis} regions={regions} onShowOnMap={() => { setMapPreferences((current) => ({ ...current, highlightUnassigned: true })); setSelectedRegionId(null); setEditing(false); setView('map'); }}
             onAssign={(regionId, codes) => setMunicipalities(regionId, codes, 'add', `Kohdistettu ${codes.length} kuntaa`)} />}
           {view === 'scenarios' && <ScenarioManager document={displayedDocument} dataset={dataset} readOnly={!canWrite}
             onCreate={(name) => { commit('Skenaarion luonti', (current) => documentOps.addScenario(current, name)); setSelectedRegionId(null); }}
