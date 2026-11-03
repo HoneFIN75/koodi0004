@@ -400,6 +400,7 @@ export default function PlannerApp() {
     <div className="planner-shell">
       <header className="planner-topbar">
         <a className="planner-back" href="#/" title="Takaisin seurakarttaan"><ArrowLeft size={16} aria-hidden="true" /> Seurakartta</a>
+        <a className="planner-back" href="#/datalahteet">Datalähteet</a>
         <div className="planner-brand"><span className="brand-mark"><span /></span><div><h1>ALUESUUNNITTELU</h1><small>SUOMEN FRISBEEGOLFLIITTO</small></div></div>
         <label className="scenario-switch">
           <span>Skenaario</span>

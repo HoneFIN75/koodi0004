@@ -62,10 +62,12 @@ export function parseMunicipalities(input: unknown): MunicipalityDataset {
     municipality.population = populationService.getMunicipalityPopulation(municipality.name);
   }
   const metadata = isRecord(input.metadata) ? input.metadata : {};
+  const generatedAt = text(metadata.generatedAt);
   return {
     municipalities, byCode,
     totalAreaKm2: municipalities.reduce((sum, municipality) => sum + municipality.areaKm2, 0),
     source: text(metadata.source), license: text(metadata.license),
+    generatedAt: generatedAt && Number.isFinite(Date.parse(generatedAt)) ? generatedAt : null,
   };
 }
 

@@ -104,6 +104,16 @@ The `Validate dashboard` workflow runs service tests and production browser chec
 
 Additional scalar JSON fields are retained and automatically rendered in the detail panel. `district`, `region`, `website`, `email`, and `foundedYear` have Finnish display labels. Only valid HTTP(S) websites and email addresses become links; other values remain safe text. Add display labels in `ClubDetail.tsx` without changing data loading.
 
+## Data sources (`#/datalahteet`)
+
+The standalone **Datalähteet** page documents the six application datasets in Finnish, including provenance, contents, uses, limitations, and public/private contact handling. It is accessible from the main navigation and planner header, supports direct links and browser history, and shares the dashboard's theme and responsive layout.
+
+`src/data/dataSources.ts` holds the typed source definitions and optional source system, update frequency, record count, last-update timestamp, and owner metadata. Unknown metadata is displayed as **Ei saatavilla**; refresh/check frequency is not presented as source-update frequency.
+
+The summary uses the existing repositories and shared competition/planner stores, not fixed counts or dashboard/year filters. Clubs count public active records; regions count every region across all scenarios, including disabled regions and scenario copies, but not backup contents. Source failures are reported independently with retry, and retained competition data is explicitly marked stale after a failed refresh.
+
+The latest known timestamp is calculated from validated club-file and municipality-file generation times and region modification times. Request completion times and planner load/save indicators are not treated as source-update timestamps. The timestamp does not assert freshness of sources with unknown dates. The documentation distinguishes geometry-derived area from population-derived density, and identifies the separate OpenStreetMap background tiles.
+
 ## Region planner (`#/alueet`)
 
 A lazily loaded territorial planning tool for designing representation regions from municipalities. Open it from the “Aluesuunnittelu” link or directly at `…/#/alueet`.

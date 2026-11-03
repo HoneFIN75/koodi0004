@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, BarChart3, MapPin, Moon, Search, Sun, Trophy, Users, Vote, type LucideIcon } from 'lucide-react';
+import { AlertCircle, BarChart3, MapPin, Search, Trophy, Users, Vote, type LucideIcon } from 'lucide-react';
+import { SiteHeader } from './components/SiteHeader';
 import { clubRepository } from './data/clubRepository';
 import { municipalityRepository } from './data/municipalityRepository';
 import { provinceRepository } from './data/provinceRepository.ts';
@@ -104,7 +105,6 @@ export default function App() {
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [attempt, setAttempt] = useState(0);
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('seurakartta-theme') !== 'light');
   const [provinceSettings, setProvinceSettings] = useProvinceSettings();
   const scenarios = usePlanner((state) => state.history.present.scenarios);
   const activeScenarioId = usePlanner((state) => state.history.present.activeScenarioId);
@@ -137,9 +137,12 @@ export default function App() {
   }, [attempt]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = darkMode ? 'dark' : 'light';
-    localStorage.setItem('seurakartta-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+    if (!database) return;
+    const id = window.location.hash.slice(1);
+    if (!['kartta', 'tilastot', 'seura-matriisi'].includes(id)) return;
+    const frame = window.requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
+    return () => window.cancelAnimationFrame(frame);
+  }, [database]);
 
   const clubs = database?.data ?? emptyClubs;
   const clubMunicipalities = useMemo(() => new Map(municipalities ? assignClubs(clubs, municipalities).map(({ club, municipalityCode }) => [club, municipalityCode ? municipalities.byCode.get(municipalityCode) ?? null : null]) : []), [clubs, municipalities]);
@@ -176,16 +179,7 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <header className="topbar">
-        <a className="brand" href={import.meta.env.BASE_URL} aria-label="Seurakartta etusivu">
-          <span className="brand-mark"><span /></span>
-          <span>SEURA<span className="brand-light">KARTTA</span><small>SUOMEN FRISBEEGOLFSEURAT</small></span>
-        </a>
-        <nav className="top-nav"><a className="active" href="#kartta">Kartta</a><a href="#tilastot">Tilastot</a><a href="#seura-matriisi">Seura matriisi</a><a href="#/alueet"><span className="nav-long">Aluesuunnittelu</span><span className="nav-short">Alueet</span></a></nav>
-        <button className="theme-toggle" onClick={() => setDarkMode((mode) => !mode)} aria-label={darkMode ? 'Vaihda vaaleaan tilaan' : 'Vaihda tummaan tilaan'}>
-          {darkMode ? <Sun size={17} /> : <Moon size={17} />}<span>{darkMode ? 'Vaalea tila' : 'Tumma tila'}</span>
-        </button>
-      </header>
+      <SiteHeader />
 
       <section className="hero">
         <div className="hero-copy">
