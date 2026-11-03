@@ -18,6 +18,31 @@ function clubs_revision(array $store): string
     return hash('sha256', json_encode($store, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
 }
 
+function clubs_valid_timestamp(mixed $value): bool
+{
+    return is_string($value)
+        && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/D', $value) === 1
+        && strtotime($value) !== false;
+}
+
+function clubs_now_timestamp(): string
+{
+    $now = microtime(true);
+    $seconds = (int)$now;
+    $microseconds = (int)(($now - $seconds) * 1_000_000);
+    return gmdate('Y-m-d\TH:i:s', $seconds) . sprintf('.%06dZ', $microseconds);
+}
+
+function clubs_last_updated_at(array $store, string $file): ?string
+{
+    if (isset($store['updatedAt'])) {
+        return $store['updatedAt'];
+    }
+    clearstatcache(true, $file);
+    $modifiedAt = filemtime($file);
+    return $modifiedAt === false ? null : gmdate('c', $modifiedAt);
+}
+
 function clubs_text(mixed $value, int $maxLength, bool $required = false): bool
 {
     if (!is_string($value) || strlen($value) > $maxLength || preg_match('//u', $value) !== 1) {
@@ -116,8 +141,11 @@ function clubs_valid_record(mixed $club): bool
 
 function clubs_valid_store(mixed $store): bool
 {
-    if (!is_array($store) || array_diff(array_keys($store), ['version', 'data']) !== []
+    if (!is_array($store) || array_diff(array_keys($store), ['version', 'data', 'updatedAt']) !== []
         || ($store['version'] ?? null) !== 1 || !is_array($store['data'] ?? null) || !array_is_list($store['data'])) {
+        return false;
+    }
+    if (array_key_exists('updatedAt', $store) && !clubs_valid_timestamp($store['updatedAt'])) {
         return false;
     }
     if (count($store['data']) > 10000) {
@@ -216,6 +244,7 @@ function clubs_api(string $directory): never
         clubs_respond(200, [
             'metadata' => [
                 'generatedAt' => gmdate('c'),
+                'lastUpdatedAt' => clubs_last_updated_at($store, $file),
                 'recordCount' => count($publicClubs),
                 'source' => 'Seurakartta',
             ],
@@ -236,7 +265,7 @@ function clubs_api(string $directory): never
         clubs_respond(413, ['error' => 'Seuratietopyynnön koko ei ole sallittu.']);
     }
     $payload = json_decode((string)file_get_contents('php://input'), true);
-    if (!clubs_valid_store($payload)) {
+    if (!is_array($payload) || array_key_exists('updatedAt', $payload) || !clubs_valid_store($payload)) {
         clubs_respond(400, ['error' => 'Tallennettavat seuratiedot eivät ole kelvollisessa muodossa.']);
     }
 
@@ -259,8 +288,12 @@ function clubs_api(string $directory): never
         if (!preg_match('/^[a-f0-9]{64}$/', $expectedRevision) || !hash_equals($currentRevision, $expectedRevision)) {
             clubs_respond(409, ['error' => 'Seuratiedot ovat muuttuneet. Lataa uusin aineisto ennen tallennusta.']);
         }
-        clubs_write_store($file, $payload);
-        clubs_respond(200, ['revision' => clubs_revision($payload)]);
+        if ($payload['data'] !== $current['data']) {
+            $payload['updatedAt'] = clubs_now_timestamp();
+            clubs_write_store($file, $payload);
+            $currentRevision = clubs_revision($payload);
+        }
+        clubs_respond(200, ['revision' => $currentRevision]);
     } finally {
         flock($lock, LOCK_UN);
         fclose($lock);

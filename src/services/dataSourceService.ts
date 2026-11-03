@@ -23,7 +23,7 @@ export function latestSourceTimestamp(timestamps: readonly (string | null | unde
 export function getDataSourceMetadata(snapshot: DataSourceSnapshot, populationCount: number): Record<DataSourceId, DataSourceMetadata> {
   const regions = snapshot.planning?.scenarios.flatMap((scenario) => scenario.regions);
   return {
-    clubs: { recordCount: snapshot.clubs?.data.length ?? null, lastUpdatedAt: latestSourceTimestamp([snapshot.clubs?.metadata.generatedAt]) },
+    clubs: { recordCount: snapshot.clubs?.data.length ?? null, lastUpdatedAt: latestSourceTimestamp([snapshot.clubs?.metadata.lastUpdatedAt]) },
     competitions: { recordCount: snapshot.competitions?.records.length ?? null, years: snapshot.competitions?.years ?? null },
     municipalities: { recordCount: snapshot.municipalities?.municipalities.length ?? null, lastUpdatedAt: latestSourceTimestamp([snapshot.municipalities?.generatedAt]) },
     population: { recordCount: populationCount },

@@ -51,6 +51,8 @@ export function parseDatabase(value: unknown): Database {
   const metadata = isRecord(value.metadata) ? value.metadata : {};
   const date = text(metadata.generatedAt);
   const generatedAt = date && Number.isFinite(Date.parse(date)) ? date : null;
+  const updatedDate = text(metadata.lastUpdatedAt);
+  const lastUpdatedAt = updatedDate && Number.isFinite(Date.parse(updatedDate)) ? updatedDate : null;
   const recordCount = parseCount(metadata.recordCount);
   const source = text(metadata.source);
   if (generatedAt === null || recordCount === null || source === null) {
@@ -122,7 +124,7 @@ export function parseDatabase(value: unknown): Database {
   if (invalidContacts) {
     warnings.push(`${invalidContacts} seuran julkisia yhteystietoja ei voitu käsitellä virheellisen tietorakenteen vuoksi.`);
   }
-  return { metadata: { generatedAt, recordCount, source }, data, warnings };
+  return { metadata: { generatedAt, lastUpdatedAt, recordCount, source }, data, warnings };
 }
 
 async function loadDatabase(): Promise<Database> {

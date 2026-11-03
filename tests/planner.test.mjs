@@ -207,7 +207,11 @@ test('exports round-trip JSON and produce safe CSV and valid XLSX', () => {
   let document = documentOps.addRegion(createDocument(), { name: '=HYPERLINK("x")', shortName: 'H' }).document;
   const region = activeScenario(document).regions[0];
   document = documentOps.setMunicipalities(document, region.id, [codeOf('Helsinki'), codeOf('Maarianhamina')], 'add');
-  const context = { document, dataset, placements, clubMetadata: database.metadata, scope: 'all', exportedAt: new Date('2026-01-01T00:00:00Z') };
+  const context = {
+    document, dataset, placements,
+    clubMetadata: { ...database.metadata, lastUpdatedAt: '2025-12-31T10:00:00Z' },
+    scope: 'all', exportedAt: new Date('2026-01-01T00:00:00Z'),
+  };
   const json = JSON.parse(exportJson(context));
   assert.equal(json.format, 'koodi0004-region-planner');
   assert.deepEqual(parseImport(json).scenarios[0].regions[0].municipalityCodes, activeScenario(document).regions[0].municipalityCodes);
@@ -221,6 +225,7 @@ test('exports round-trip JSON and produce safe CSV and valid XLSX', () => {
   for (const name of ['[Content_Types].xml', 'xl/workbook.xml', 'xl/worksheets/sheet1.xml']) assert.ok(files[name], name);
   assert.match(strFromU8(files['xl/workbook.xml']), /Alueet/);
   assert.match(strFromU8(files['xl/worksheets/sheet2.xml']), /Maarianhamina/);
+  assert.match(strFromU8(files['xl/worksheets/sheet3.xml']), /2025-12-31T10:00:00Z/);
 });
 
 test('storage falls back from IndexedDB to localStorage to memory', async () => {

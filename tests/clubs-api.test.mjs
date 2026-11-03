@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, utimes, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -232,6 +232,46 @@ test('only Admin can save with CSRF and a matching revision; writes are atomic',
   const rejected = await putClubs(host, admin, invalid, saved.data.revision);
   assert.equal(rejected.response.status, 400);
   assert.equal(JSON.parse(await readFile(join(host.data, 'clubs.json'), 'utf8')).data[0].seura, 'Päivitetty seura ry');
+});
+
+test('public metadata separates request time from persisted club update time', async (t) => {
+  const host = await startHost(t);
+  const storePath = join(host.data, 'clubs.json');
+  const legacyUpdatedAt = new Date('2020-01-02T03:04:05Z');
+  await utimes(storePath, legacyUpdatedAt, legacyUpdatedAt);
+
+  const first = await (await fetch(host.clubsUrl)).json();
+  const second = await (await fetch(host.clubsUrl)).json();
+  assert.equal(first.metadata.lastUpdatedAt, '2020-01-02T03:04:05+00:00');
+  assert.equal(second.metadata.lastUpdatedAt, first.metadata.lastUpdatedAt);
+  assert.ok(Date.parse(first.metadata.generatedAt) > Date.parse(first.metadata.lastUpdatedAt));
+
+  const admin = await login(host, 'admin', adminPassword);
+  const adminResponse = await fetch(`${host.clubsUrl}?view=admin`, { headers: { Cookie: admin.cookie } });
+  const adminStore = await adminResponse.json();
+  const noOpSave = await putClubs(host, admin, initialStore, adminStore.revision);
+  assert.equal(noOpSave.response.status, 200);
+  const afterNoOp = await (await fetch(host.clubsUrl)).json();
+  assert.equal(afterNoOp.metadata.lastUpdatedAt, first.metadata.lastUpdatedAt);
+  assert.equal(Object.hasOwn(JSON.parse(await readFile(storePath, 'utf8')), 'updatedAt'), false);
+
+  const changed = structuredClone(initialStore);
+  changed.data[0].seura = 'Muuttunut seura';
+  const changedSave = await putClubs(host, admin, changed, noOpSave.data.revision);
+  assert.equal(changedSave.response.status, 200, JSON.stringify(changedSave.data));
+  const stored = JSON.parse(await readFile(storePath, 'utf8'));
+  assert.match(stored.updatedAt, /^\d{4}-\d{2}-\d{2}T/);
+  assert.ok(Date.parse(stored.updatedAt) > Date.parse(first.metadata.lastUpdatedAt));
+
+  const afterChange = await (await fetch(host.clubsUrl)).json();
+  assert.equal(afterChange.metadata.lastUpdatedAt, stored.updatedAt);
+  const unchangedSave = await putClubs(host, admin, changed, changedSave.data.revision);
+  assert.equal(unchangedSave.response.status, 200);
+  assert.equal(JSON.parse(await readFile(storePath, 'utf8')).updatedAt, stored.updatedAt);
+
+  const forgedTimestamp = { ...changed, updatedAt: '2000-01-01T00:00:00Z' };
+  const rejected = await putClubs(host, admin, forgedTimestamp, unchangedSave.data.revision);
+  assert.equal(rejected.response.status, 400);
 });
 
 test('missing migrated store fails visibly and unsupported methods are rejected', async (t) => {

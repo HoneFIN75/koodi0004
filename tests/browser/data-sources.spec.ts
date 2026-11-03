@@ -3,7 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const clubs = {
-  metadata: { generatedAt: '2026-01-02T10:00:00Z', recordCount: 2, source: 'test' },
+  metadata: { generatedAt: '2026-01-02T10:00:00Z', lastUpdatedAt: '2026-01-01T10:00:00Z', recordCount: 2, source: 'test' },
   data: [
     { seura: 'Seura A', paikkakunta: 'Helsinki', jasenmaara: 10, aanimaara: 10, latitude: 60.17, longitude: 24.94 },
     { seura: 'Seura B', paikkakunta: 'Espoo', jasenmaara: 20, aanimaara: 10, latitude: 60.21, longitude: 24.66 },

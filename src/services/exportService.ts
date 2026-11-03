@@ -128,7 +128,7 @@ function metadataRows(context: ExportContext): Cell[][] {
     ['Skenaariot', scenarios.map((scenario) => scenario.name).join(', ')],
     ['Aktiivinen skenaario', activeScenario(context.document).name],
     ['Seuroja aineistossa', context.placements.length],
-    ['Seura-aineisto päivitetty', context.clubMetadata?.generatedAt ?? ''],
+    ['Seura-aineisto päivitetty', context.clubMetadata?.lastUpdatedAt ?? ''],
     ['Kuntarajat', context.dataset.source ?? ''], ['Kuntarajojen lisenssi', context.dataset.license ?? ''],
     ['Suomen pinta-ala km² (kuntarajoista)', round(context.dataset.totalAreaKm2, 0)],
     ['Väestövuosi', populationService.year], ['Suomen väestö', getDatasetPopulation(context.dataset).total],
