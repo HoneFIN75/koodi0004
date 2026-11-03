@@ -243,6 +243,16 @@ export default function App() {
       </div>
       </>}
 
+      <section className="dashboard-competition-metrics panel" aria-label="Kilpailujen avainluvut">
+        <p className="dashboard-competition-scope" role="status">Avainluvut · {describeCompetitionYears(competitionYearFilter)}</p>
+        {!competitionStatistics && <p role="status">Ladataan kilpailutilastoja…</p>}
+        {competitionStatistics && <div className="dashboard-metrics-grid">
+          <MetricCard icon={Trophy} label="KILPAILURIVEJÄ" value={competitionStatistics.total} suffix="riviä" testId="competition-total" />
+          <MetricCard icon={MapPin} label="KILPAILUKUNTIA" value={competitionStatistics.municipalityCount} suffix={competitionStatistics.municipalityCount === 1 ? 'kunta' : 'kuntaa'} />
+          <MetricCard icon={BarChart3} label="RIVEJÄ / AKTIIVINEN KUNTA" value={competitionStatistics.averagePerMunicipality} suffix="riviä / kunta" />
+        </div>}
+      </section>
+
       <details className="dashboard-map-controls panel">
         <summary>
           <span className="dashboard-map-controls-icon"><MapPin size={19} /></span>
@@ -258,13 +268,6 @@ export default function App() {
               <div><h2>Kilpailut</h2><p>Aineistovuodet {describeCompetitionPeriod(competitionIndex?.years ?? [])}</p></div>
               <CompetitionFilters compact />
             </div>
-            <p className="dashboard-competition-scope" role="status">Avainluvut · {describeCompetitionYears(competitionYearFilter)}</p>
-            {!competitionStatistics && <p role="status">Ladataan kilpailutilastoja…</p>}
-            {competitionStatistics && <div className="dashboard-metrics-grid">
-              <MetricCard icon={Trophy} label="KILPAILURIVEJÄ" value={competitionStatistics.total} suffix="riviä" testId="competition-total" />
-              <MetricCard icon={MapPin} label="KILPAILUKUNTIA" value={competitionStatistics.municipalityCount} suffix={competitionStatistics.municipalityCount === 1 ? 'kunta' : 'kuntaa'} />
-              <MetricCard icon={BarChart3} label="RIVEJÄ / AKTIIVINEN KUNTA" value={competitionStatistics.averagePerMunicipality} suffix="riviä / kunta" />
-            </div>}
           </section>
           <div className="dashboard-map-filter-section">
             <div className="map-toolbar">
