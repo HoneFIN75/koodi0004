@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { parseDatabase } from '../src/data/clubRepository.ts';
+import { dataSources } from '../src/data/dataSources.ts';
 import { parseMunicipalities } from '../src/data/municipalityRepository.ts';
 import { parseProvinceDataset } from '../src/data/provinceRepository.ts';
 import { indexCompetitions, parseCompetitions } from '../src/services/competitionService.ts';
@@ -9,6 +10,22 @@ import { getDataSourceMetadata, latestSourceTimestamp } from '../src/services/da
 
 const load = async (path) => JSON.parse(await readFile(new URL(path, import.meta.url), 'utf8'));
 const emptySnapshot = { clubs: null, competitions: null, municipalities: null, provinces: null, planning: null };
+
+test('competition and population source governance gaps stay explicit', () => {
+  for (const id of ['competitions', 'population']) {
+    const source = dataSources.find((item) => item.id === id);
+    assert.ok(source);
+    assert.equal(source.metadata.sourceOwner, 'Tuntematon');
+    assert.equal(source.metadata.updateFrequency, 'Tuntematon');
+    const governance = source.sections.find((section) => section.title === 'Aineiston hallintatiedot');
+    assert.ok(governance);
+    for (const label of ['Aineiston omistaja:', 'Alkuperäinen', 'Lisenssi ja luovutusehdot:', 'Viitepäivä', 'päivitysprosessi', 'vastaava henkilö']) {
+      assert.ok(governance.items.some((item) => item.toLocaleLowerCase('fi-FI').includes(label.toLocaleLowerCase('fi-FI'))), `${id} must document ${label}`);
+    }
+  }
+  const population = dataSources.find((item) => item.id === 'population');
+  assert.ok(population.sections.some((section) => section.text?.includes('väestövuosi (2025)')));
+});
 
 test('source counts use loaded records, not source metadata or selected competition years', async () => {
   const clubs = parseDatabase({
