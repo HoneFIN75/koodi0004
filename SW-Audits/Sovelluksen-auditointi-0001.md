@@ -241,7 +241,7 @@ Auditoinnissa vahvistui **24 merkityksellistä löydöstä**; listaa ei täydenn
 - **Korjaus:** tarkista status ja timeout, validoi schema/kuntakoodit/geometriat ja odotettu kattavuus, kirjoita ensin väliaikaistiedostoon ja korvaa lopullinen aineisto vasta tarkistusten jälkeen.
 - **Arvioitu työmäärä:** 2–3 työpäivää.
 
-### F-15 — Kilpailu- ja väestöaineistojen alkuperä ja lisenssit ovat selvittämättä
+### F-15 — Kilpailu- ja väestöaineistojen alkuperä ja lisenssit ovat selvittämättä - Status: Done 7.11.2026
 
 - **Severity / kategoria:** Keskitaso — Data governance
 - **Tarkka sijainti:** `src/data/dataSources.ts:25–30, 50–55`; `sovelluksen-esittely.md` integraatiotaulukko
@@ -356,7 +356,7 @@ Työt suositellaan aloittamaan vakaudesta, datan oikeellisuudesta ja palvelun pa
 | 7 | Kytke julkaisu onnistuneeseen validointiin | F-03 | Ennen seuraavia tuotantopäivityksiä | |
 | 8 | Tee deploy atomiseksi ja palautettavaksi | F-04, F-05 | Ennen seuraavia tuotantopäivityksiä | |
 | 9 | Lisää tuotannon diagnoosi ja health-signaalit | F-10 | Ennen käyttölaajennusta | |
-| 10 | Päivitä README ja lähdemetadata | F-15, F-16 | Pienet, matalariskiset työt | |
+| 10 | Päivitä README ja lähdemetadata | F-15, F-16 | Pienet, matalariskiset työt | F-15 Done 7.11.2026 |
 | 11 | Vahvista GIS-aineiston parsinta ja päivitystyökalu | F-13, F-14 | Ennen kuntarajojen päivitystä | |
 | 12 | Täydennä testaus selaimille, kattavuudelle ja kartan saavutettavuudelle | F-17, F-23, F-24 | Ennen merkittävää UI-laajennusta | |
 | 13 | Rajaa komponenttivastuut | F-12 | Kun testit ja rajapintasopimukset ovat vakaat | |
