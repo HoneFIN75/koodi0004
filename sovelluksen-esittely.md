@@ -96,7 +96,8 @@ Tuotannossa seuratiedot ja aluesuunnitelmat luetaan sovelluksen palvelinrajapinn
 | OpenStreetMap | Julkiset karttatiilet karttojen taustakarttana. |
 | Sovelluksen PHP-rajapinnat | Julkinen seuratietojen luku, aluesuunnitelman tallennus sekä roolisuojatut kirjautumis- ja Admin-toiminnot. |
 | GitHub Actions ja käyttöönoton palvelin | Testien ja tuotantoon viennin automatisointi. Tuotantoon vienti tapahtuu projektin määrittämään SSH-palvelimeen. |
-| Kilpailu- ja väestöaineistot | Sovelluksen mukana toimitettavat aineistot. Kilpailuaineiston alkuperäistä tuottajaa ja väestöaineiston alkuperäistä julkaisijaa ei ole dokumentoitu. |
+| Kilpailuaineisto | `jsondb/SFL-Kilpailut-2019-2026.json` toimitetaan sovelluksen mukana. Aineiston omistaja, alkuperäinen tuottaja/lähde, lisenssi ja luovutusehdot, viitepäivä, lähdeaineiston päivitysprosessi sekä vastuuhenkilö ovat tuntemattomia. Sovelluksen tiedostotarkistus ei päivitä lähdeaineistoa. |
+| Väestöaineisto | `src/data/municipalities-population-2025.json` ilmoittaa väestövuodeksi 2025 ja kuntamääräksi 308. Omistaja, alkuperäinen julkaisija/lähde, lisenssi ja luovutusehdot, tarkka viitepäivä, lähdeaineiston päivitysprosessi sekä vastuuhenkilö ovat tuntemattomia. |
 
 Kirjautuminen käyttää sovelluksen omaa yhteisten Writer- ja Admin-tunnusten järjestelmää; kolmannen osapuolen kirjautumispalvelua ei ole määritelty. Koodista ja dokumentaatiosta ei löydy maksu- tai sähköpostipalveluintegraatioita.
 
