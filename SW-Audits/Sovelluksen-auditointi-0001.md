@@ -101,14 +101,14 @@ Nykyinen staattinen SPA + PHP + JSON-ratkaisu on perusteltu nykyisille aineistom
 
 Auditoinnissa vahvistui **24 merkityksellistä löydöstä**; listaa ei täydennetä näyttöä vailla olevilla havainnoilla. Severity tarkoittaa vaikutusta tässä repositoriossa: Korkea = korjaa ennen kuin luottaa kyseiseen toimintaan, Keskitaso = priorisoitu parannus, Matala = rajattu ylläpidettävyys-/kasvuriski.
 
-### F-01 — Aluesuunnitelman migraation E2E-testi epäonnistuu paikallisessa toistossa - Status: Done 3.11.2026
+### F-01 — Aluesuunnitelman migraation E2E-testin toistettavuus - Status: Testattavana 7.11.2026
 
 - **Severity / kategoria:** Keskitaso — Testaus ja toimitusvarmuus
 - **Tarkka sijainti:** `tests/browser/planner.spec.ts:517–545`; `src/App.tsx:128–130`; `src/planner/PlannerApp.tsx:151–153`
-- **Kuvaus ja näyttö:** testissä avataan ensin etusivu, jonka `App` alustaa `plannerStore`-storella, ja vasta sen jälkeen lisätään suunnitelma IndexedDB:hen. Store on jo alustettu ennen migraation tunnistusta. Paikallinen koko selaintestiajo epäonnistui rivillä 544, ja testi epäonnistui myös yksittäisenä toistona; GitHub Actionsin viimeisin ajo oli vihreä.
-- **Tekninen vaikutus:** testi ei ole ympäristöjen välillä deterministinen eikä luotettavasti varmista migraatiopolun väitettä.
-- **Liiketoimintavaikutus:** regressio voi jäädä huomaamatta tai CI:n tuloksiin ei voi luottaa.
-- **Korjaus:** rakenna fixture niin, että IndexedDB on alustettu ennen planner-storen ensikäynnistystä; lisää eksplisiittinen odotus/valmiustila ja toista sama testitapa useita kertoja.
+- **Kuvaus ja näyttö:** alkuperäisessä testissä IndexedDB:n vanha suunnitelma lisättiin vasta `App`-komponentin käynnistämän `plannerStore`-alustuksen jälkeen. PR #83 (merge commit `4ca137a`) muutti testin alustamaan IndexedDB:n ennen sovellusta; testi tarkistaa nyt myös, ettei PUT-pyyntöä tehdä ennen käyttäjän vahvistusta ja että siirretty suunnitelma säilyy reloadissa. PR:n `validate`-ajo onnistui. TASK-001:n hyväksymiskriteerinä oleva kymmenen peräkkäisen ajon tulos ei kuitenkaan näy tarkastetuissa lähteissä tai PR-tarkistuksessa.
+- **Tekninen vaikutus:** fixture-korjaus on tehty, mutta määrämuotoista toistettavuusnäyttöä ei ole dokumentoitu.
+- **Liiketoimintavaikutus:** hyväksymiskriteerin täyttyminen jää todentamatta, kunnes toistotulos kirjataan.
+- **Korjaus:** aja korjattu testi yksin vähintään 10 kertaa ja koko `npm run test:e2e`; kirjaa tulokset.
 - **Arvioitu työmäärä:** 0,5–1 työpäivä.
 
 ### F-02 — Seuradatan päivitysaikaleima kuvaa kyselyä, ei aineiston muutosta - Status: Done 3.11.2026
@@ -241,14 +241,14 @@ Auditoinnissa vahvistui **24 merkityksellistä löydöstä**; listaa ei täydenn
 - **Korjaus:** tarkista status ja timeout, validoi schema/kuntakoodit/geometriat ja odotettu kattavuus, kirjoita ensin väliaikaistiedostoon ja korvaa lopullinen aineisto vasta tarkistusten jälkeen.
 - **Arvioitu työmäärä:** 2–3 työpäivää.
 
-### F-15 — Kilpailu- ja väestöaineistojen alkuperä ja lisenssit ovat selvittämättä - Status: Done 7.11.2026
+### F-15 — Kilpailu- ja väestöaineistojen alkuperä ja lisenssit ovat selvittämättä - Status: Dokumentointi valmis 7.11.2026
 
 - **Severity / kategoria:** Keskitaso — Data governance
 - **Tarkka sijainti:** `src/data/dataSources.ts:25–30, 50–55`; `sovelluksen-esittely.md` integraatiotaulukko
 - **Kuvaus ja näyttö:** kilpailulähteen alkuperäistä tuottajaa eikä väestölähteen alkuperäistä julkaisijaa/päiväystä ole nimetty. Kuntarajoilla on sen sijaan Tilastokeskus- ja CC BY 4.0 -tiedot.
 - **Tekninen vaikutus:** datan oikeuksia, päivityssykliä ja lähteen luotettavuutta ei voi validoida samalla tavalla kuin kuntarajojen.
 - **Liiketoimintavaikutus:** julkaisun oikeusperusta ja analyysien ajantasaisuus jäävät epäselviksi käyttäjille.
-- **Korjaus:** selvitä omistaja, alkuperäinen lähde, lisenssi/luovutusehto, viitepäivä, päivitysprosessi ja vastuuhenkilö; dokumentoi tuntemattomat arvot tuntemattomina äläkä päättele niitä.
+- **Korjaus/status:** omistaja, alkuperä, lisenssi/luovutusehdot, viitepäivä, päivitysprosessi ja vastuuhenkilö on dokumentoitu tuntemattomiksi, kun niille ei löytynyt näyttöä. Tämä sulkee dokumentointitehtävän, ei vahvista alkuperäisiä lähteitä tai käyttöoikeuksia.
 - **Arvioitu työmäärä:** 2–5 työpäivää (selvitystyön saatavuudesta riippuen).
 
 ### F-16 — README väittää kilpailudatan olevan käyttämättä karttatasoissa
@@ -321,15 +321,16 @@ Auditoinnissa vahvistui **24 merkityksellistä löydöstä**; listaa ei täydenn
 - **Korjaus:** erota yhteinen PHP-sääntömoduuli tai sopimustestit niin, että molemmat polut validoivat saman käytännön.
 - **Arvioitu työmäärä:** 1 työpäivä.
 
-### F-23 — Selaintestit ajetaan vain Chromiumilla
+### F-23 — Lisäselaimen kattavuus on rajattu Firefox-smokeen
 
 - **Severity / kategoria:** Matala — Testaus ja yhteensopivuus
-- **Tarkka sijainti:** `playwright.config.ts:7–10`; `.github/workflows/ci.yml:27–28`
-- **Kuvaus ja näyttö:** Playwrightin `browserName` on Chromium, ja workflow asentaa vain Chromiumin.
-- **Tekninen vaikutus:** Firefox-/WebKit-erot, erityisesti Leafletin näppäimistö- ja kosketuspoluissa, jäävät CI:n ulkopuolelle.
+- **Tarkka sijainti:** `playwright.config.ts:11–21`; `.github/workflows/ci.yml:7–9, 33–45`; `tests/browser/cross-browser.spec.ts`
+- **Kuvaus ja näyttö:** PR #88 (merge commit `7fc13e5`) lisäsi erillisen Firefox-projektin ja ajastetun/manuaalisesti käynnistettävän smoke-workflow'n. Se ajaa kahta valittua käyttäjäpolkua eikä koko selaintestisarjaa; WebKit-testiä ei ole. PR:n Firefox-smoke ohitettiin, koska se käynnistyy vain ajastetusti tai `workflow_dispatch`-tapahtumasta, joten Firefox-ajon läpäisyä ei ole tässä tarkistuksessa vahvistettu.
+- **Tekninen vaikutus:** Firefox kattaa vain valitut smoke-polut ajastetussa/manuaalisessa ajossa; WebKit ja laajempi Firefox-testijoukko jäävät kattamatta.
 - **Liiketoimintavaikutus:** muiden selainmoottorien käyttäjien regressio voi päästä julkaisuun.
-- **Korjaus:** lisää aikataulutettu tai muutettuihin pintoihin rajattu Firefox/WebKit-ajo; seuraa ajoaikakustannusta ja priorisoi kriittiset kartta-/auth-polut.
+- **Korjaus:** varmista Firefox-smoken ajotulos, kirjaa sen kesto ja flaky-osuus sekä päätä tarvitaanko WebKit- tai laajempaa Firefox-kattavuutta.
 - **Arvioitu työmäärä:** 1–3 työpäivää.
+- **Tila:** osittain toteutettu 7.11.2026; Firefox-smoke on lisätty, mutta sen onnistunutta ajoa ja WebKit-kattavuutta ei ole vahvistettu.
 
 ### F-24 — Plannerin automaattinen saavutettavuustarkastus sulkee kartan pois
 
@@ -347,24 +348,24 @@ Työt suositellaan aloittamaan vakaudesta, datan oikeellisuudesta ja palvelun pa
 
 | Järjestys | Suunta | Löydökset | Aloituskriteeri | Status |
 |---:|---|---|---|---|
-| 1 | Korjaa testi, joka ei toistu luotettavasti | F-01 | Heti | Done 3.11.2026 |
-| 2 | Korjaa lähteen päivitysaikaleiman semantiikka | F-02 | Heti | Done 3.11.2026 |
-| 3 | Rajaa rate limiterin tiedostokasvu | F-06 | Ennen seuraavaa auth-laajennusta | |
-| 4 | Syvennä planner-tallennuksen palvelinvalidointi | F-07 | Ennen planner-skeeman muutosta | |
-| 5 | Lisää seurarekisterin palautettava backup | F-08 | Ennen suurempaa Admin-tuontia | |
-| 6 | Kytke CI:n testit turva-/laatutarkistuksiin | F-09, F-17, F-18 | Kun nykyinen testipohja on vihreä | |
-| 7 | Kytke julkaisu onnistuneeseen validointiin | F-03 | Ennen seuraavia tuotantopäivityksiä | |
-| 8 | Tee deploy atomiseksi ja palautettavaksi | F-04, F-05 | Ennen seuraavia tuotantopäivityksiä | |
-| 9 | Lisää tuotannon diagnoosi ja health-signaalit | F-10 | Ennen käyttölaajennusta | |
-| 10 | Päivitä README ja lähdemetadata | F-15, F-16 | Pienet, matalariskiset työt | F-15 Done 7.11.2026 |
-| 11 | Vahvista GIS-aineiston parsinta ja päivitystyökalu | F-13, F-14 | Ennen kuntarajojen päivitystä | |
-| 12 | Täydennä testaus selaimille, kattavuudelle ja kartan saavutettavuudelle | F-17, F-23, F-24 | Ennen merkittävää UI-laajennusta | |
-| 13 | Rajaa komponenttivastuut | F-12 | Kun testit ja rajapintasopimukset ovat vakaat | |
-| 14 | Pienennä alkuperäistä bundlea mittaamalla | F-11 | Komponenttirajauksen yhteydessä | |
-| 15 | Vahvista kuntaliitoksen avain ja seuranta | F-19 | Ennen uuden nimimuotoisen datalähteen liittämistä | |
-| 16 | Päätä identiteettien audit trail -tarve | F-20 | Tuote-/hallintapäätös ennen toteutusta | |
-| 17 | Mitoita JSON-tallennuksen kasvuraja | F-21 | Kun mittaus tai datakasvu lähestyy rajoja | |
-| 18 | Yhtenäistä salasanapolitiikan toteutus | F-22 | Ennen auth-muutoksia | |
+| 1 | Korjaa testi, joka ei toistu luotettavasti | F-01 | Heti | Testattavana: 10 peräkkäisen ajon näyttö puuttuu |
+| 2 | Korjaa lähteen päivitysaikaleiman semantiikka | F-02 | Heti | Valmis 3.11.2026 |
+| 3 | Rajaa rate limiterin tiedostokasvu | F-06 | Ennen seuraavaa auth-laajennusta | Ei aloitettu |
+| 4 | Syvennä planner-tallennuksen palvelinvalidointi | F-07 | Ennen planner-skeeman muutosta | Ei aloitettu |
+| 5 | Lisää seurarekisterin palautettava backup | F-08 | Ennen suurempaa Admin-tuontia | Ei aloitettu |
+| 6 | Kytke CI:n testit turva-/laatutarkistuksiin | F-09, F-17, F-18 | Kun nykyinen testipohja on vihreä | Ei aloitettu |
+| 7 | Kytke julkaisu onnistuneeseen validointiin | F-03 | Ennen seuraavia tuotantopäivityksiä | Ei aloitettu |
+| 8 | Tee deploy atomiseksi ja palautettavaksi | F-04, F-05 | Ennen seuraavia tuotantopäivityksiä | Ei aloitettu |
+| 9 | Lisää tuotannon diagnoosi ja health-signaalit | F-10 | Ennen käyttölaajennusta | Ei aloitettu |
+| 10 | Päivitä README ja lähdemetadata | F-15, F-16 | Pienet, matalariskiset työt | F-15 valmis; F-16 avoin |
+| 11 | Vahvista GIS-aineiston parsinta ja päivitystyökalu | F-13, F-14 | Ennen kuntarajojen päivitystä | Ei aloitettu |
+| 12 | Täydennä testaus selaimille, kattavuudelle ja kartan saavutettavuudelle | F-17, F-23, F-24 | Ennen merkittävää UI-laajennusta | TASK-016 käynnissä; Firefox-smoke lisätty, ajo ei vahvistettu |
+| 13 | Rajaa komponenttivastuut | F-12 | Kun testit ja rajapintasopimukset ovat vakaat | Ei aloitettu |
+| 14 | Pienennä alkuperäistä bundlea mittaamalla | F-11 | Komponenttirajauksen yhteydessä | Ei aloitettu |
+| 15 | Vahvista kuntaliitoksen avain ja seuranta | F-19 | Ennen uuden nimimuotoisen datalähteen liittämistä | Ei aloitettu |
+| 16 | Päätä identiteettien audit trail -tarve | F-20 | Tuote-/hallintapäätös ennen toteutusta | Ei aloitettu |
+| 17 | Mitoita JSON-tallennuksen kasvuraja | F-21 | Kun mittaus tai datakasvu lähestyy rajoja | Ei aloitettu |
+| 18 | Yhtenäistä salasanapolitiikan toteutus | F-22 | Ennen auth-muutoksia | Ei aloitettu |
 
 # Epicit
 
@@ -450,12 +451,12 @@ Työt suositellaan aloittamaan vakaudesta, datan oikeellisuudesta ja palvelun pa
 
 # Tehtävälista
 
-Kaikki tehtävät alkavat tilassa **Ei aloitettu**. Työmäärät ovat kalenterityöpäiviä yhdelle kehittäjälle. Riippuvuuksiksi kirjataan vain tekniset tai prosessilliset ennakkoehdot, ei pelkkää prioriteettijärjestystä.
+Tehtävien tila tarkistettiin 7.11.2026 repositoryn `main`-haaran commitista `7fc13e5340cac0486be27623046209bc600fc794`. Tila perustuu lähdekoodiin, testimuutoksiin, dokumentaatioon ja saatavilla oleviin PR-tarkistuksiin; puuttuvaa testiajon näyttöä ei tulkita onnistumiseksi. Työmäärät ovat kalenterityöpäiviä yhdelle kehittäjälle. Riippuvuuksiksi kirjataan vain tekniset tai prosessilliset ennakkoehdot, ei pelkkää prioriteettijärjestystä.
 
 | Tehtävä | Tila | Prioriteetti | Työmäärä | Riippuvuudet |
 |---|---|---:|---:|---|
-| TASK-001 | Ei aloitettu | P1 | 0,5–1 pv | — |
-| TASK-002 | Ei aloitettu | P1 | 1–2 pv | — |
+| TASK-001 | Testattavana | P1 | 0,5–1 pv | — |
+| TASK-002 | Valmis | P1 | 1–2 pv | — |
 | TASK-003 | Ei aloitettu | P1 | 1–2 pv | — |
 | TASK-004 | Ei aloitettu | P1 | 2–4 pv | — |
 | TASK-005 | Ei aloitettu | P1 | 1–3 pv | — |
@@ -467,9 +468,9 @@ Kaikki tehtävät alkavat tilassa **Ei aloitettu**. Työmäärät ovat kalenteri
 | TASK-011 | Ei aloitettu | P2 | 0,5 pv | — |
 | TASK-012 | Ei aloitettu | P2 | 2–4 pv | — |
 | TASK-013 | Ei aloitettu | P2 | 2–3 pv | TASK-012 |
-| TASK-014 | Ei aloitettu | P2 | 2–5 pv | — |
+| TASK-014 | Valmis | P2 | 2–5 pv | — |
 | TASK-015 | Ei aloitettu | P2 | 1–3 pv | — |
-| TASK-016 | Ei aloitettu | P2 | 1–3 pv | — |
+| TASK-016 | Käynnissä | P2 | 1–3 pv | — |
 | TASK-017 | Ei aloitettu | P2 | 2–4 pv | — |
 | TASK-018 | Ei aloitettu | P2 | 1–2 vk | TASK-001 |
 | TASK-019 | Ei aloitettu | P2 | 2–4 pv | — |
@@ -478,18 +479,37 @@ Kaikki tehtävät alkavat tilassa **Ei aloitettu**. Työmäärät ovat kalenteri
 | TASK-022 | Ei aloitettu | P3 | 2–5 pv | — |
 | TASK-023 | Ei aloitettu | P2 | 1 pv | — |
 
+## Tilan tarkistus ja keskeneräisten suositeltu järjestys
+
+- **TASK-001 — Testattavana:** `tests/browser/planner.spec.ts` alustaa IndexedDB:n ennen sovelluksen avaamista ja tarkistaa vahvistusta edeltävien PUT-pyyntöjen puuttumisen sekä migroidun datan säilymisen. PR #83:n `validate` onnistui, mutta tehtävän vaatimaa kymmenen peräkkäisen ajon tulosta ei löytynyt. Sulje tämä näyttöaukko ennen kuin merkitset tehtävän valmiiksi tai käytät sitä TASK-007:n hyväksyttynä ennakkoehtona.
+- **TASK-002 — Valmis:** `tests/clubs-api.test.mjs` varmistaa, että peräkkäiset GET-pyynnöt ja muuttumaton kirjoitus säilyttävät `lastUpdatedAt`-arvon, muuttunut kirjoitus päivittää sen ja `generatedAt` pysyy erillisenä. PR #86:n `validate` onnistui.
+- **TASK-014 — Valmis:** `src/data/dataSources.ts` ja `sovelluksen-esittely.md` nimeävät kilpailu- ja väestöaineistojen tiedostot sekä esittävät omistajan, alkuperän, lisenssin, viitepäivän ja päivitysvastuun tuntemattomina, kun niitä ei ole todennettu. PR #87:n `validate` onnistui. Tämä dokumentoi tiedon puutteen; se ei vahvista alkuperäistä lähdettä tai käyttöoikeuksia.
+- **TASK-016 — Käynnissä:** PR #88 lisäsi ajastetun/manuaalisen Firefox-smoken (`tests/browser/cross-browser.spec.ts`). PR:n `firefox-smoke`-ajo ohitettiin, ja WebKit-testiä ei ole. Seuraava tarkistus on ajon toteutuminen ja hyväksytyn selainlaajuuden päättäminen.
+
+Suositeltu etenemisjärjestys erottaa varsinaiset ennakkoehdot yleisestä prioriteetista:
+
+1. Sulje TASK-001:n toistettavuusnäyttö.
+2. Käsittele TASK-003, TASK-004 ja TASK-005 (rate limiter, palvelinvalidointi, palautettava seuratietovarmistus). Nämä ovat toisistaan riippumattomia, mutta auditissa tunnistettuja tietoturva- ja tietojen eheyden riskejä.
+3. Toteuta TASK-006 (skannaus ja Action-SHA:t) rinnakkain tarvittaessa.
+4. Tee julkaisun kriittinen polku järjestyksessä TASK-007 → TASK-008 → TASK-009. TASK-007 riippuu TASK-001:stä; TASK-008:n staging-/tiedostojärjestelmäedellytykset on vahvistettava ennen tuotantomuutoksia.
+5. Lisää TASK-010:n operatiivinen lokitus ja health-signaalit; tee TASK-011:n README-korjaus matalariskisenä rinnakkaistyönä.
+6. Tee GIS-työt TASK-012 → TASK-013 tässä järjestyksessä. Sen jälkeen etene TASK-015 → TASK-016 → TASK-017 testauksen kattavuuden, selainten ja saavutettavuuden osalta. TASK-016:n Firefox-ajo on vielä vahvistamatta.
+7. Jätä TASK-018 → TASK-019 vakaiden testirajojen jälkeiseksi refaktorointi-/suorituskykytyöksi. Tee TASK-020 vain lähteessä vahvistetun kuntakoodin tai nimetyn aliasaineiston perusteella.
+8. Käsittele TASK-023 ennen seuraavia salasanapolitiikan muutoksia. TASK-021 vaatii ensin tuote-/hallintapäätöksen; TASK-022 aloitetaan mittaustarpeen tai datakasvun perusteella, ei tietokantamigraation oletuksena.
+
 ## Yksityiskohtaiset toteutustehtävät
 
 ### TASK-001 — Vakauta selaimen migraatiotesti
 
 - **Tarkoitus:** Tee vanhan IndexedDB-suunnitelman migraatiotestistä deterministinen.
-- **Syy:** Tällä hetkellä testi alustaa planner-storen ennen kuin paikallinen suunnitelma lisätään; testi epäonnistui paikallisesti.
+- **Syy:** Alkuperäinen testi alusti planner-storen ennen kuin paikallinen suunnitelma lisättiin; korjattu testifixture alustaa IndexedDB:n ennen sovellusta.
 - **Riippuvuudet:** Ei ole.
 - **Työmäärä / riski:** 0,5–1 pv / matala.
 - **Odotettu tulos:** testi todentaa aidosti käyttäjän vanhan datan siirtymisen.
 - **Vaikutettavat tiedostot:** `tests/browser/planner.spec.ts`, tarvittaessa testiharness; älä muuta tuotantokäyttäytymistä ilman erillistä näyttöä.
 - **Validointi:** aja testi yksin vähintään 10 kertaa ja koko `npm run test:e2e`.
 - **Hyväksymiskriteerit:** kaikki ajot onnistuvat; testi varmistaa, ettei automaattista PUT-kirjoitusta tapahdu ennen vahvistusta ja että siirretty suunnitelma säilyy reloadissa.
+- **Tila 7.11.2026:** Testattavana. PR #83:n `validate` onnistui, mutta 10 peräkkäisen ajon tulosta ei löytynyt.
 - **Valmis Copilot Agent -kehote:**
 
 ```text
@@ -1190,24 +1210,25 @@ Report baseline, scope, exclusions, and proposed threshold.
 ### TASK-016 — Laajenna selaintestit hallitusti Firefoxiin ja WebKitiin
 
 - **Tarkoitus:** Havaitse Chromiumin ulkopuoliset käyttöliittymäregressiot.
-- **Syy:** nykyinen Playwright-config käyttää vain Chromiumia.
+- **Syy:** nykyinen Playwright-config kattaa Chromiumin koko testisarjalla ja vain valitun smoke-joukon Firefoxilla; WebKit puuttuu.
 - **Riippuvuudet:** Ei ole.
 - **Työmäärä / riski:** 1–3 pv / keskitaso.
-- **Odotettu tulos:** kriittiset kartta-, suodatus- ja auth-polut tarkistuvat useammalla moottorilla.
+- **Odotettu tulos:** kriittiset kartta-, suodatus- ja auth-polut tarkistuvat sovitulla laajuudella useammalla moottorilla.
 - **Vaikutettavat tiedostot:** `playwright.config.ts`, `.github/workflows/ci.yml`, selaintestit.
 - **Validointi:** CI-ajo Firefoxilla/WebKitillä; mittaa kesto ja flaky-osuus.
 - **Hyväksymiskriteerit:** kriittiset smoke-testit läpäisevät vähintään Chromiumissa ja yhdessä lisämoottorissa; täysi matrix voidaan ajaa ajastetusti.
+- **Tila 7.11.2026:** Käynnissä. Firefox-smoke on lisätty PR:ssä #88, mutta kyseisen PR:n smoke-ajo ohitettiin eikä onnistunutta ajotulosta ole vahvistettu.
 - **Valmis Copilot Agent -kehote:**
 
 ```text
 # Context
-Playwright is configured for Chromium only, and CI installs only Chromium.
+Playwright runs the full suite in Chromium and a scheduled/manual Firefox smoke project. The Firefox run has not yet been confirmed, and WebKit is not configured.
 
 # Objective
 Add cost-controlled cross-browser coverage for critical user journeys.
 
 # Scope
-Add Firefox and/or WebKit to selected smoke tests or a scheduled matrix.
+Verify the existing Firefox smoke run and decide whether WebKit coverage is required; extend only the agreed critical journeys.
 
 # Constraints
 Keep PR feedback time reasonable, avoid browser-specific test hacks, and preserve Chromium as the required baseline.
@@ -1586,33 +1607,22 @@ TASK-012 -> TASK-013
 
 # Execution Order
 
-## Ensimmäiset 10 tehtävää
+## Jäljellä olevien tehtävien etenemisjärjestys
 
-1. TASK-001 — korjaa toistettavuus.
-2. TASK-002 — korjaa lähteen päivitysaika.
-3. TASK-003 — rajaa limiterin kasvuriski.
-4. TASK-004 — syvennä planner-skeema.
-5. TASK-005 — varmista seuradatan palautettavuus.
-6. TASK-006 — lisää tietoturvaskannaus.
-7. TASK-007 — estä deploy ilman vihreää validointia.
-8. TASK-008 — tee julkaisu atomiseksi ja rollbackattavaksi.
-9. TASK-009 — lisää deployn smoke check.
-10. TASK-010 — lisää turvallinen operatiivinen observability.
-
-## Ensimmäisen viikonloppujakson suunnitelma
-
-- **Lauantai:** TASK-001:n toistot ja korjaus; TASK-002:n API/UI-aikaleimasopimus ja testit.
-- **Sunnuntai:** TASK-003:n limiterin puhdistus ja testit; TASK-011:n README-korjaus. Älä muuta deploy-protokollaa suoraan tuotannossa viikonlopun aikana.
-- **Valmis, kun:** yksikkötestit/build ovat vihreät, migraatiotesti toistuu 10 kertaa, API:n päivitysaika on semanttisesti oikein ja README vastaa kerrostoimintaa.
-
-## Ensimmäisen kuukauden suunnitelma
-
-- **Viikko 1:** TASK-001–TASK-006; korjaa datan ja authin ensisijaiset riskit.
-- **Viikko 2:** TASK-007–TASK-010 stagingissa; älä julkaise uutta deploy-rakennetta ennen keskeytys-/rollback-testiä.
-- **Viikko 3:** TASK-011–TASK-016: dokumentaatio, GIS-laatu, kattavuus ja selaintestit.
-- **Viikko 4:** TASK-017–TASK-019: kartan saavutettavuus, PlannerAppin ensimmäinen rajattu refaktorointi ja bundle-mittaus.
+1. TASK-001 — vahvista migraatiotesti kymmenellä peräkkäisellä ajolla; koodikorjaus ja PR:n `validate`-ajo ovat jo olemassa.
+2. TASK-003, TASK-004 ja TASK-005 — rajaa kirjautumisyritysten tallennus, syvennä plannerin palvelinvalidointi ja varmista seuradatan palautettavuus. Nämä eivät ole keskenään riippuvaisia.
+3. TASK-006 — lisää skannaus ja Action-SHA-pinnaus; voidaan tehdä rinnakkain edellisten kanssa.
+4. TASK-007 → TASK-008 → TASK-009 — deployn testigating, atominen julkaisu/rollback ja smoke check. Säilytä järjestys; TASK-007 edellyttää TASK-001:n valmistumista ja TASK-008 staging-/tiedostojärjestelmäedellytysten vahvistamista.
+5. TASK-010 sekä TASK-011 — tuotannon diagnoosi ja README-korjaus; TASK-011 on itsenäinen matalariskinen työ.
+6. TASK-012 → TASK-013 — GIS-parserin hylkäysnäkyvyys ennen kuntarajojen build-skriptin kovennusta.
+7. TASK-015 → TASK-016 → TASK-017 — kattavuuden baseline, lisäselaimen ajon vahvistus/laajuuspäätös ja kartan saavutettavuustestaus.
+8. TASK-018 → TASK-019 — PlannerAppin rajattu refaktorointi ennen bundle-budjettia; tee vasta testipohjan vakiinnuttua.
+9. TASK-020 ja TASK-023 — kuntanimien liitos vain todennetulla koodilla/aliasaineistolla; salasanapolitiikan yhdistäminen ennen auth-muutoksia.
+10. TASK-021 vaatii ensin tuote-/hallintapäätöksen. TASK-022 aloitetaan vasta mittaustarpeen tai datakasvun perusteella.
 
 ## Ensimmäisen neljänneksen suunnitelma
+
+Tämä on alkuperäinen 3.11.2026 aikataululuonnos; sen toteutumattomat tehtävät ovat alisteisia yllä olevalle 7.11.2026 tarkistetulle järjestykselle.
 
 - **Kuukausi 1:** testien, authin, datan ja deployn riskit; kaikki P1-tehtävät.
 - **Kuukausi 2:** provenienssi, GIS-päivityskäytäntö, selainten kattavuus, PlannerApp-refaktorointi ja bundle-budjetti.
@@ -1629,6 +1639,8 @@ Alla olevat TASK-001–TASK-023 sisältävät kullekin tehtävälle valmiin engl
 # Owner Takeover Plan
 
 Pisteet ovat asteikolla 1–5 järjestyksessä **vaikutus / kiireellisyys / riskin vähennys / ylläpidettävyys / skaalautuvuus**.
+
+Alla oleva pisteytys on alkuperäinen 3.11.2026 prioriteettiarvio, ei nykyinen tehtävätilanne tai etenemisjärjestys. Käytä ajantasaiseen tilaan ja järjestykseen tämän dokumentin aiempaa "Tilan tarkistus ja keskeneräisten suositeltu järjestys" -osiota.
 
 ## Ensimmäiset 10 toimintoa
 
@@ -1695,8 +1707,8 @@ Pisteet ovat asteikolla 1–5 järjestyksessä **vaikutus / kiireellisyys / risk
 
 | Tehtävä | Tila | Prioriteetti | Työmäärä | Riippuvuudet |
 |---|---|---:|---:|---|
-| TASK-001 | Ei aloitettu | P1 | 0,5–1 pv | — |
-| TASK-002 | Ei aloitettu | P1 | 1–2 pv | — |
+| TASK-001 | Testattavana | P1 | 0,5–1 pv | — |
+| TASK-002 | Valmis | P1 | 1–2 pv | — |
 | TASK-003 | Ei aloitettu | P1 | 1–2 pv | — |
 | TASK-004 | Ei aloitettu | P1 | 2–4 pv | — |
 | TASK-005 | Ei aloitettu | P1 | 1–3 pv | — |
@@ -1708,9 +1720,9 @@ Pisteet ovat asteikolla 1–5 järjestyksessä **vaikutus / kiireellisyys / risk
 | TASK-011 | Ei aloitettu | P2 | 0,5 pv | — |
 | TASK-012 | Ei aloitettu | P2 | 2–4 pv | — |
 | TASK-013 | Ei aloitettu | P2 | 2–3 pv | TASK-012 |
-| TASK-014 | Ei aloitettu | P2 | 2–5 pv | — |
+| TASK-014 | Valmis | P2 | 2–5 pv | — |
 | TASK-015 | Ei aloitettu | P2 | 1–3 pv | — |
-| TASK-016 | Ei aloitettu | P2 | 1–3 pv | — |
+| TASK-016 | Käynnissä | P2 | 1–3 pv | — |
 | TASK-017 | Ei aloitettu | P2 | 2–4 pv | — |
 | TASK-018 | Ei aloitettu | P2 | 1–2 vk | TASK-001 |
 | TASK-019 | Ei aloitettu | P2 | 2–4 pv | — |
@@ -1723,9 +1735,10 @@ Pisteet ovat asteikolla 1–5 järjestyksessä **vaikutus / kiireellisyys / risk
 
 ## Toteutuksen Edistymisen Seuranta
 
-- **Kokonaisvalmistumisaste:** 0 % parannusbacklogista. Auditointi ja baseline-validointi on tehty; niitä ei lasketa toteutustehtäviksi.
-- **Valmiit tehtävät:** 0.
-- **Käynnissä olevat tehtävät:** 0.
+- **Kokonaisvalmistumisaste:** 9 % (2/23 tehtävää; vain Valmis-tilat lasketaan).
+- **Valmiit tehtävät:** 2 — TASK-002 ja TASK-014.
+- **Käynnissä tai testattavana:** 2 — TASK-001 (testattavana) ja TASK-016 (käynnissä).
+- **Ei aloitettu:** 19.
 - **Myöhässä olevat tehtävät:** 0 (tehtäville ei ole asetettu eräpäiviä).
 - **Estyneet tehtävät:** 0. TASK-014:n provenienssin selvitystulos voi jäädä omistajasta riippuvaksi; merkitse Estynyt vasta kun selvitys on aloitettu ja tarvittava tieto puuttuu.
 
@@ -1734,6 +1747,7 @@ Pisteet ovat asteikolla 1–5 järjestyksessä **vaikutus / kiireellisyys / risk
 | Päivä | Tehtävä | Muutos | Tulos |
 |---|---|---|---|
 | 2026-11-03 | AUDIT-0001 | Koko repositorion baseline-auditointi, build/test/npm audit ja GitHub Actions -tilan tarkistus | Raportti ja 23 tehtävän backlog luotu; sovelluskoodia ei muutettu. |
+| 2026-11-07 | AUDIT-0001 | Tarkistettu TASK-001, TASK-002, TASK-014 ja TASK-016 nykyisestä `main`-haarasta sekä niiden PR-tarkistukset. | TASK-002 ja TASK-014 valmiit; TASK-001 testattavana (10× toiston näyttö puuttuu); TASK-016 käynnissä (Firefox-smoke lisätty, ajo ohitettiin PR:ssä, WebKit puuttuu). Keskeneräisten järjestys ja tilataulukot päivitetty. |
 
 ## Päätösloki
 
@@ -1741,7 +1755,7 @@ Pisteet ovat asteikolla 1–5 järjestyksessä **vaikutus / kiireellisyys / risk
 |---|---|---|---|
 | 2026-11-03 | Säilytetään JSON-tallennus nykyisessä datakoossa ja mitataan kasvukynnys ennen tietokantamigraatiota. | Nykyinen datasetti on pieni, ja repositoriossa on toimivia revision-/lukituskontrolleja; mitoitusdata puuttuu. | Vältetään ennenaikainen uudelleenkirjoitus. |
 | 2026-11-03 | Yhteiskäyttöisten tunnusten jatkosta ei päätetä auditoinnissa. | Henkilökohtaisen jäljitettävyyden tarve on tuote-/hallintapäätös. | TASK-021 edellyttää omistajan päätöstä. |
-| 2026-11-03 | Auditointi ei muuta tuotantokoodia. | Pyyntö koski analyysiä, suunnitelmaa ja Copilot-tehtäviä. | Ainoastaan tämä raporttitiedosto lisätään. |
+| 2026-11-03 | Auditoinnin baseline ei muuta tuotantokoodia. | Alkuperäinen auditointi koski analyysiä, suunnitelmaa ja Copilot-tehtäviä. | Baseline-raportti lisättiin. |
 
 ## Riskiloki
 
@@ -1752,12 +1766,15 @@ Pisteet ovat asteikolla 1–5 järjestyksessä **vaikutus / kiireellisyys / risk
 | 2026-11-03 | Seuradata näytetään pyynnön aikaleimalla lähteen päivitysaikana. | Keskitaso | TASK-002: erillinen, todennettu lähdeaikaleima. |
 | 2026-11-03 | Paikallinen migraatio-E2E epäonnistuu toistossa, vaikka viimeisin Actions-ajo on vihreä. | Keskitaso | TASK-001: korjaa fixture-järjestys ja toistettavuus. |
 | 2026-11-03 | Kilpailu- ja väestöaineiston provenienssi/oikeusperusta ei ole täysin tiedossa. | Keskitaso | TASK-014: selvitä omistaja ja merkitse tuntemattomat arvot. |
+| 2026-11-07 | TASK-001:n 10 peräkkäisen E2E-ajon hyväksymisnäyttöä ei löytynyt; PR:n validate-tarkistus yksin ei osoita kymmenen toiston tulosta. | Keskitaso | Pidä TASK-001 testattavana, kunnes toistotulos kirjataan. |
+| 2026-11-07 | Firefox-smoke on lisätty, mutta PR:n ajo ohitettiin eikä WebKit-polku ole määritelty. | Matala | Pidä TASK-016 käynnissä; vahvista ajettu Firefox-tulos ja selainlaajuus. |
 
 ## Toteutuspäiväkirja
 
 | Päivä | Tehty työ | Tulos |
 |---|---|---|
 | 2026-11-03 | Tarkastettu lähdekoodi, JSON-aineistot, CI/deploy, testit, dokumentaatio ja riippuvuudet; ajettu build, unit-testit, E2E-testit ja npm audit. | Build ja unit-testit onnistuvat; E2E:ssä yksi paikallisesti toistuva migraatiotestin epäonnistuminen; npm audit raportoi 0 haavoittuvuutta. |
+| 2026-11-07 | Verrattu auditointibaselinea `6280532` nykyiseen `main`-commitiin `7fc13e5`; tarkistettu TASK-001/002/014/016:n lähdekoodimuutokset ja PR #83/#86/#87/#88:n tarkistukset. | TASK-002 ja TASK-014 täyttävät dokumentoidut kriteerit; TASK-001:n 10× toistoa ei vahvistettu; TASK-016:n Firefox-job ohitettiin PR-ajossa eikä WebKit ole mukana. |
 
 ## Opitut Asiat
 
@@ -1780,15 +1797,15 @@ Pisteet ovat asteikolla 1–5 järjestyksessä **vaikutus / kiireellisyys / risk
 
 ## Seuraavaksi Suositeltu Tehtävä
 
-**TASK-001 — Vakauta selaimen migraatiotesti.**
+**TASK-001 — Vahvista migraatiotestin toistettavuus.**
 
-- **Miksi seuraavaksi:** se on nopea, konkreettisesti havaittu testivika ja testien vihreys on edellytys turvalliselle CI-gatingille.
+- **Miksi seuraavaksi:** testikoodin korjaus ja PR:n CI ovat kunnossa, mutta tehtävän nimenomaista kymmenen peräkkäisen ajon hyväksymiskriteeriä ei ole todennettu.
 - **Odotettu hyöty:** paikalliset ja pilvitulokset ovat vertailukelpoisia, ja plannerin datamigraation tärkeä suojaus voidaan todentaa.
-- **Arvioitu työmäärä:** 0,5–1 työpäivä.
-- **Riskit:** testin korjaaminen voi paljastaa, että tuotantokoodissa on erillinen todellinen migraatio-ongelma; älä peitä sitä odotuksilla tai ohittamalla testi.
+- **Arvioitu työmäärä:** jäljellä oleva toistotestaus.
+- **Riskit:** älä merkitse tehtävää valmiiksi pelkän yksittäisen CI-ajon perusteella.
 
 ## Projektin Nykytila
 
-Auditoinnin jälkeen sovelluskoodin toteutustila on ennallaan. Kilpailukerros on kahdessa olemassa olevassa kartassa; erillistä kilpailukarttaa ei ole. PR #81:n sisältö on yhdistetty `main`-haaraan. Build ja yksikkötestit läpäisevät; yksi selaimen migraatiotesti epäonnistui paikallisessa täydessä ja yksittäisessä ajossa, vaikka viimeisin GitHub Actions -validointiajo oli onnistunut. `npm audit` ei löytänyt advisoreita.
+Tämä tilannekuva koskee `main`-haaran committia `7fc13e5340cac0486be27623046209bc600fc794`. Auditoinnin alkuperäinen koodibaseline oli `62805321a73ea8402b677f7cdacef94586cc3fc9`; niiden välillä yhdistettiin muun muassa TASK-001:n testimuutos, TASK-002:n aikaleimakorjaus, TASK-014:n datalähdedokumentaatio ja TASK-016:n Firefox-smoke. Nykyinen tila: TASK-002 ja TASK-014 valmiit, TASK-001 testattavana ja TASK-016 käynnissä. Erillistä kilpailukarttaa ei ole.
 
-Seuraavan kehittäjän tulee aloittaa TASK-001:stä, eikä tehdä laajaa refaktorointia ennen kuin testin alustusjärjestys ja baseline ovat vakaat. Tuotantodeployn filesystem-oletukset ja haarasuojausten asetukset ovat vielä vahvistamatta. Tuotantodata-/palvelinpalautusta tai todellista käyttäjäkuormaa ei ole tässä auditoinnissa tarkastettu.
+Aloita TASK-001:n toistettavuusnäytöstä, sitten jatka TASK-003–TASK-005:n riskien vähennykseen. TASK-007 → TASK-008 → TASK-009 muodostaa erillisen riippuvuuskriittisen deploy-polun. Haarasuojausten asetuksia, deploy-palvelimen tiedostojärjestelmän atomisuutta, tuotantopalautuksia tai todellista käyttäjäkuormaa ei vahvistettu tässä tarkistuksessa.
