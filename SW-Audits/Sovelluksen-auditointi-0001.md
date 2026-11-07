@@ -345,26 +345,26 @@ Auditoinnissa vahvistui **24 merkityksellistä löydöstä**; listaa ei täydenn
 
 Työt suositellaan aloittamaan vakaudesta, datan oikeellisuudesta ja palvelun palautettavuudesta. Uudelleenkirjoitusta tai tietokantamigraatiota ei suositella ennen mittausta.
 
-| Järjestys | Suunta | Löydökset | Aloituskriteeri |
-|---:|---|---|---|
-| 1 | Korjaa testi, joka ei toistu luotettavasti | F-01 | Heti |
-| 2 | Korjaa lähteen päivitysaikaleiman semantiikka | F-02 | Heti |
-| 3 | Rajaa rate limiterin tiedostokasvu | F-06 | Ennen seuraavaa auth-laajennusta |
-| 4 | Syvennä planner-tallennuksen palvelinvalidointi | F-07 | Ennen planner-skeeman muutosta |
-| 5 | Lisää seurarekisterin palautettava backup | F-08 | Ennen suurempaa Admin-tuontia |
-| 6 | Kytke CI:n testit turva-/laatutarkistuksiin | F-09, F-17, F-18 | Kun nykyinen testipohja on vihreä |
-| 7 | Kytke julkaisu onnistuneeseen validointiin | F-03 | Ennen seuraavia tuotantopäivityksiä |
-| 8 | Tee deploy atomiseksi ja palautettavaksi | F-04, F-05 | Ennen seuraavia tuotantopäivityksiä |
-| 9 | Lisää tuotannon diagnoosi ja health-signaalit | F-10 | Ennen käyttölaajennusta |
-| 10 | Päivitä README ja lähdemetadata | F-15, F-16 | Pienet, matalariskiset työt |
-| 11 | Vahvista GIS-aineiston parsinta ja päivitystyökalu | F-13, F-14 | Ennen kuntarajojen päivitystä |
-| 12 | Täydennä testaus selaimille, kattavuudelle ja kartan saavutettavuudelle | F-17, F-23, F-24 | Ennen merkittävää UI-laajennusta |
-| 13 | Rajaa komponenttivastuut | F-12 | Kun testit ja rajapintasopimukset ovat vakaat |
-| 14 | Pienennä alkuperäistä bundlea mittaamalla | F-11 | Komponenttirajauksen yhteydessä |
-| 15 | Vahvista kuntaliitoksen avain ja seuranta | F-19 | Ennen uuden nimimuotoisen datalähteen liittämistä |
-| 16 | Päätä identiteettien audit trail -tarve | F-20 | Tuote-/hallintapäätös ennen toteutusta |
-| 17 | Mitoita JSON-tallennuksen kasvuraja | F-21 | Kun mittaus tai datakasvu lähestyy rajoja |
-| 18 | Yhtenäistä salasanapolitiikan toteutus | F-22 | Ennen auth-muutoksia |
+| Järjestys | Suunta | Löydökset | Aloituskriteeri | Status |
+|---:|---|---|---|---|
+| 1 | Korjaa testi, joka ei toistu luotettavasti | F-01 | Heti | Done 3.11.2026 |
+| 2 | Korjaa lähteen päivitysaikaleiman semantiikka | F-02 | Heti | Done 3.11.2026 |
+| 3 | Rajaa rate limiterin tiedostokasvu | F-06 | Ennen seuraavaa auth-laajennusta | |
+| 4 | Syvennä planner-tallennuksen palvelinvalidointi | F-07 | Ennen planner-skeeman muutosta | |
+| 5 | Lisää seurarekisterin palautettava backup | F-08 | Ennen suurempaa Admin-tuontia | |
+| 6 | Kytke CI:n testit turva-/laatutarkistuksiin | F-09, F-17, F-18 | Kun nykyinen testipohja on vihreä | |
+| 7 | Kytke julkaisu onnistuneeseen validointiin | F-03 | Ennen seuraavia tuotantopäivityksiä | |
+| 8 | Tee deploy atomiseksi ja palautettavaksi | F-04, F-05 | Ennen seuraavia tuotantopäivityksiä | |
+| 9 | Lisää tuotannon diagnoosi ja health-signaalit | F-10 | Ennen käyttölaajennusta | |
+| 10 | Päivitä README ja lähdemetadata | F-15, F-16 | Pienet, matalariskiset työt | |
+| 11 | Vahvista GIS-aineiston parsinta ja päivitystyökalu | F-13, F-14 | Ennen kuntarajojen päivitystä | |
+| 12 | Täydennä testaus selaimille, kattavuudelle ja kartan saavutettavuudelle | F-17, F-23, F-24 | Ennen merkittävää UI-laajennusta | |
+| 13 | Rajaa komponenttivastuut | F-12 | Kun testit ja rajapintasopimukset ovat vakaat | |
+| 14 | Pienennä alkuperäistä bundlea mittaamalla | F-11 | Komponenttirajauksen yhteydessä | |
+| 15 | Vahvista kuntaliitoksen avain ja seuranta | F-19 | Ennen uuden nimimuotoisen datalähteen liittämistä | |
+| 16 | Päätä identiteettien audit trail -tarve | F-20 | Tuote-/hallintapäätös ennen toteutusta | |
+| 17 | Mitoita JSON-tallennuksen kasvuraja | F-21 | Kun mittaus tai datakasvu lähestyy rajoja | |
+| 18 | Yhtenäistä salasanapolitiikan toteutus | F-22 | Ennen auth-muutoksia | |
 
 # Epicit
 
