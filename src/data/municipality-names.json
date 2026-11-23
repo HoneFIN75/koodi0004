@@ -1,0 +1,458 @@
+[
+  {
+    "name": "Akaa",
+    "nameSv": "Ackas"
+  },
+  {
+    "name": "Alavus",
+    "nameSv": "Alavo"
+  },
+  {
+    "name": "Enontekiö",
+    "nameSv": "Enontekis"
+  },
+  {
+    "name": "Espoo",
+    "nameSv": "Esbo"
+  },
+  {
+    "name": "Eurajoki",
+    "nameSv": "Euraåminne"
+  },
+  {
+    "name": "Hailuoto",
+    "nameSv": "Karlö"
+  },
+  {
+    "name": "Halsua",
+    "nameSv": "Halso"
+  },
+  {
+    "name": "Hamina",
+    "nameSv": "Fredrikshamn"
+  },
+  {
+    "name": "Hanko",
+    "nameSv": "Hangö"
+  },
+  {
+    "name": "Hartola",
+    "nameSv": "Gustav Adolfs"
+  },
+  {
+    "name": "Helsinki",
+    "nameSv": "Helsingfors"
+  },
+  {
+    "name": "Huittinen",
+    "nameSv": "Vittis"
+  },
+  {
+    "name": "Hyvinkää",
+    "nameSv": "Hyvinge"
+  },
+  {
+    "name": "Hämeenkyrö",
+    "nameSv": "Tavastkyro"
+  },
+  {
+    "name": "Hämeenlinna",
+    "nameSv": "Tavastehus"
+  },
+  {
+    "name": "Ii",
+    "nameSv": "Ijo"
+  },
+  {
+    "name": "Iisalmi",
+    "nameSv": "Idensalmi"
+  },
+  {
+    "name": "Iitti",
+    "nameSv": "Itis"
+  },
+  {
+    "name": "Ikaalinen",
+    "nameSv": "Ikalis"
+  },
+  {
+    "name": "Ilmajoki",
+    "nameSv": "Ilmola"
+  },
+  {
+    "name": "Ilomantsi",
+    "nameSv": "Ilomants"
+  },
+  {
+    "name": "Inari",
+    "nameSv": "Enare"
+  },
+  {
+    "name": "Inkoo",
+    "nameSv": "Ingå"
+  },
+  {
+    "name": "Isojoki",
+    "nameSv": "Storå"
+  },
+  {
+    "name": "Isokyrö",
+    "nameSv": "Storkyro"
+  },
+  {
+    "name": "Jokioinen",
+    "nameSv": "Jockis"
+  },
+  {
+    "name": "Joroinen",
+    "nameSv": "Jorois"
+  },
+  {
+    "name": "Juuka",
+    "nameSv": "Juga"
+  },
+  {
+    "name": "Järvenpää",
+    "nameSv": "Träskända"
+  },
+  {
+    "name": "Kaarina",
+    "nameSv": "S:t Karins"
+  },
+  {
+    "name": "Kajaani",
+    "nameSv": "Kajana"
+  },
+  {
+    "name": "Karijoki",
+    "nameSv": "Bötom"
+  },
+  {
+    "name": "Karkkila",
+    "nameSv": "Högfors"
+  },
+  {
+    "name": "Kaskinen",
+    "nameSv": "Kaskö"
+  },
+  {
+    "name": "Kauniainen",
+    "nameSv": "Grankulla"
+  },
+  {
+    "name": "Kaustinen",
+    "nameSv": "Kaustby"
+  },
+  {
+    "name": "Kemiönsaari",
+    "nameSv": "Kimitoön"
+  },
+  {
+    "name": "Kerava",
+    "nameSv": "Kervo"
+  },
+  {
+    "name": "Keuruu",
+    "nameSv": "Keuru"
+  },
+  {
+    "name": "Kirkkonummi",
+    "nameSv": "Kyrkslätt"
+  },
+  {
+    "name": "Kitee",
+    "nameSv": "Kides"
+  },
+  {
+    "name": "Kokemäki",
+    "nameSv": "Kumo"
+  },
+  {
+    "name": "Kokkola",
+    "nameSv": "Karleby"
+  },
+  {
+    "name": "Kontiolahti",
+    "nameSv": "Kontiolax"
+  },
+  {
+    "name": "Koski Tl",
+    "nameSv": "Koskis"
+  },
+  {
+    "name": "Kristiinankaupunki",
+    "nameSv": "Kristinestad"
+  },
+  {
+    "name": "Kruunupyy",
+    "nameSv": "Kronoby"
+  },
+  {
+    "name": "Kuhmoinen",
+    "nameSv": "Kuhmois"
+  },
+  {
+    "name": "Kustavi",
+    "nameSv": "Gustavs"
+  },
+  {
+    "name": "Lahti",
+    "nameSv": "Lahtis"
+  },
+  {
+    "name": "Laihia",
+    "nameSv": "Laihela"
+  },
+  {
+    "name": "Laitila",
+    "nameSv": "Letala"
+  },
+  {
+    "name": "Lapinjärvi",
+    "nameSv": "Lappträsk"
+  },
+  {
+    "name": "Lappeenranta",
+    "nameSv": "Villmanstrand"
+  },
+  {
+    "name": "Lapua",
+    "nameSv": "Lappo"
+  },
+  {
+    "name": "Laukaa",
+    "nameSv": "Laukas"
+  },
+  {
+    "name": "Lieto",
+    "nameSv": "Lundo"
+  },
+  {
+    "name": "Liminka",
+    "nameSv": "Limingo"
+  },
+  {
+    "name": "Liperi",
+    "nameSv": "Libelits"
+  },
+  {
+    "name": "Lohja",
+    "nameSv": "Lojo"
+  },
+  {
+    "name": "Loviisa",
+    "nameSv": "Lovisa"
+  },
+  {
+    "name": "Luoto",
+    "nameSv": "Larsmo"
+  },
+  {
+    "name": "Maalahti",
+    "nameSv": "Malax"
+  },
+  {
+    "name": "Maarianhamina",
+    "nameSv": "Mariehamn"
+  },
+  {
+    "name": "Marttila",
+    "nameSv": "S:t Mårtens"
+  },
+  {
+    "name": "Merikarvia",
+    "nameSv": "Sastmola"
+  },
+  {
+    "name": "Mikkeli",
+    "nameSv": "S:t Michel"
+  },
+  {
+    "name": "Mustasaari",
+    "nameSv": "Korsholm"
+  },
+  {
+    "name": "Mynämäki",
+    "nameSv": "Virmo"
+  },
+  {
+    "name": "Myrskylä",
+    "nameSv": "Mörskom"
+  },
+  {
+    "name": "Naantali",
+    "nameSv": "Nådendal"
+  },
+  {
+    "name": "Nousiainen",
+    "nameSv": "Nousis"
+  },
+  {
+    "name": "Närpiö",
+    "nameSv": "Närpes"
+  },
+  {
+    "name": "Oulu",
+    "nameSv": "Uleåborg"
+  },
+  {
+    "name": "Paimio",
+    "nameSv": "Pemar"
+  },
+  {
+    "name": "Parainen",
+    "nameSv": "Pargas"
+  },
+  {
+    "name": "Pedersören kunta",
+    "nameSv": "Pedersöre"
+  },
+  {
+    "name": "Pietarsaari",
+    "nameSv": "Jakobstad"
+  },
+  {
+    "name": "Pirkkala",
+    "nameSv": "Birkala"
+  },
+  {
+    "name": "Pomarkku",
+    "nameSv": "Påmark"
+  },
+  {
+    "name": "Pori",
+    "nameSv": "Björneborg"
+  },
+  {
+    "name": "Pornainen",
+    "nameSv": "Borgnäs"
+  },
+  {
+    "name": "Porvoo",
+    "nameSv": "Borgå"
+  },
+  {
+    "name": "Pyhtää",
+    "nameSv": "Pyttis"
+  },
+  {
+    "name": "Raahe",
+    "nameSv": "Brahestad"
+  },
+  {
+    "name": "Raasepori",
+    "nameSv": "Raseborg"
+  },
+  {
+    "name": "Raisio",
+    "nameSv": "Reso"
+  },
+  {
+    "name": "Rauma",
+    "nameSv": "Raumo"
+  },
+  {
+    "name": "Ruokolahti",
+    "nameSv": "Ruokolax"
+  },
+  {
+    "name": "Sauvo",
+    "nameSv": "Sagu"
+  },
+  {
+    "name": "Savonlinna",
+    "nameSv": "Nyslott"
+  },
+  {
+    "name": "Siikainen",
+    "nameSv": "Siikais"
+  },
+  {
+    "name": "Sipoo",
+    "nameSv": "Sibbo"
+  },
+  {
+    "name": "Siuntio",
+    "nameSv": "Sjundeå"
+  },
+  {
+    "name": "Taivassalo",
+    "nameSv": "Tövsala"
+  },
+  {
+    "name": "Tampere",
+    "nameSv": "Tammerfors"
+  },
+  {
+    "name": "Teuva",
+    "nameSv": "Östermark"
+  },
+  {
+    "name": "Tornio",
+    "nameSv": "Torneå"
+  },
+  {
+    "name": "Turku",
+    "nameSv": "Åbo"
+  },
+  {
+    "name": "Tuusula",
+    "nameSv": "Tusby"
+  },
+  {
+    "name": "Ulvila",
+    "nameSv": "Ulvsby"
+  },
+  {
+    "name": "Uusikaarlepyy",
+    "nameSv": "Nykarleby"
+  },
+  {
+    "name": "Uusikaupunki",
+    "nameSv": "Nystad"
+  },
+  {
+    "name": "Vaasa",
+    "nameSv": "Vasa"
+  },
+  {
+    "name": "Vantaa",
+    "nameSv": "Vanda"
+  },
+  {
+    "name": "Vehmaa",
+    "nameSv": "Vemo"
+  },
+  {
+    "name": "Veteli",
+    "nameSv": "Vetil"
+  },
+  {
+    "name": "Vihti",
+    "nameSv": "Vichtis"
+  },
+  {
+    "name": "Vimpeli",
+    "nameSv": "Vindala"
+  },
+  {
+    "name": "Virolahti",
+    "nameSv": "Vederlax"
+  },
+  {
+    "name": "Virrat",
+    "nameSv": "Virdois"
+  },
+  {
+    "name": "Vöyri",
+    "nameSv": "Vörå"
+  },
+  {
+    "name": "Ylitornio",
+    "nameSv": "Övertorneå"
+  },
+  {
+    "name": "Ähtäri",
+    "nameSv": "Etseri"
+  }
+]

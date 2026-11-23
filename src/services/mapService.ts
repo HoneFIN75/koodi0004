@@ -9,16 +9,17 @@ export function markerRadius(members: number | null): number {
 }
 
 const colorStops = [
-  { votes: 0, rgb: [30, 58, 138] },
+  { votes: 0, rgb: [0, 0, 0] },
   { votes: 10, rgb: [37, 99, 235] },
   { votes: 15, rgb: [245, 158, 11] },
-  { votes: 20, rgb: [220, 38, 38] },
+  { votes: 20, rgb: [22, 163, 74] },
+  { votes: 25, rgb: [220, 38, 38] },
 ];
 
 export function markerColor(votes: number | null): string {
   if (votes === null) return '#64748b';
-  if (votes > 20) {
-    const lightness = (129 / 255) * 100 - 25 * (1 - Math.exp(-(votes - 20) / 20));
+  if (votes > 25) {
+    const lightness = (129 / 255) * 100 - 25 * (1 - Math.exp(-(votes - 25) / 20));
     return `hsl(0 ${(182 / 252) * 100}% ${lightness}%)`;
   }
   const upper = colorStops.findIndex((stop) => stop.votes >= votes);
@@ -32,7 +33,7 @@ export function formatCount(value: number | null): string {
   return value === null ? 'Ei tietoa' : value.toLocaleString('fi-FI', { maximumFractionDigits: 1 });
 }
 
-export function makePopup(club: Club): HTMLElement {
+export function makePopup(club: Club, population: number | null = null): HTMLElement {
   const content = document.createElement('div');
   content.className = 'map-popup';
   const title = document.createElement('strong');
@@ -41,6 +42,24 @@ export function makePopup(club: Club): HTMLElement {
   municipality.textContent = club.paikkakunta;
   const stats = document.createElement('span');
   stats.textContent = `Jäseniä: ${formatCount(club.jasenmaara)} · Ääniä: ${formatCount(club.aanimaara)}`;
-  content.append(title, municipality, stats);
+  const residents = document.createElement('span');
+  residents.textContent = `Kunnan väestö 2025: ${formatCount(population)}`;
+  content.append(title, municipality, stats, residents);
+  return content;
+}
+
+export function createMunicipalityTooltip(municipalityName: string, areaName: string, details: string[] = [], className = 'map-popup'): HTMLElement {
+  const content = document.createElement('div');
+  content.className = className;
+  const municipality = document.createElement('strong');
+  municipality.textContent = `Kunta: ${municipalityName}`;
+  const area = document.createElement('span');
+  area.textContent = `Alue: ${areaName}`;
+  content.append(municipality, area);
+  for (const detail of details) {
+    const line = document.createElement('span');
+    line.textContent = detail;
+    content.append(line);
+  }
   return content;
 }

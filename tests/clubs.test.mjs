@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { parseDatabase, clubRepository } from '../src/data/clubRepository.ts';
 import { filterClubs, searchClubs } from '../src/services/searchService.ts';
-import { getTotals, getVotingDistribution, getMembershipDistribution, getRegionalStats } from '../src/services/statisticsService.ts';
+import { getTotals, getVotesByMembershipBand, getMembershipDistribution } from '../src/services/statisticsService.ts';
 import { markerColor, markerRadius, hasLocation } from '../src/services/mapService.ts';
 
 const record = (overrides = {}) => ({
@@ -43,7 +43,7 @@ test('missing values remain unknown, valid records are not discarded', () => {
   assert.equal(database.data.filter(hasLocation).length, 1);
   assert.equal(getTotals(database.data).average, 25);
   assert.equal(getTotals(database.data).knownMembers, 1);
-  assert.equal(getVotingDistribution(database.data)[0].count, 1);
+  assert.equal(getVotesByMembershipBand(database.data)[1].count, 10);
 });
 
 test('normalizes numeric strings, rejects non-finite, fractional and blank counts', () => {
@@ -54,7 +54,7 @@ test('normalizes numeric strings, rejects non-finite, fractional and blank count
   ]);
   assert.equal(data[0].jasenmaara, 1234);
   assert.equal(data[0].latitude, 62.24);
-  assert.equal(data[0].aanimaara, 15);
+  assert.equal(data[0].aanimaara, 25);
   assert.equal(data[1].jasenmaara, null);
   assert.equal(data[1].aanimaara, null);
   assert.equal(data[2].jasenmaara, null);
@@ -64,14 +64,25 @@ test('invalid structure throws; invalid dates and counts are reported', () => {
   for (const input of [null, [], {}, { data: {} }]) assert.throws(() => parseDatabase(input));
   const database = parseDatabase(payload([], { generatedAt: 'bad', recordCount: -1 }));
   assert.equal(database.metadata.generatedAt, null);
+  assert.equal(database.metadata.lastUpdatedAt, null);
   assert.equal(database.metadata.recordCount, null);
   assert.equal(database.warnings.length, 1);
+});
+
+test('parses source update time separately and never invents it', () => {
+  const database = parseDatabase(payload([], {
+    generatedAt: '2026-01-03T00:00:00Z',
+    lastUpdatedAt: '2026-01-01T00:00:00Z',
+  }));
+  assert.equal(database.metadata.generatedAt, '2026-01-03T00:00:00Z');
+  assert.equal(database.metadata.lastUpdatedAt, '2026-01-01T00:00:00Z');
+  assert.equal(parseDatabase(payload([], { lastUpdatedAt: 'invalid' })).metadata.lastUpdatedAt, null);
+  assert.equal(parseDatabase(payload([])).metadata.lastUpdatedAt, null);
 });
 
 test('preserves extensible scalar details but not nested data', () => {
   const [club] = clubs([record({ region: 'Keski-Suomi', website: 'https://example.com', foundedYear: 1999, nested: {}, empty: '' })]);
   assert.deepEqual(club.details, { region: 'Keski-Suomi', website: 'https://example.com', foundedYear: 1999 });
-  assert.equal(getRegionalStats([club])[0].name, 'Keski-Suomi');
 });
 
 test('mean, median, extrema and missing-member denominators are correct', () => {
@@ -86,28 +97,64 @@ test('mean, median, extrema and missing-member denominators are correct', () => 
   assert.equal(getTotals([]).average, null);
 });
 
-test('membership bucket edges and all voting categories are accounted for', () => {
-  const data = clubs([0, 25, 26, 75, 76, 150, 151, 300, 301, 10000].map((jasenmaara) => record({ jasenmaara })));
-  assert.deepEqual(getMembershipDistribution(data).map((row) => row.count), [2, 2, 2, 2, 2]);
-  assert.deepEqual(getVotingDistribution(clubs([record({ aanimaara: 25 }), record({ aanimaara: null })])), [
-    { label: '10 ääntä', count: 0 }, { label: '15 ääntä', count: 0 },
-    { label: '20 ääntä', count: 0 }, { label: '25 ääntä', count: 1 },
+test('membership and voting bands use the defined inclusive boundaries', () => {
+  const data = clubs([0, 1, 99, 100, 299, 300, 499, 500, 501].map((jasenmaara) => record({ jasenmaara })));
+  assert.deepEqual(getMembershipDistribution(data), [
+    { label: 'Ei jäseniä', count: 1 },
+    { label: 'Jäseniä 1–99', count: 2 },
+    { label: 'Jäseniä 100–299', count: 2 },
+    { label: 'Jäseniä 300–499', count: 2 },
+    { label: 'Jäseniä 500+', count: 2 },
   ]);
+  assert.deepEqual(data.map((club) => club.aanimaara), [0, 10, 10, 15, 15, 20, 20, 25, 25]);
+  assert.deepEqual(getVotesByMembershipBand(data), [
+    { label: 'Ei jäseniä', count: 0, clubCount: 1 }, { label: 'Jäseniä 1–99', count: 20, clubCount: 2 },
+    { label: 'Jäseniä 100–299', count: 30, clubCount: 2 }, { label: 'Jäseniä 300–499', count: 40, clubCount: 2 },
+    { label: 'Jäseniä 500+', count: 50, clubCount: 2 },
+  ]);
+});
+
+test('vote totals by membership band count zero-member clubs as zero and omit unknown membership', () => {
+  const data = clubs([
+    record({ jasenmaara: 0 }),
+    record({ jasenmaara: 0 }),
+    record({ jasenmaara: 50 }),
+    record({ jasenmaara: null }),
+  ]);
+  assert.deepEqual(getVotesByMembershipBand(data), [
+    { label: 'Ei jäseniä', count: 0, clubCount: 2 },
+    { label: 'Jäseniä 1–99', count: 10, clubCount: 1 },
+    { label: 'Jäseniä 100–299', count: 0, clubCount: 0 },
+    { label: 'Jäseniä 300–499', count: 0, clubCount: 0 },
+    { label: 'Jäseniä 500+', count: 0, clubCount: 0 },
+  ]);
+});
+
+test('source voting power is checked against the membership rule and unknown membership stays unknown', () => {
+  const database = parseDatabase(payload([
+    record({ jasenmaara: 500, aanimaara: 20 }),
+    record({ jasenmaara: null, aanimaara: 25 }),
+  ]));
+  assert.deepEqual(database.data.map((club) => club.aanimaara), [25, null]);
+  assert.ok(database.warnings.some((warning) => warning.includes('poikkeaa jäsenmäärään perustuvasta äänivallasta')));
+  assert.ok(database.warnings.some((warning) => warning.includes('äänimäärää ei voida tarkistaa')));
 });
 
 test('composed filters instantly produce the correct statistics', () => {
   const data = clubs([
-    record({ seura: 'Äänekoski', jasenmaara: 25, aanimaara: 15 }),
-    record({ seura: 'Muu seura', jasenmaara: 75, aanimaara: 15 }),
+    record({ seura: 'Äänekoski', jasenmaara: 25, aanimaara: 10 }),
+    record({ seura: 'Muu seura', jasenmaara: 75, aanimaara: 10 }),
     record({ jasenmaara: null }),
   ]);
   assert.equal(searchClubs(data, 'aanekoski').length, 1);
   assert.equal(searchClubs(data, 'JYVASKYLA').length, 3);
-  const filtered = filterClubs(data, { query: 'jyvaskyla', maxMembers: 25, votes: 15 });
+  const filtered = filterClubs(data, { query: 'jyvaskyla', minMembers: 10, maxMembers: 25, votes: 10 });
   assert.equal(getTotals(filtered).members, 25);
   assert.equal(getTotals(filtered).clubs, 1);
-  assert.equal(filterClubs(data, { query: '', maxMembers: null, votes: null }).length, 3);
-  assert.equal(filterClubs(data, { query: 'no match', maxMembers: null, votes: null }).length, 0);
+  assert.equal(filterClubs(data, { query: '', minMembers: null, maxMembers: null, votes: null }).length, 3);
+  assert.equal(filterClubs(data, { query: 'no match', minMembers: null, maxMembers: null, votes: null }).length, 0);
+  assert.deepEqual(filterClubs(data, { query: '', minMembers: 25, maxMembers: 100, votes: null }).map((club) => club.jasenmaara), [25, 75]);
+  assert.deepEqual(filterClubs(data, { query: '', minMembers: 30, maxMembers: 60, votes: null }).map((club) => club.jasenmaara), []);
 });
 
 test('marker size is smooth and strictly increasing beyond 999 members', () => {
@@ -119,21 +166,24 @@ test('marker size is smooth and strictly increasing beyond 999 members', () => {
 });
 
 test('voting colors match exact anchors and interpolate future values', () => {
+  assert.equal(markerColor(0), '#000000');
   assert.equal(markerColor(10), '#2563eb');
   assert.equal(markerColor(15), '#f59e0b');
-  assert.equal(markerColor(20), '#dc2626');
+  assert.equal(markerColor(20), '#16a34a');
+  assert.equal(markerColor(25), '#dc2626');
+  assert.notEqual(markerColor(22), markerColor(20));
   assert.notEqual(markerColor(12), markerColor(10));
   assert.notEqual(markerColor(12), markerColor(15));
   assert.notEqual(markerColor(25), markerColor(30));
   assert.equal(markerColor(null), '#64748b');
-  assert.ok(/^#[0-9a-f]{6}$/.test(markerColor(0)));
 });
 
-test('repository caches successful requests and retries failures', async () => {
+test('repository reads the shared club API without caching and retries failures', async () => {
   const originalFetch = globalThis.fetch;
   let requests = 0;
-  globalThis.fetch = async (url) => {
-    assert.equal(url, './jsondb/seurat.json');
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, './api/clubs.php');
+    assert.deepEqual(options, { cache: 'no-store' });
     requests++;
     return requests === 1 ? new Response('', { status: 503 }) : Response.json(payload([record()]));
   };
@@ -143,7 +193,43 @@ test('repository caches successful requests and retries failures', async () => {
     assert.equal(first, second);
     assert.equal(first.data.length, 1);
     assert.equal(requests, 2);
+    await clubRepository.refresh();
+    assert.equal(requests, 3);
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test('public club contacts are retained, archived records are excluded and private contacts are ignored', () => {
+  const database = parseDatabase(payload([
+    record({
+      id: 'public-club',
+      contact: { name: 'Yhteyshenkilö', email: 'club@example.fi', phone: '+358 40 123 4567', website: '', instagram: '', tiktok: '', public: true },
+    }),
+    record({
+      id: 'private-club',
+      contact: { name: 'Private', email: 'private@example.fi', phone: '', website: '', instagram: '', tiktok: '', public: false },
+    }),
+    record({ id: 'archived-club', archived: true }),
+  ]));
+  assert.equal(database.data.length, 2);
+  assert.deepEqual(database.data[0].contact, {
+    name: 'Yhteyshenkilö',
+    email: 'club@example.fi',
+    phone: '+358 40 123 4567',
+    website: '',
+    instagram: '',
+    tiktok: '',
+    public: true,
+  });
+  assert.equal(database.data[0].id, 'public-club');
+  assert.equal(database.data[1].contact, undefined);
+  assert.equal(database.data.some((club) => club.id === 'archived-club'), false);
+  assert.equal(database.warnings.length, 0);
+});
+
+test('malformed public contact data is omitted with a visible warning', () => {
+  const database = parseDatabase(payload([record({ contact: { public: true, email: 12 } })]));
+  assert.equal(database.data[0].contact, undefined);
+  assert.ok(database.warnings.some((warning) => warning.includes('julkisia yhteystietoja')));
 });

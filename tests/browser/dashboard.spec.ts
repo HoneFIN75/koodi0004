@@ -2,27 +2,51 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const fixture = (data: unknown[], recordCount = data.length) => ({
-  metadata: { generatedAt: '2026-01-01T00:00:00Z', recordCount, source: 'test' },
+  metadata: { generatedAt: '2026-01-01T00:00:00Z', lastUpdatedAt: '2025-12-31T10:00:00Z', recordCount, source: 'test' },
   data,
 });
 const club = (index: number, overrides: Record<string, unknown> = {}) => ({
   seura: `Testiseura ${index}`, paikkakunta: index % 2 ? 'Kouvola' : 'Jyväskylä',
   latitude: 60 + (index % 100) * 0.09, longitude: 20 + (index % 80) * 0.14,
-  jasenmaara: index, aanimaara: [10, 15, 20][index % 3], ...overrides,
+  jasenmaara: index, aanimaara: index === 0 ? 0 : index < 100 ? 10 : index < 300 ? 15 : index < 500 ? 20 : 25, ...overrides,
 });
 const smallData = fixture([
   club(0, { jasenmaara: 0, latitude: 60, longitude: 25 }),
   club(1, { jasenmaara: 25, latitude: 60, longitude: 25 }),
-  club(2, { jasenmaara: 100, latitude: 60, longitude: 25 }),
+  club(2, { jasenmaara: 100, aanimaara: 15, latitude: 60, longitude: 25 }),
   club(3, { jasenmaara: 1000, aanimaara: 25, latitude: 69, longitude: 28,
     website: 'https://example.com', region: 'Lappi', foundedYear: 2000 }),
 ]);
 
 async function load(page: Page, data = smallData) {
-  await page.route('**/jsondb/seurat.json', (route) => route.fulfill({ json: data }));
+  await page.route('**/api/clubs.php', (route) => route.fulfill({ json: data }));
   await page.goto('/koodi0004/');
   await expect(page.locator('.map-title p')).toContainText(`${data.data.length} /`);
+  await page.locator('.dashboard-map-controls > summary').click();
+  await expect(page.locator('.dashboard-map-controls')).toHaveAttribute('open', '');
 }
+
+test('homepage displays the persisted club update time, not the response time', async ({ page }) => {
+  await load(page);
+  await expect(page.locator('.hero-aside small')).toContainText('2025');
+});
+
+test('map and club list are 20% taller across responsive layouts', async ({ page }) => {
+  await load(page, fixture(Array.from({ length: 30 }, (_, index) => club(index))));
+  const map = page.locator('.map-canvas');
+  const list = page.locator('.club-results');
+
+  await expect(map).toHaveJSProperty('offsetHeight', 672);
+  await expect(list).toHaveJSProperty('offsetHeight', 672);
+
+  await page.setViewportSize({ width: 900, height: 900 });
+  await expect(map).toHaveJSProperty('offsetHeight', 624);
+  await expect(list).toHaveJSProperty('offsetHeight', 624);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(map).toHaveJSProperty('offsetHeight', 552);
+  await expect(list).toHaveJSProperty('offsetHeight', 384);
+});
 
 test.beforeEach(async ({ page }) => {
   // Deterministic local tests do not depend on or request the public tile service.
@@ -30,26 +54,305 @@ test.beforeEach(async ({ page }) => {
     contentType: 'image/png',
     body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zl1sAAAAASUVORK5CYII=', 'base64'),
   }));
+  await page.route('**/api/planner.php**', (route) => route.request().method() === 'GET'
+    ? route.fulfill({ json: { document: null, backups: [], revision: null } })
+    : route.fulfill({ json: { revision: 'test-revision' } }));
+});
+
+test('club matrix sorts, filters, summarizes and adapts to mobile', async ({ page }) => {
+  const scenarios = {
+    version: 1,
+    activeScenarioId: 'current',
+    scenarios: [
+      {
+        id: 'current', name: 'Nykyjako', description: '', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+        regions: [
+          { id: 'jyvaskyla', number: 1, name: 'Keski-Suomi', shortName: 'KES', description: '', color: '#16a34a', opacity: 1, enabled: true, visible: true, municipalityCodes: ['179'], createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+          { id: 'kouvola', number: 2, name: 'Kaakkois-Suomi', shortName: 'KAA', description: '', color: '#2563eb', opacity: 1, enabled: true, visible: true, municipalityCodes: ['286'], createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+        ],
+      },
+      {
+        id: 'alternate', name: 'Vaihtoehto', description: '', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+        regions: [
+          { id: 'alternate-region', number: 1, name: 'Sisä-Suomi', shortName: 'SIS', description: '', color: '#16a34a', opacity: 1, enabled: true, visible: true, municipalityCodes: ['179', '286'], createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+        ],
+      },
+    ],
+  };
+  await page.route('**/api/planner.php**', (route) => route.fulfill({ json: { document: scenarios, backups: [], revision: 'matrix-revision' } }));
+  await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: [
+    { 'Kilpailun nimi': 'Jyväskylä Open', Vuosi: 2024, Kunta: 'Jyväskylä' },
+    { 'Kilpailun nimi': 'Kouvola Open', Vuosi: 2024, Kunta: 'Kouvola' },
+    { 'Kilpailun nimi': 'Kouvola Open 2', Vuosi: 2025, Kunta: 'Kouvola' },
+  ] }));
+  await load(page, fixture([
+    club(2, { seura: 'Zulu Disc Golf', paikkakunta: 'Jyväskylä', jasenmaara: 100, aanimaara: 15 }),
+    club(0, { seura: 'Alpha Disc Golf', paikkakunta: 'Kouvola', jasenmaara: 25, aanimaara: 10, foundedYear: 1999 }),
+    club(1, { seura: 'Beta Disc Golf', paikkakunta: 'Kouvola', jasenmaara: 0, aanimaara: 0 }),
+  ]));
+
+  const nav = page.getByRole('link', { name: 'Seura matriisi', exact: true });
+  await expect(nav).toHaveAttribute('href', '#seura-matriisi');
+  await nav.click();
+  const matrix = page.locator('#seura-matriisi');
+  await expect(matrix.getByRole('heading', { name: 'Seura matriisi' })).toBeVisible();
+  const metrics = matrix.locator('.matrix-metric');
+  await expect(metrics.nth(0)).toContainText('3');
+  await expect(metrics.nth(1)).toContainText('125');
+  await expect(metrics.nth(2)).toContainText('25');
+  await expect(metrics.nth(3)).toContainText('2');
+  const filters = matrix.locator('.matrix-filters');
+  await expect(filters).toHaveJSProperty('open', false);
+  const table = matrix.locator('.matrix-table');
+  const names = () => table.locator('tbody tr td:first-child').allTextContents();
+  await expect.poll(names).toEqual(['Alpha Disc Golf', 'Beta Disc Golf', 'Zulu Disc Golf']);
+  await expect(table.locator('thead th button')).toHaveCount(await table.locator('thead th').count());
+  await expect(table.locator('thead th').first()).toHaveAttribute('aria-sort', 'ascending');
+  await expect(table.getByRole('columnheader', { name: /Skenaario/ })).toHaveCount(0);
+  await expect(table.getByRole('columnheader', { name: /Jäseniä \/ 10 000 asukasta/ })).toHaveCount(0);
+  await expect(table.locator('thead th').filter({ hasText: 'Perustamisvuosi' })).toHaveCount(1);
+  await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText(/1\s?999/);
+  await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText('Kaakkois-Suomi');
+  await expect(table.locator('tbody tr').filter({ hasText: 'Alpha Disc Golf' })).toContainText('2');
+
+  const nameHeader = table.getByRole('columnheader', { name: /Seuran nimi/ });
+  await nameHeader.getByRole('button').click();
+  await expect(nameHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect.poll(names).toEqual(['Zulu Disc Golf', 'Beta Disc Golf', 'Alpha Disc Golf']);
+  await nameHeader.getByRole('button').click();
+  await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending');
+  await expect.poll(names).toEqual(['Alpha Disc Golf', 'Beta Disc Golf', 'Zulu Disc Golf']);
+  const memberHeader = table.getByRole('columnheader', { name: /Jäsenmäärä/ });
+  await memberHeader.getByRole('button').click();
+  await expect(memberHeader).toHaveAttribute('aria-sort', 'ascending');
+  await expect.poll(names).toEqual(['Beta Disc Golf', 'Alpha Disc Golf', 'Zulu Disc Golf']);
+  await memberHeader.getByRole('button').click();
+  await expect(memberHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect.poll(names).toEqual(['Zulu Disc Golf', 'Alpha Disc Golf', 'Beta Disc Golf']);
+
+  await filters.locator(':scope > summary').click();
+  await filters.getByRole('searchbox', { name: 'Seuran nimi' }).fill('alpha');
+  await expect(table.locator('tbody tr')).toHaveCount(1);
+  await expect(matrix.locator('.matrix-result-count')).toContainText('1 / 3');
+  await filters.getByRole('searchbox', { name: 'Seuran nimi' }).fill('');
+  await filters.getByLabel('Alue').selectOption('kouvola');
+  await expect(table.locator('tbody tr')).toHaveCount(2);
+  await filters.getByLabel('Skenaario').selectOption('alternate');
+  await expect(table.locator('tbody tr').first()).toContainText('Sisä-Suomi');
+  await expect(table.locator('tbody tr').first()).not.toContainText('Vaihtoehto');
+  await filters.getByLabel('Skenaario').selectOption('current');
+
+  const header = table.locator('thead th').first();
+  await expect(header).toHaveCSS('position', 'sticky');
+  const regionSummary = matrix.locator('.matrix-region-table table');
+  await expect(regionSummary.locator('thead th button')).toHaveCount(4);
+  await expect(regionSummary.locator('tbody th').allTextContents()).resolves.toEqual(['Kaakkois-Suomi', 'Keski-Suomi']);
+  const regionNameHeader = regionSummary.getByRole('columnheader', { name: /Alue/ });
+  await regionNameHeader.getByRole('button').click();
+  await expect(regionNameHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect(regionSummary.locator('tbody th').allTextContents()).resolves.toEqual(['Keski-Suomi', 'Kaakkois-Suomi']);
+  await page.setViewportSize({ width: 320, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await matrix.locator('.matrix-table-wrap').evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+});
+
+test('all dashboard data tables sort from the first column and toggle each heading', async ({ page }) => {
+  await page.route('**/jsondb/SFL-Kilpailut-2019-2026.json', (route) => route.fulfill({ json: [
+    { 'Kilpailun nimi': 'Turku Open', Vuosi: 2022, Kunta: 'Turku' },
+    { 'Kilpailun nimi': 'Turku Open 2', Vuosi: 2022, Kunta: 'Turku' },
+    { 'Kilpailun nimi': 'Turku Open 3', Vuosi: 2022, Kunta: 'Turku' },
+    { 'Kilpailun nimi': 'Espoo Open', Vuosi: 2020, Kunta: 'Espoo' },
+    { 'Kilpailun nimi': 'Helsinki Open', Vuosi: 2021, Kunta: 'Helsinki' },
+  ] }));
+  await load(page);
+  const population = page.locator('.population-table table');
+  await expect(population.locator('thead th button')).toHaveCount(5);
+  const municipalityHeader = population.getByRole('columnheader', { name: /Kunta/ });
+  await expect(municipalityHeader).toHaveAttribute('aria-sort', 'ascending');
+  const municipalityNames = () => population.locator('tbody tr th').allTextContents();
+  const alphabeticRows = await municipalityNames();
+  await municipalityHeader.getByRole('button').click();
+  await expect(municipalityHeader).toHaveAttribute('aria-sort', 'descending');
+  await expect.poll(async () => (await municipalityNames())[0]).not.toBe(alphabeticRows[0]);
+  await municipalityHeader.getByRole('button').click();
+  await expect(municipalityHeader).toHaveAttribute('aria-sort', 'ascending');
+  await expect.poll(municipalityNames).toEqual(alphabeticRows);
+
+  const mapControls = page.locator('.dashboard-map-controls');
+  await expect(page.locator('.dashboard-competition-overview')).toContainText('Kilpailut');
+  await expect(page.getByTestId('competition-total')).toHaveText('5');
+  await expect(page.locator('.dashboard-competition-overview')).toBeVisible();
+  await expect(mapControls.getByLabel('Kilpailumäärät kunnittain')).not.toBeChecked();
+});
+
+test('population is shared across routes, supports municipality comparisons and filters club maps', async ({ page }) => {
+  let boundaryRequests = 0;
+  page.on('request', (request) => { if (request.url().includes('/geo/kunnat.geojson')) boundaryRequests += 1; });
+  await load(page, fixture([
+    club(0, { paikkakunta: 'Helsingfors', latitude: 60.17, longitude: 24.94 }),
+    club(1, { paikkakunta: 'Brändö', latitude: 60.41, longitude: 21.05 }),
+  ]));
+  const explorer = page.getByRole('region', { name: 'Kuntien väestöanalyysi' });
+  await expect(explorer).toContainText('5 652 881');
+  await explorer.getByLabel('Vertailukunta 1').selectOption({ label: 'Helsinki' });
+  await explorer.getByLabel('Vertailukunta 2').selectOption({ label: 'Espoo' });
+  await expect(explorer).toContainText('Väestöero: 368 676');
+  await explorer.getByLabel('Hae väestökunnan nimeä').fill('Mariehamn');
+  await expect(explorer.locator('tbody')).toContainText('Maarianhamina');
+  await page.locator('.filter-bar').getByLabel('Väestöluokka').selectOption('mega');
+  await expect(page.locator('.map-title p')).toContainText('1 / 2');
+  await page.locator('.club-result').first().click();
+  await expect(page.locator('.detail-fields')).toContainText('694 392');
+  await page.getByRole('button', { name: 'Sulje seuran tiedot' }).click();
+  await page.getByRole('button', { name: 'Tyhjennä suodattimet' }).click();
+  await expect(page.locator('.map-title p')).toContainText('2 / 2');
+  await page.getByRole('link', { name: /Aluesuunnittelu/ }).click();
+  await expect(page.locator('.planner-shell')).toBeVisible();
+  await page.getByRole('link', { name: 'Seurakartta', exact: true }).click();
+  await expect(explorer).toContainText('5 652 881');
+  expect(boundaryRequests).toBe(1);
 });
 
 test('all filters update markers, totals, distributions and empty state', async ({ page }) => {
   await load(page);
-  await expect(page.locator('.metric-value').nth(1)).toContainText('1 125');
-  await expect(page.locator('.metric-value').nth(3)).toContainText('62,5');
-  await expect(page.locator('#vote-filter option')).toHaveCount(5);
+  const memberMetrics = page.getByRole('region', { name: 'Jäsenmäärät' }).locator('.metric-value');
+  await expect(memberMetrics.nth(0)).toContainText('1 125');
+  await expect(memberMetrics.nth(2)).toContainText('62,5');
+  await expect(page.locator('#vote-filter option')).toHaveCount(6);
   await page.getByRole('textbox', { name: 'Hae seuraa tai kuntaa' }).fill('jyvaskyla');
   await expect(page.locator('.map-title p')).toContainText('2 / 4');
-  await expect(page.locator('.metric-value').nth(1)).toContainText('100 jäsentä');
-  await page.getByLabel('Äänivalta', { exact: true }).selectOption('20');
+  await expect(memberMetrics.nth(0)).toContainText('100 jäsentä');
+  await page.getByLabel('Äänivalta', { exact: true }).selectOption('15');
   await expect(page.locator('.map-title p')).toContainText('1 / 4');
-  await expect(page.locator('.chart-card').nth(1).locator('.bar-row').filter({ hasText: '20 ääntä' }).locator('.bar-value')).toHaveText('1');
-  await page.getByLabel('Jäsenmäärä', { exact: false }).fill('25');
+  await expect(page.locator('.chart-card').filter({ has: page.getByRole('heading', { name: 'Äänimäärä jäsenmääräluokittain' }) })
+    .locator('.bar-row').filter({ hasText: 'Jäseniä 100–299' }).locator('.bar-value')).toHaveText('15');
+  await page.getByRole('slider', { name: 'Jäsenmäärä enintään' }).fill('25');
   await expect(page.locator('.map-title p')).toContainText('0 / 4');
   await expect(page.locator('.club-results')).toContainText('Ei suodattimia vastaavia seuroja');
   await expect(page.locator('.club-marker')).toHaveCount(0);
   await expect(page.locator('.club-cluster')).toHaveCount(0);
   await page.getByRole('button', { name: 'Tyhjennä suodattimet' }).click();
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
+});
+
+test('minimum and maximum membership sliders constrain the same interval', async ({ page }) => {
+  await load(page);
+  const minimum = page.getByRole('slider', { name: 'Jäsenmäärä vähintään' });
+  const maximum = page.getByRole('slider', { name: 'Jäsenmäärä enintään' });
+  await minimum.fill('25');
+  await expect(page.locator('.map-title p')).toContainText('3 / 4');
+  await expect(page.locator('.member-filter legend')).toContainText('25 – 1\u00a0000');
+
+  await maximum.fill('100');
+  await expect(page.locator('.map-title p')).toContainText('2 / 4');
+  await expect(page.locator('.member-filter legend')).toContainText('25 – 100');
+
+  await minimum.fill('1000');
+  await expect(page.locator('.map-title p')).toContainText('1 / 4');
+  await expect(page.locator('.member-filter legend')).toContainText('1\u00a0000 – 1\u00a0000');
+
+  await maximum.fill('0');
+  await expect(page.locator('.map-title p')).toContainText('1 / 4');
+  await expect(page.locator('.member-filter legend')).toContainText('0 – 0');
+
+  await minimum.fill('0');
+  await maximum.fill('1000');
+  await expect(page.locator('.map-title p')).toContainText('4 / 4');
+});
+
+test('vote totals are shown by membership band, including zero votes for zero members', async ({ page }) => {
+  await load(page);
+  const chart = page.locator('.chart-card').filter({ has: page.getByRole('heading', { name: 'Äänimäärä jäsenmääräluokittain' }) });
+  await expect(chart.locator('.bar-label')).toHaveText([
+    'Ei jäseniä (1)', 'Jäseniä 1–99 (1)', 'Jäseniä 100–299 (1)', 'Jäseniä 300–499 (0)', 'Jäseniä 500+ (1)',
+  ]);
+  await expect(chart.locator('.bar-value')).toHaveText(['0', '10', '15', '0', '25']);
+  const membershipChart = page.locator('.chart-card').filter({ has: page.getByRole('heading', { name: 'Jäsenmäärän jakauma' }) });
+  const membershipBarColor = await membershipChart.locator('.bar-track > span').first().evaluate((bar) => getComputedStyle(bar).backgroundColor);
+  const votingBarColor = await chart.locator('.bar-track > span').first().evaluate((bar) => getComputedStyle(bar).backgroundColor);
+  expect(votingBarColor).toBe(membershipBarColor);
+});
+
+test('province comparison and map overlay settings are data-driven and persist', async ({ page }) => {
+  await load(page);
+  const comparison = page.getByRole('region', { name: 'Maakuntavertailu' });
+  await expect(comparison.locator('.province-ranking-row')).toHaveCount(10);
+  await comparison.getByLabel('Näytä').selectOption('all');
+  await expect(comparison.locator('.province-ranking-row')).toHaveCount(19);
+  await comparison.getByLabel('Mittari').selectOption('population');
+  await comparison.getByLabel('Hae maakuntaa').fill('uusimaa');
+  await expect(comparison.locator('.province-ranking-row')).toHaveCount(1);
+  await expect(comparison).toContainText('Uusimaa');
+
+  const overlay = page.locator('.province-overlay-controls');
+  await expect(overlay).toHaveJSProperty('open', false);
+  await overlay.locator(':scope > summary').click();
+  const showRegions = page.getByLabel('Näytä maakunnat');
+  await expect(showRegions).toBeChecked();
+  await expect(page.locator('.province-fill').first()).toBeVisible();
+  await page.getByLabel('Maakuntatason peittävyys').fill('72');
+  await expect(page.getByText('72 %')).toBeVisible();
+  await page.getByLabel('Näytä maakuntarajat').uncheck();
+  await showRegions.uncheck();
+  await page.reload();
+  await expect(page.locator('.province-overlay-controls')).toHaveJSProperty('open', false);
+  await page.locator('.province-overlay-controls > summary').click();
+  await expect(page.getByLabel('Maakuntatason peittävyys')).toHaveValue('72');
+  await expect(page.getByLabel('Näytä maakuntarajat')).not.toBeChecked();
+  await expect(page.getByLabel('Näytä maakunnat')).not.toBeChecked();
+});
+
+test('hovering a municipality shows its name and province and highlights it gray', async ({ page }) => {
+  await load(page);
+  const municipality = page.locator('.province-fill.municipality-698');
+  await expect(municipality).toHaveCount(1);
+  await municipality.scrollIntoViewIfNeeded();
+  const target = await municipality.evaluate((element) => {
+    const path = element as SVGPathElement;
+    const bounds = path.getBBox();
+    const matrix = path.getScreenCTM();
+    if (!matrix) throw new Error('Municipality path is not rendered.');
+    for (let row = 1; row < 20; row += 1) {
+      for (let column = 1; column < 20; column += 1) {
+        const point = new DOMPoint(bounds.x + bounds.width * column / 20, bounds.y + bounds.height * row / 20);
+        if (path.isPointInFill(point)) {
+          const screenPoint = point.matrixTransform(matrix);
+          return { x: screenPoint.x, y: screenPoint.y };
+        }
+      }
+    }
+    throw new Error('Could not find a point inside the municipality path.');
+  });
+  await page.mouse.move(target.x, target.y);
+
+  const tooltip = page.locator('.leaflet-tooltip');
+  await expect(tooltip).toContainText('Kunta: Rovaniemi');
+  await expect(tooltip).toContainText('Alue: Lappi');
+  await expect.poll(() => municipality.evaluate((element) => getComputedStyle(element).fill)).toBe('rgb(100, 116, 139)');
+});
+
+test('homepage map controls and legend start collapsed and share voting colors', async ({ page }) => {
+  await load(page);
+  const overlay = page.locator('.province-overlay-controls');
+  const legend = page.locator('.map-key');
+  await expect(overlay).toHaveJSProperty('open', false);
+  await expect(legend).toHaveJSProperty('open', false);
+  await expect(overlay.getByLabel('Maakuntatason peittävyys')).toBeHidden();
+
+  const swatches = legend.locator('.vote-key i');
+  await expect(swatches.nth(0)).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+  await expect(swatches.nth(1)).toHaveCSS('background-color', 'rgb(37, 99, 235)');
+  await expect(swatches.nth(2)).toHaveCSS('background-color', 'rgb(245, 158, 11)');
+  await expect(swatches.nth(3)).toHaveCSS('background-color', 'rgb(22, 163, 74)');
+  await expect(swatches.nth(4)).toHaveCSS('background-color', 'rgb(220, 38, 38)');
+
+  await overlay.locator(':scope > summary').click();
+  await expect(overlay).toHaveJSProperty('open', true);
+  await expect(page.getByLabel('Maakuntatason peittävyys')).toBeVisible();
+  await overlay.locator(':scope > summary').click();
+  await legend.locator('summary').click();
+  await expect(overlay).toHaveJSProperty('open', false);
+  await expect(legend).toHaveJSProperty('open', true);
 });
 
 test('keyboard marker and list selection, extensible details and focus restoration', async ({ page }) => {
@@ -74,6 +377,34 @@ test('keyboard marker and list selection, extensible details and focus restorati
   await expect(page.locator('#club-detail-title')).toHaveText('Testiseura 3');
 });
 
+test('public contact fields have a dedicated panel and archived clubs are excluded', async ({ page }) => {
+  const data = fixture([
+    club(1, {
+      seura: 'Yhteystietoseura ry',
+      contact: {
+        name: 'Yhteyshenkilö',
+        email: 'seura@example.fi',
+        phone: '+358 40 123 4567',
+        website: 'https://example.fi',
+        instagram: 'https://www.instagram.com/esimerkkiseura/',
+        tiktok: '',
+        public: true,
+      },
+    }),
+    club(2, { seura: 'Arkistoitu seura', archived: true }),
+  ]);
+  await page.route('**/api/clubs.php', (route) => route.fulfill({ json: data }));
+  await page.goto('/koodi0004/');
+  await expect(page.locator('.map-title p')).toContainText('1 / 1');
+  await expect(page.locator('.club-results')).not.toContainText('Arkistoitu seura');
+  await page.locator('.club-result').first().click();
+  const contacts = page.getByRole('region', { name: 'Yhteystiedot' });
+  await expect(contacts).toContainText('Yhteyshenkilö');
+  await expect(contacts.getByRole('link', { name: 'seura@example.fi' })).toHaveAttribute('href', 'mailto:seura%40example.fi');
+  await expect(contacts.getByRole('link', { name: '+358 40 123 4567' })).toHaveAttribute('href', 'tel:+358401234567');
+  await expect(contacts.getByRole('link', { name: 'https://www.instagram.com/esimerkkiseura/' })).toHaveAttribute('href', 'https://www.instagram.com/esimerkkiseura/');
+});
+
 test('coincident clubs cluster and expand with keyboard navigation', async ({ page }) => {
   await load(page, fixture(smallData.data.slice(0, 3)));
   const cluster = page.locator('.club-cluster').first();
@@ -81,22 +412,22 @@ test('coincident clubs cluster and expand with keyboard navigation', async ({ pa
   await cluster.focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('.club-marker')).toHaveCount(3);
-  await expect(page.locator('.leaflet-overlay-pane path')).toHaveCount(3);
+  await expect(page.locator('.map-section .leaflet-overlay-pane path:not(.province-fill):not(.province-border)')).toHaveCount(3);
   await expect(cluster).toHaveAttribute('tabindex', '-1');
   await expect(cluster).toHaveAttribute('aria-hidden', 'true');
 });
 
-test('600 clubs, stale metadata and future member/vote values adapt automatically', async ({ page }) => {
-  const data = fixture(Array.from({ length: 600 }, (_, index) => club(index, { aanimaara: index % 4 ? 10 : 30 })), 185);
+test('600 clubs and stale metadata adapt while voting power stays within the defined bands', async ({ page }) => {
+  const data = fixture(Array.from({ length: 600 }, (_, index) => club(index)), 185);
   const start = Date.now();
   await load(page, data);
   await expect(page.locator('.data-warning')).toContainText('600');
-  await expect(page.locator('.metric-value').first()).toContainText('600 seuraa');
-  await expect(page.locator('.metric-value').nth(1)).toContainText('179 700');
+  await expect(page.getByRole('region', { name: 'Seurat' }).locator('.metric-value').first()).toContainText('600 seuraa');
+  await expect(page.getByRole('region', { name: 'Jäsenmäärät' }).locator('.metric-value').first()).toContainText('179 700');
   await expect(page.locator('.club-result')).toHaveCount(12);
   await page.getByRole('button', { name: 'Näytä lisää seuroja' }).click();
   await expect(page.locator('.club-result')).toHaveCount(24);
-  await expect(page.locator('#vote-filter option[value=\"30\"]')).toHaveCount(1);
+  await expect(page.locator('#vote-filter option')).toHaveCount(6);
   const represented = await page.evaluate(() =>
     [...document.querySelectorAll('.club-cluster')].reduce((sum, cluster) => sum + Number.parseInt(cluster.textContent ?? '0'), 0)
       + document.querySelectorAll('.club-marker').length,
@@ -111,26 +442,28 @@ test('partial data, safe text and empty datasets remain usable', async ({ page }
     seura: '<img src=x onerror=alert(1)>', website: 'javascript:alert(1)', constructor: 'custom field',
   })]));
   await expect(page.locator('.map-title p')).toContainText('0 kartalla');
-  await expect(page.locator('.metric-value').nth(2)).toContainText('Ei tietoa');
+  await expect(page.getByRole('region', { name: 'Jäsenmäärät' }).locator('.metric-value').nth(1)).toContainText('Ei tietoa');
   await page.locator('.club-result').click();
   await expect(page.locator('#club-detail-title')).toHaveText('<img src=x onerror=alert(1)>');
   await expect(page.locator('.club-detail img')).toHaveCount(0);
   await expect(page.locator('.club-detail a')).toHaveCount(0);
   await expect(page.locator('.detail-fields')).toContainText('custom field');
-  await load(page, fixture([]));
+  await page.route('**/api/clubs.php', (route) => route.fulfill({ json: fixture([]) }));
+  await page.reload();
+  await expect(page.locator('.map-title p')).toContainText('0 /');
   await expect(page.locator('.data-warning')).toContainText('ei ole vielä seuroja');
-  await expect(page.locator('.metric-value').first()).toContainText('0 seuraa');
+  await expect(page.getByRole('region', { name: 'Seurat' }).locator('.metric-value').first()).toContainText('0 seuraa');
 });
 
 test('failed data load can be retried; tile failures are explicit', async ({ page }) => {
   let attempts = 0;
-  await page.route('**/jsondb/seurat.json', (route) => {
+  await page.route('**/api/clubs.php', (route) => {
     attempts++;
     return attempts === 1 ? route.fulfill({ status: 503, body: '' }) : route.fulfill({ json: smallData });
   });
   await page.route('https://*.tile.openstreetmap.org/**', (route) => route.abort());
   await page.goto('/koodi0004/');
-  await expect(page.getByRole('alert')).toContainText('503');
+  await expect(page.locator('.error-banner')).toContainText('503');
   await page.getByRole('button', { name: 'Yritä uudelleen' }).click();
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
   await expect(page.locator('.tile-error')).toBeVisible();
@@ -140,17 +473,44 @@ test('loading is announced and reduced-motion preferences are respected', async 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   let release: () => void = () => {};
   const pending = new Promise<void>((resolve) => { release = resolve; });
-  await page.route('**/jsondb/seurat.json', async (route) => {
+  await page.route('**/api/clubs.php', async (route) => {
     await pending;
     await route.fulfill({ json: smallData });
   });
   await page.goto('/koodi0004/');
   await expect(page.locator('.loading-state')).toBeVisible();
-  await expect(page.locator('.metric-card')).toHaveCount(0);
+  const clubMetrics = page.locator('.dashboard-metric-sections .metric-card');
+  await expect(clubMetrics).toHaveCount(0);
+  const mapControls = page.locator('.dashboard-map-controls');
+  await expect(mapControls).toBeVisible();
+  await expect(mapControls).not.toHaveAttribute('open', '');
+  await mapControls.locator(':scope > summary').click();
+  await expect(page.locator('.dashboard-competition-overview')).toBeVisible();
+  await expect(page.getByTestId('competition-total')).toBeVisible();
   release();
   await expect(page.locator('.map-title p')).toContainText('4 / 4');
-  await expect(page.locator('.leaflet-fade-anim')).toHaveCount(0);
+  await expect(clubMetrics).toHaveCount(9);
+  await expect(page.locator('.map-section .leaflet-fade-anim')).toHaveCount(0);
   await expect(page.locator('.loading-state')).toHaveCount(0);
+});
+
+test('mobile map fitting keeps cluster targets clear of attribution after load and reset', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await load(page, fixture(smallData.data.map((record, index) => index < 3 ? { ...record, latitude: 59.6 } : record)));
+  const targetsHaveSpace = () => page.evaluate(() => {
+    const canvas = document.querySelector('.map-section .map-canvas')!.getBoundingClientRect();
+    const attribution = document.querySelector('.map-section .leaflet-control-attribution')!.getBoundingClientRect();
+    const clusters = [...document.querySelectorAll('.club-cluster')];
+    return clusters.length > 0 && clusters.every((cluster) => {
+      const bounds = cluster.getBoundingClientRect();
+      return bounds.top >= canvas.top && bounds.bottom + 8 <= attribution.top
+        && bounds.left >= canvas.left && bounds.right <= canvas.right;
+    });
+  });
+  await expect.poll(targetsHaveSpace).toBe(true);
+  await page.locator('.map-section').getByRole('button', { name: 'Näytä Suomi' }).click();
+  await expect.poll(targetsHaveSpace).toBe(true);
 });
 
 for (const width of [1440, 390, 320]) {
@@ -158,6 +518,24 @@ for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await load(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const regionSummary = page.locator('.matrix-region-table');
+    await regionSummary.focus();
+    await expect(regionSummary).toBeFocused();
+    if (width <= 650) {
+      const legend = page.locator('.map-key');
+      const summary = legend.locator('summary');
+      await expect(legend).toHaveJSProperty('open', false);
+      await summary.focus();
+      await summary.press('Enter');
+      await expect(legend).toHaveJSProperty('open', true);
+      expect(await page.evaluate(() => {
+        const canvasBounds = document.querySelector('.map-canvas')!.getBoundingClientRect();
+        const legendBounds = document.querySelector('.map-key')!.getBoundingClientRect();
+        return legendBounds.top >= canvasBounds.bottom;
+      })).toBe(true);
+      await summary.press('Enter');
+      await expect(legend).toHaveJSProperty('open', false);
+    }
     for (const theme of ['dark', 'light']) {
       if (theme === 'light') await page.getByRole('button', { name: 'Vaihda vaaleaan tilaan' }).click();
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
